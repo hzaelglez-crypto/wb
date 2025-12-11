@@ -1,897 +1,1653 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WorkBook App – v0.2</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaktLab – Cycle Time & Capacity Analyzer</title>
 
-  <style>
-    :root{
-      --bg-main:#07152b;
-      --bg-card:#0b1f3a;
-      --bg-card-soft:#0f2544;
-      --accent-green:#00c853;
-      --accent-amber:#ffb300;
-      --accent-red:#ff1744;
-      --accent-blue:#29b6f6;
-      --accent-grey:#cfd8dc;
-      --text-main:#ffffff;
-      --text-soft:#c5cae9;
-      --text-muted:#90a4ae;
-      --border-soft:#1c3357;
-      --btn-green:#00c853;
-      --btn-orange:#ff9100;
-      --btn-grey:#455a64;
-    }
+<style>
+/* ================= ROOT ================= */
+:root{
+  --bg-main:#07152b;
+  --bg-card:#0b1f3a;
+  --bg-card-soft:#0f2544;
+  --accent-green:#00c853;
+  --accent-amber:#ffb300;
+  --accent-red:#ff1744;
+  --accent-blue:#29b6f6;
+  --accent-grey:#cfd8dc;
+  --text-main:#ffffff;
+  --text-soft:#c5cae9;
+  --text-muted:#90a4ae;
+  --border-soft:#1c3357;
+  --btn-green:#00c853;
+  --btn-orange:#ff9100;
+  --btn-grey:#455a64;
+}
 
-    *{
-      box-sizing:border-box;
-    }
+*{box-sizing:border-box;}
 
-    body{
-      margin:0;
-      background:var(--bg-main);
-      font-family:Arial, sans-serif;
-      color:var(--text-main);
-    }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:linear-gradient(180deg,#020b1a 0%,#07152b 40%,#020b1a 100%);
+  color:var(--text-main);
+}
 
-    .topbar{
-      position:fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:60px;
-      background:var(--bg-card);
-      border-bottom:1px solid var(--border-soft);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 20px;
-      font-size:18px;
-      font-weight:bold;
-      z-index:100;
-    }
+.page{
+  max-width:1100px;
+  margin:0 auto;
+  padding:12px 10px 40px;
+}
 
-    .topbar-title{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+/* ================= TABS ================= */
+.tabs{
+  display:flex;
+  gap:8px;
+  margin:6px 0 10px;
+}
+.tab-btn{
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--border-soft);
+  background:rgba(2,11,26,.6);
+  color:var(--text-soft);
+  font-size:.78rem;
+  font-weight:700;
+  cursor:pointer;
+}
+.tab-btn.active{
+  background:var(--accent-blue);
+  color:#fff;
+  border-color:var(--accent-blue);
+}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
 
-    .topbar-pill{
-      font-size:12px;
-      padding:3px 8px;
-      border-radius:999px;
-      background:rgba(41,182,246,0.1);
-      border:1px solid var(--accent-blue);
-      color:var(--accent-blue);
-      font-weight:normal;
-    }
+/* ================= STICKY TIMER ================= */
+.sticky-timer-bar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:linear-gradient(180deg,#020b1a 0%,#07152b 90%);
+  padding:8px 0 10px;
+}
 
-    .lang-toggle{
-      display:flex;
-      gap:4px;
-      align-items:center;
-      font-size:12px;
-      color:var(--text-soft);
-    }
+.top-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
 
-    .lang-btn{
-      border-radius:999px;
-      border:1px solid var(--border-soft);
-      background:var(--bg-card-soft);
-      color:var(--text-soft);
-      padding:2px 8px;
-      font-size:11px;
-      cursor:pointer;
-    }
+.logo-circle{
+  width:38px;height:38px;border-radius:50%;
+  border:2px solid var(--accent-grey);
+  display:flex;align-items:center;justify-content:center;
+}
+.logo-gear{
+  width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--accent-grey);
+}
+.logo-gear.spinning{
+  animation:spin 1.2s linear infinite;
+}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
-    .lang-btn.active{
-      border-color:var(--accent-blue);
-      color:var(--accent-blue);
-    }
+.title-main{font-size:1.2rem;font-weight:700;}
+.title-sub{font-size:.72rem;color:var(--text-soft);}
 
-    .subnav{
-      position:fixed;
-      top:60px;
-      left:0;
-      width:100%;
-      background:var(--bg-main);
-      border-bottom:1px solid var(--border-soft);
-      padding:6px 12px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      z-index:90;
-    }
+.timer-card{
+  background:var(--bg-card);
+  border-radius:18px;
+  border:1px solid var(--border-soft);
+  padding:6px 10px 10px;
+}
+.timer-display{
+  text-align:center;
+  font-size:2.6rem;
+  letter-spacing:.08em;
+}
+.sample-info{
+  font-size:.75rem;
+  margin:4px 0 6px;
+  padding:4px 8px;
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  color:var(--text-soft);
+}
 
-    .subnav a{
-      text-decoration:none;
-      font-size:13px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--border-soft);
-      color:var(--text-soft);
-      background:rgba(11,31,58,0.9);
-      cursor:pointer;
-    }
+.btn-row-main{display:flex;gap:10px;}
+.btn{
+  flex:1;
+  border:none;
+  border-radius:16px;
+  padding:10px;
+  font-weight:700;
+  cursor:pointer;
+  color:#fff;
+}
+.btn-start{background:var(--btn-green);}
+.btn-lap{background:var(--btn-orange);}
 
-    .subnav a:hover{
-      border-color:var(--accent-blue);
-      color:var(--accent-blue);
-    }
+.flash{animation:flash-bg .12s ease-out;}
+@keyframes flash-bg{
+  from{background:rgba(255,255,255,.2);}
+  to{background:transparent;}
+}
 
-    .subnav a.primary{
-      border-color:var(--accent-blue);
-      color:var(--accent-blue);
-    }
+/* ================= SECTIONS ================= */
+.section-card{
+  background:var(--bg-card);
+  border-radius:18px;
+  border:1px solid var(--border-soft);
+  padding:12px;
+  margin-bottom:10px;
+}
+.section-title{
+  font-size:.9rem;
+  font-weight:700;
+  margin-bottom:6px;
+}
 
-    .page{
-      margin-top:108px;
-      padding:16px 16px 32px 16px;
-      max-width:1320px;
-      margin-left:auto;
-      margin-right:auto;
-    }
+/* ================= WB ================= */
+.wb-kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  margin-bottom:10px;
+}
+.wb-kpi{
+  background:var(--bg-card-soft);
+  border:1px solid var(--border-soft);
+  border-radius:14px;
+  padding:10px;
+}
+.wb-kpi .label{
+  font-size:.7rem;color:var(--text-muted);
+}
+.wb-kpi .value{
+  font-size:1.05rem;font-weight:800;
+}
 
-    .section{
-      margin-top:20px;
-    }
-
-    .section h2{
-      font-size:20px;
-      margin:0 0 10px 0;
-      color:var(--accent-blue);
-    }
-
-    .section-desc{
-      font-size:13px;
-      color:var(--text-muted);
-      margin-bottom:10px;
-    }
-
-    .card{
-      background:var(--bg-card-soft);
-      padding:16px;
-      border-radius:10px;
-      border:1px solid var(--border-soft);
-    }
-
-    .card h3{
-      margin:0 0 8px 0;
-      font-size:16px;
-      color:var(--accent-blue);
-    }
-
-    .value{
-      font-size:24px;
-      font-weight:bold;
-      margin-top:6px;
-    }
-
-    .green{color:var(--accent-green);}
-    .amber{color:var(--accent-amber);}
-    .red{color:var(--accent-red);}
-
-    .grid-2{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
-      gap:16px;
-    }
-
-    .grid-3{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
-      gap:16px;
-    }
-
-    .grid-4{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
-      gap:16px;
-    }
-
-    .table-wrapper{
-      overflow:auto;
-      border-radius:8px;
-      border:1px solid var(--border-soft);
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:12px;
-    }
-
-    thead{
-      background:var(--bg-card);
-    }
-
-    th, td{
-      padding:6px 8px;
-      text-align:left;
-      border-bottom:1px solid #102545;
-    }
-
-    th{
-      color:var(--text-soft);
-      font-weight:bold;
-    }
-
-    tr:nth-child(even) td{
-      background:#0c1b33;
-    }
-
-    .tag{
-      display:inline-block;
-      padding:2px 6px;
-      border-radius:999px;
-      font-size:11px;
-      border:1px solid var(--border-soft);
-      color:var(--text-soft);
-    }
-
-    .tag.ok{border-color:var(--accent-green);color:var(--accent-green);}
-    .tag.warn{border-color:var(--accent-amber);color:var(--accent-amber);}
-    .tag.bad{border-color:var(--accent-red);color:var(--accent-red);}
-
-    .btn-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:10px;
-    }
-
-    .btn{
-      font-size:12px;
-      padding:6px 10px;
-      border-radius:6px;
-      border:none;
-      cursor:pointer;
-      background:var(--btn-grey);
-      color:#fff;
-    }
-
-    .btn-green{background:var(--btn-green);}
-    .btn-orange{background:var(--btn-orange);}
-    .btn-red{background:var(--accent-red);}
-
-    .btn:disabled{
-      opacity:0.5;
-      cursor:default;
-    }
-
-    .chart-placeholder{
-      height:180px;
-      border-radius:8px;
-      border:1px dashed #234;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:12px;
-      color:var(--text-muted);
-      margin-top:8px;
-    }
-
-    .form-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:8px;
-      align-items:flex-end;
-    }
-
-    .form-field{
-      display:flex;
-      flex-direction:column;
-      flex:1 1 120px;
-      min-width:120px;
-    }
-
-    .form-label{
-      font-size:11px;
-      color:var(--text-soft);
-      margin-bottom:2px;
-    }
-
-    .form-input{
-      padding:6px 8px;
-      border-radius:6px;
-      border:1px solid var(--border-soft);
-      background:#07152b;
-      color:var(--text-main);
-      font-size:12px;
-    }
-
-    .form-input:focus{
-      outline:none;
-      border-color:var(--accent-blue);
-    }
-
-    @media(max-width:600px){
-      .topbar{font-size:15px;}
-    }
-  </style>
+.wb-table-wrap{
+  max-height:360px;
+  overflow:auto;
+  border-radius:14px;
+  border:1px solid var(--border-soft);
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.75rem;
+}
+th,td{
+  padding:6px 8px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  text-align:right;
+}
+th:first-child,td:first-child{text-align:left;}
+</style>
 </head>
+
 <body>
+<div class="page">
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <div class="topbar-title">
-      <span data-es="WorkBook App" data-en="WorkBook App">WorkBook App</span>
-      <span class="topbar-pill" data-es="v0.2 · Layout + Captura" data-en="v0.2 · Layout + Input">
-        v0.2 · Layout + Captura
-      </span>
-    </div>
-    <div class="lang-toggle">
-      <span data-es="Idioma" data-en="Language">Idioma</span>
-      <button class="lang-btn active" data-lang-btn="es">ES</button>
-      <button class="lang-btn" data-lang-btn="en">EN</button>
+<!-- ================= TIMER ================= -->
+<div class="sticky-timer-bar">
+  <div class="top-row">
+    <div class="logo-circle"><div class="logo-gear" id="logoGear"></div></div>
+    <div>
+      <div class="title-main">TaktLab</div>
+      <div class="title-sub">Cycle Time & Capacity Analyzer</div>
     </div>
   </div>
 
-  <!-- SUBNAV -->
-  <div class="subnav">
-    <a href="#dashboard" class="primary" data-es="Dashboard" data-en="Dashboard">Dashboard</a>
-    <a href="#timestudy" data-es="Timestudy" data-en="Timestudy">Timestudy</a>
-    <a href="#capacity" data-es="Capacidad" data-en="Capacity">Capacidad</a>
-    <a href="#stability" data-es="Estabilidad" data-en="Stability">Estabilidad</a>
-    <a href="#constraints" data-es="Restricciones" data-en="Constraints">Restricciones</a>
-    <a href="#actions" data-es="Plan de Acción" data-en="Action Plan">Plan de Acción</a>
-    <a href="#evidence" data-es="Evidencia" data-en="Evidence">Evidencia</a>
-    <a href="#report" data-es="Reporte" data-en="Report">Reporte</a>
+  <div class="timer-card" id="timerCard">
+    <div class="timer-display" id="display">00:00.00</div>
+    <div class="sample-info" id="sampleInfo">
+      No samples yet for current process.
+    </div>
+    <div class="btn-row-main">
+      <button class="btn btn-start" id="btnStart">Start</button>
+      <button class="btn btn-lap" id="btnLap">LAP</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TABS ================= -->
+<div class="tabs">
+  <button class="tab-btn active" id="tabTakt">TaktLab</button>
+  <button class="tab-btn" id="tabWB">WB (Scenarios)</button>
+</div>
+
+<!-- ================= TAKTLAB PANEL ================= -->
+<div class="tab-panel active" id="panelTakt">
+  <div class="section-card">
+    <div class="section-title">TaktLab Ready</div>
+    <div style="font-size:.8rem;color:var(--text-soft);">
+      Full TaktLab engine active. Continue measuring cycle times as usual.
+    </div>
+  </div>
+</div>
+
+<!-- ================= WB PANEL ================= -->
+<div class="tab-panel" id="panelWB">
+  <div class="section-card">
+    <div class="section-title">WB – Scenario Builder</div>
+    <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px;">
+      Analyze the full production line using scenarios (Actual / Best / Worst).
+    </div>
+
+    <div class="wb-kpis">
+      <div class="wb-kpi"><div class="label">Scenario Output</div><div class="value">—</div></div>
+      <div class="wb-kpi"><div class="label">Bottleneck</div><div class="value">—</div></div>
+      <div class="wb-kpi"><div class="label">Rolled Scrap</div><div class="value">—</div></div>
+      <div class="wb-kpi"><div class="label">Input Required</div><div class="value">—</div></div>
+    </div>
+
+    <div class="wb-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>#Machines</th>
+            <th>CT Actual</th>
+            <th>CT Best</th>
+            <th>CT Worst</th>
+            <th>Scrap %</th>
+            <th>Capacity / Day</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Example Op</td>
+            <td>1</td>
+            <td>45.0</td>
+            <td>40.0</td>
+            <td>55.0</td>
+            <td>5%</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ================= BASIC TIMER ================= */
+let running=false,startTime=0,elapsed=0,raf;
+const display=document.getElementById('display');
+const btnStart=document.getElementById('btnStart');
+const btnLap=document.getElementById('btnLap');
+const logo=document.getElementById('logoGear');
+const card=document.getElementById('timerCard');
+
+function format(ms){
+  const m=Math.floor(ms/60000);
+  const s=Math.floor((ms%60000)/1000);
+  const c=Math.floor((ms%1000)/10);
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'.'+String(c).padStart(2,'0');
+}
+function tick(){
+  elapsed=performance.now()-startTime;
+  display.textContent=format(elapsed);
+  raf=requestAnimationFrame(tick);
+}
+btnStart.onclick=()=>{
+  if(running){
+    cancelAnimationFrame(raf);
+    running=false;
+    btnStart.textContent='Start';
+    logo.classList.remove('spinning');
+  }else{
+    startTime=performance.now()-elapsed;
+    raf=requestAnimationFrame(tick);
+    running=true;
+    btnStart.textContent='Pause';
+    logo.classList.add('spinning');
+  }
+};
+btnLap.onclick=()=>{
+  if(navigator.vibrate) navigator.vibrate(35);
+  card.classList.add('flash');
+  setTimeout(()=>card.classList.remove('flash'),120);
+  elapsed=0;
+  startTime=performance.now();
+};
+
+/* ================= TABS ================= */
+const tabTakt=document.getElementById('tabTakt');
+const tabWB=document.getElementById('tabWB');
+const panelTakt=document.getElementById('panelTakt');
+const panelWB=document.getElementById('panelWB');
+
+tabTakt.onclick=()=>{
+  tabTakt.classList.add('active');
+  tabWB.classList.remove('active');
+  panelTakt.classList.add('active');
+  panelWB.classList.remove('active');
+};
+tabWB.onclick=()=>{
+  tabWB.classList.add('active');
+  tabTakt.classList.remove('active');
+  panelWB.classList.add('active');
+  panelTakt.classList.remove('active');
+};
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaktLab – Cycle Time & Capacity Analyzer</title>
+
+<style>
+:root{
+  --bg-main:#07152b;
+  --bg-card:#0b1f3a;
+  --bg-card-soft:#0f2544;
+  --accent-green:#00c853;
+  --accent-amber:#ffb300;
+  --accent-red:#ff1744;
+  --accent-blue:#29b6f6;
+  --accent-grey:#cfd8dc;
+  --text-main:#ffffff;
+  --text-soft:#c5cae9;
+  --text-muted:#90a4ae;
+  --border-soft:#1c3357;
+  --btn-green:#00c853;
+  --btn-orange:#ff9100;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#020b1a,#07152b,#020b1a);
+  color:var(--text-main);
+}
+.page{max-width:1100px;margin:0 auto;padding:12px 10px 40px;}
+
+.tabs{display:flex;gap:8px;margin:6px 0 10px;}
+.tab-btn{
+  padding:8px 14px;border-radius:999px;
+  border:1px solid var(--border-soft);
+  background:#020b1a;color:var(--text-soft);
+  font-weight:700;cursor:pointer;
+}
+.tab-btn.active{background:var(--accent-blue);color:#fff;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.section-card{
+  background:var(--bg-card);
+  border-radius:18px;border:1px solid var(--border-soft);
+  padding:12px;margin-bottom:10px;
+}
+.section-title{font-size:.9rem;font-weight:700;margin-bottom:6px;}
+
+.wb-kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;margin-bottom:10px;
+}
+.wb-kpi{
+  background:var(--bg-card-soft);
+  border:1px solid var(--border-soft);
+  border-radius:14px;padding:10px;
+}
+.wb-kpi .label{font-size:.7rem;color:var(--text-muted);}
+.wb-kpi .value{font-size:1.05rem;font-weight:800;}
+
+.wb-controls{display:flex;gap:8px;margin-bottom:8px;}
+.wb-controls button{
+  padding:8px 12px;border-radius:14px;
+  border:none;font-weight:700;cursor:pointer;
+}
+.btn-add{background:var(--accent-green);color:#000;}
+.btn-load{background:var(--accent-amber);color:#000;}
+.btn-reset{background:var(--accent-red);color:#fff;}
+
+table{width:100%;border-collapse:collapse;font-size:.75rem;}
+th,td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.05);text-align:right;}
+th:first-child,td:first-child{text-align:left;}
+input{
+  background:#020b1a;border:1px solid var(--border-soft);
+  border-radius:8px;padding:4px 6px;
+  color:var(--text-soft);font-size:.74rem;
+  width:90px;text-align:right;
+}
+input.name{width:140px;text-align:left;}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabTakt">TaktLab</button>
+  <button class="tab-btn" id="tabWB">WB (Scenarios)</button>
+</div>
+
+<div class="tab-panel active" id="panelTakt">
+  <div class="section-card">
+    <div class="section-title">TaktLab</div>
+    <div style="font-size:.8rem;color:var(--text-soft);">
+      TaktLab engine running. Capture laps as usual.
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panelWB">
+  <div class="section-card">
+    <div class="section-title">WB – Scenario Builder</div>
+
+    <div class="wb-controls">
+      <button class="btn-add" id="wbAdd">+ Add Operation</button>
+      <button class="btn-load" id="wbLoad">Load from TaktLab</button>
+      <button class="btn-reset" id="wbReset">Reset WB</button>
+    </div>
+
+    <div class="wb-kpis">
+      <div class="wb-kpi"><div class="label">Scenario Output</div><div class="value" id="wbOut">—</div></div>
+      <div class="wb-kpi"><div class="label">Bottleneck</div><div class="value" id="wbBottle">—</div></div>
+      <div class="wb-kpi"><div class="label">Rolled Scrap</div><div class="value" id="wbScrap">—</div></div>
+      <div class="wb-kpi"><div class="label">Input Required</div><div class="value" id="wbInput">—</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Operation</th>
+          <th>#Machines</th>
+          <th>CT Actual</th>
+          <th>CT Best</th>
+          <th>CT Worst</th>
+          <th>Scrap %</th>
+          <th>Cap / Day</th>
+        </tr>
+      </thead>
+      <tbody id="wbBody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ================= TABS ================= */
+const tabTakt=document.getElementById('tabTakt');
+const tabWB=document.getElementById('tabWB');
+const panelTakt=document.getElementById('panelTakt');
+const panelWB=document.getElementById('panelWB');
+
+tabTakt.onclick=()=>{tabTakt.classList.add('active');tabWB.classList.remove('active');panelTakt.classList.add('active');panelWB.classList.remove('active');};
+tabWB.onclick=()=>{tabWB.classList.add('active');tabTakt.classList.remove('active');panelWB.classList.add('active');panelTakt.classList.remove('active');};
+
+/* ================= TaktLab Data (mock for now) =================
+   In next parts we will hook this to real TaktLab stats */
+let taktStats = [
+  {process:'Op 10', median:45, p10:40, p90:55},
+  {process:'Op 20', median:52, p10:48, p90:65}
+];
+
+/* ================= WB ENGINE ================= */
+let wbRows=[];
+
+function addWBRow(data){
+  wbRows.push({
+    name:data?.name||'New Op',
+    machines:data?.machines||1,
+    ctA:data?.ctA||0,
+    ctB:data?.ctB||0,
+    ctW:data?.ctW||0,
+    scrap:data?.scrap||0
+  });
+  renderWB();
+}
+
+function renderWB(){
+  const body=document.getElementById('wbBody');
+  body.innerHTML='';
+  wbRows.forEach((r,i)=>{
+    const cap = r.ctA>0 ? (3600/r.ctA)*r.machines : 0;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input class="name" value="${r.name}" onchange="wbRows[${i}].name=this.value"></td>
+      <td><input type="number" value="${r.machines}" min="1" onchange="wbRows[${i}].machines=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctA}" onchange="wbRows[${i}].ctA=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctB}" onchange="wbRows[${i}].ctB=+this.value"></td>
+      <td><input type="number" value="${r.ctW}" onchange="wbRows[${i}].ctW=+this.value"></td>
+      <td><input type="number" value="${r.scrap}" onchange="wbRows[${i}].scrap=+this.value"></td>
+      <td>${cap?cap.toFixed(0):'—'}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* ================= WB Buttons ================= */
+document.getElementById('wbAdd').onclick=()=>addWBRow();
+document.getElementById('wbReset').onclick=()=>{wbRows=[];renderWB();};
+document.getElementById('wbLoad').onclick=()=>{
+  wbRows=[];
+  taktStats.forEach(t=>{
+    addWBRow({
+      name:t.process,
+      machines:1,
+      ctA:t.median,
+      ctB:t.p10,
+      ctW:t.p90,
+      scrap:0
+    });
+  });
+};
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaktLab – Cycle Time & Capacity Analyzer</title>
+
+<style>
+:root{
+  --bg-main:#07152b;
+  --bg-card:#0b1f3a;
+  --bg-card-soft:#0f2544;
+  --accent-green:#00c853;
+  --accent-amber:#ffb300;
+  --accent-red:#ff1744;
+  --accent-blue:#29b6f6;
+  --accent-grey:#cfd8dc;
+  --text-main:#ffffff;
+  --text-soft:#c5cae9;
+  --text-muted:#90a4ae;
+  --border-soft:#1c3357;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#020b1a,#07152b,#020b1a);
+  color:var(--text-main);
+}
+.page{max-width:1100px;margin:0 auto;padding:12px 10px 40px;}
+
+.tabs{display:flex;gap:8px;margin:6px 0 10px;}
+.tab-btn{
+  padding:8px 14px;border-radius:999px;
+  border:1px solid var(--border-soft);
+  background:#020b1a;color:var(--text-soft);
+  font-weight:700;cursor:pointer;
+}
+.tab-btn.active{background:var(--accent-blue);color:#fff;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.section-card{
+  background:var(--bg-card);
+  border-radius:18px;border:1px solid var(--border-soft);
+  padding:12px;margin-bottom:10px;
+}
+.section-title{font-size:.9rem;font-weight:700;margin-bottom:6px;}
+
+.wb-controls{display:flex;gap:8px;margin-bottom:8px;}
+.wb-controls button{
+  padding:8px 12px;border-radius:14px;
+  border:none;font-weight:700;cursor:pointer;
+}
+.btn-add{background:var(--accent-green);color:#000;}
+.btn-load{background:var(--accent-amber);color:#000;}
+.btn-reset{background:var(--accent-red);color:#fff;}
+
+.wb-kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;margin-bottom:10px;
+}
+.wb-kpi{
+  background:var(--bg-card-soft);
+  border:1px solid var(--border-soft);
+  border-radius:14px;padding:10px;
+}
+.wb-kpi .label{font-size:.7rem;color:var(--text-muted);}
+.wb-kpi .value{font-size:1.05rem;font-weight:800;}
+
+table{width:100%;border-collapse:collapse;font-size:.75rem;}
+th,td{
+  padding:6px 8px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  text-align:right;
+}
+th:first-child,td:first-child{text-align:left;}
+
+input{
+  background:#020b1a;border:1px solid var(--border-soft);
+  border-radius:8px;padding:4px 6px;
+  color:var(--text-soft);font-size:.74rem;
+  width:90px;text-align:right;
+}
+input.name{width:140px;text-align:left;}
+
+.bottleneck{
+  background:rgba(255,23,68,.18);
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabTakt">TaktLab</button>
+  <button class="tab-btn" id="tabWB">WB (Scenarios)</button>
+</div>
+
+<div class="tab-panel active" id="panelTakt">
+  <div class="section-card">
+    <div class="section-title">TaktLab</div>
+    <div style="font-size:.8rem;color:var(--text-soft);">
+      TaktLab engine running. Capture laps as usual.
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panelWB">
+  <div class="section-card">
+    <div class="section-title">WB – Scenario Builder</div>
+
+    <div class="wb-controls">
+      <button class="btn-add" id="wbAdd">+ Add Operation</button>
+      <button class="btn-load" id="wbLoad">Load from TaktLab</button>
+      <button class="btn-reset" id="wbReset">Reset WB</button>
+    </div>
+
+    <div class="wb-kpis">
+      <div class="wb-kpi">
+        <div class="label">Line Capacity (units/day)</div>
+        <div class="value" id="wbOut">—</div>
+      </div>
+      <div class="wb-kpi">
+        <div class="label">Bottleneck Operation</div>
+        <div class="value" id="wbBottle">—</div>
+      </div>
+      <div class="wb-kpi">
+        <div class="label">Rolled Scrap (%)</div>
+        <div class="value" id="wbScrap">—</div>
+      </div>
+      <div class="wb-kpi">
+        <div class="label">Input Required (units/day)</div>
+        <div class="value" id="wbInput">—</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Operation</th>
+          <th>#Machines</th>
+          <th>CT Actual (s)</th>
+          <th>CT Best</th>
+          <th>CT Worst</th>
+          <th>Scrap %</th>
+          <th>Cap / Day</th>
+        </tr>
+      </thead>
+      <tbody id="wbBody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ================= Tabs ================= */
+const tabTakt=document.getElementById('tabTakt');
+const tabWB=document.getElementById('tabWB');
+const panelTakt=document.getElementById('panelTakt');
+const panelWB=document.getElementById('panelWB');
+
+tabTakt.onclick=()=>{tabTakt.classList.add('active');tabWB.classList.remove('active');panelTakt.classList.add('active');panelWB.classList.remove('active');};
+tabWB.onclick=()=>{tabWB.classList.add('active');tabTakt.classList.remove('active');panelWB.classList.add('active');panelTakt.classList.remove('active');};
+
+/* ================= Mock TaktLab Stats ================= */
+let taktStats=[
+  {process:'Op 10', median:45, p10:40, p90:55},
+  {process:'Op 20', median:52, p10:48, p90:65},
+  {process:'Op 30', median:60, p10:55, p90:72}
+];
+
+/* ================= WB ENGINE ================= */
+const HOURS_PER_DAY = 8;
+let wbRows=[];
+
+function addWBRow(data){
+  wbRows.push({
+    name:data?.name||'New Op',
+    machines:data?.machines||1,
+    ctA:data?.ctA||0,
+    ctB:data?.ctB||0,
+    ctW:data?.ctW||0,
+    scrap:data?.scrap||0
+  });
+  renderWB();
+}
+
+function calcRolledScrap(){
+  let good=1;
+  wbRows.forEach(r=>{
+    const s=Math.max(0,Math.min(r.scrap,100))/100;
+    good*= (1-s);
+  });
+  return 1-good;
+}
+
+function renderWB(){
+  const body=document.getElementById('wbBody');
+  body.innerHTML='';
+
+  let lineCap=Infinity;
+  let bottle='—';
+
+  wbRows.forEach((r,i)=>{
+    const ctEff = r.ctA>0 ? r.ctA/r.machines : 0;
+    const capDay = ctEff>0 ? (3600/ctEff)*HOURS_PER_DAY : 0;
+
+    if(capDay>0 && capDay<lineCap){
+      lineCap=capDay;
+      bottle=r.name;
+    }
+
+    const tr=document.createElement('tr');
+    tr.className = (bottle===r.name)?'bottleneck':'';
+    tr.innerHTML=`
+      <td><input class="name" value="${r.name}" onchange="wbRows[${i}].name=this.value;renderWB()"></td>
+      <td><input type="number" min="1" value="${r.machines}" onchange="wbRows[${i}].machines=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctA}" onchange="wbRows[${i}].ctA=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctB}" onchange="wbRows[${i}].ctB=+this.value"></td>
+      <td><input type="number" value="${r.ctW}" onchange="wbRows[${i}].ctW=+this.value"></td>
+      <td><input type="number" value="${r.scrap}" onchange="wbRows[${i}].scrap=+this.value;renderWB()"></td>
+      <td>${capDay?capDay.toFixed(0):'—'}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  if(!isFinite(lineCap)) lineCap=0;
+
+  const rolledScrap = calcRolledScrap();
+  const inputReq = lineCap>0 ? lineCap/(1-rolledScrap) : 0;
+
+  document.getElementById('wbOut').textContent = lineCap?lineCap.toFixed(0):'—';
+  document.getElementById('wbBottle').textContent = bottle;
+  document.getElementById('wbScrap').textContent = (rolledScrap*100).toFixed(1)+'%';
+  document.getElementById('wbInput').textContent = inputReq?inputReq.toFixed(0):'—';
+}
+
+/* ================= Buttons ================= */
+document.getElementById('wbAdd').onclick=()=>addWBRow();
+document.getElementById('wbReset').onclick=()=>{wbRows=[];renderWB();};
+document.getElementById('wbLoad').onclick=()=>{
+  wbRows=[];
+  taktStats.forEach(t=>{
+    addWBRow({
+      name:t.process,
+      machines:1,
+      ctA:t.median,
+      ctB:t.p10,
+      ctW:t.p90,
+      scrap:0
+    });
+  });
+};
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaktLab – Cycle Time & Capacity Analyzer</title>
+
+<style>
+:root{
+  --bg-main:#07152b;
+  --bg-card:#0b1f3a;
+  --bg-card-soft:#0f2544;
+  --accent-green:#00c853;
+  --accent-amber:#ffb300;
+  --accent-red:#ff1744;
+  --accent-blue:#29b6f6;
+  --text-main:#ffffff;
+  --text-soft:#c5cae9;
+  --text-muted:#90a4ae;
+  --border-soft:#1c3357;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#020b1a,#07152b,#020b1a);
+  color:var(--text-main);
+}
+.page{max-width:1100px;margin:0 auto;padding:12px 10px 40px;}
+
+.tabs{display:flex;gap:8px;margin:6px 0 10px;}
+.tab-btn{
+  padding:8px 14px;border-radius:999px;
+  border:1px solid var(--border-soft);
+  background:#020b1a;color:var(--text-soft);
+  font-weight:700;cursor:pointer;
+}
+.tab-btn.active{background:var(--accent-blue);color:#fff;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.section-card{
+  background:var(--bg-card);
+  border-radius:18px;border:1px solid var(--border-soft);
+  padding:12px;margin-bottom:10px;
+}
+.section-title{font-size:.9rem;font-weight:700;margin-bottom:6px;}
+
+.wb-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.wb-controls button, .wb-controls select{
+  padding:8px 12px;border-radius:14px;
+  border:none;font-weight:700;cursor:pointer;
+}
+.btn-add{background:var(--accent-green);color:#000;}
+.btn-load{background:var(--accent-amber);color:#000;}
+.btn-reset{background:var(--accent-red);color:#fff;}
+.wb-controls select{
+  background:#020b1a;color:var(--text-soft);
+  border:1px solid var(--border-soft);
+}
+
+.wb-kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;margin-bottom:10px;
+}
+.wb-kpi{
+  background:var(--bg-card-soft);
+  border:1px solid var(--border-soft);
+  border-radius:14px;padding:10px;
+}
+.wb-kpi .label{font-size:.7rem;color:var(--text-muted);}
+.wb-kpi .value{font-size:1.05rem;font-weight:800;}
+
+table{width:100%;border-collapse:collapse;font-size:.75rem;}
+th,td{
+  padding:6px 8px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  text-align:right;
+}
+th:first-child,td:first-child{text-align:left;}
+input{
+  background:#020b1a;border:1px solid var(--border-soft);
+  border-radius:8px;padding:4px 6px;
+  color:var(--text-soft);font-size:.74rem;
+  width:90px;text-align:right;
+}
+input.name{width:140px;text-align:left;}
+.bottleneck{background:rgba(255,23,68,.18);}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabTakt">TaktLab</button>
+  <button class="tab-btn" id="tabWB">WB (Scenarios)</button>
+</div>
+
+<div class="tab-panel active" id="panelTakt">
+  <div class="section-card">
+    <div class="section-title">TaktLab</div>
+    <div style="font-size:.8rem;color:var(--text-soft);">
+      TaktLab engine running. Capture laps as usual.
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panelWB">
+  <div class="section-card">
+    <div class="section-title">WB – Scenario Builder</div>
+
+    <div class="wb-controls">
+      <button class="btn-add" id="wbAdd">+ Add Operation</button>
+      <button class="btn-load" id="wbLoad">Load from TaktLab</button>
+      <button class="btn-reset" id="wbReset">Reset WB</button>
+
+      <select id="wbScenario">
+        <option value="A">Scenario: Actual</option>
+        <option value="B">Scenario: Best</option>
+        <option value="W">Scenario: Worst</option>
+      </select>
+    </div>
+
+    <div class="wb-kpis">
+      <div class="wb-kpi">
+        <div class="label">Line Capacity (units/day)</div>
+        <div class="value" id="wbOut">—</div>
+      </div>
+      <div class="wb-kpi">
+        <div class="label">Bottleneck Operation</div>
+        <div class="value" id="wbBottle">—</div>
+      </div>
+      <div class="wb-kpi">
+        <div class="label">Rolled Scrap (%)</div>
+        <div class="value" id="wbScrap">—</div>
+      </div>
+      <div class="wb-kpi">
+        <div class="label">Input Required (units/day)</div>
+        <div class="value" id="wbInput">—</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Operation</th>
+          <th>#Machines</th>
+          <th>CT Actual</th>
+          <th>CT Best</th>
+          <th>CT Worst</th>
+          <th>Scrap %</th>
+          <th>Cap / Day</th>
+        </tr>
+      </thead>
+      <tbody id="wbBody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* Tabs */
+const tabTakt=document.getElementById('tabTakt');
+const tabWB=document.getElementById('tabWB');
+const panelTakt=document.getElementById('panelTakt');
+const panelWB=document.getElementById('panelWB');
+tabTakt.onclick=()=>{tabTakt.classList.add('active');tabWB.classList.remove('active');panelTakt.classList.add('active');panelWB.classList.remove('active');};
+tabWB.onclick=()=>{tabWB.classList.add('active');tabTakt.classList.remove('active');panelWB.classList.add('active');panelTakt.classList.remove('active');};
+
+/* Mock TaktLab Stats */
+let taktStats=[
+  {process:'Op 10', median:45, p10:40, p90:55},
+  {process:'Op 20', median:52, p10:48, p90:65},
+  {process:'Op 30', median:60, p10:55, p90:72}
+];
+
+const HOURS_PER_DAY=8;
+let wbRows=[];
+let scenario='A';
+
+function addWBRow(d){
+  wbRows.push({
+    name:d?.name||'New Op',
+    machines:d?.machines||1,
+    ctA:d?.ctA||0,
+    ctB:d?.ctB||0,
+    ctW:d?.ctW||0,
+    scrap:d?.scrap||0
+  });
+  renderWB();
+}
+
+function getCT(r){
+  if(scenario==='B') return r.ctB;
+  if(scenario==='W') return r.ctW;
+  return r.ctA;
+}
+
+function calcRolledScrap(){
+  let good=1;
+  wbRows.forEach(r=>{
+    const s=Math.max(0,Math.min(r.scrap,100))/100;
+    good*=(1-s);
+  });
+  return 1-good;
+}
+
+function renderWB(){
+  const body=document.getElementById('wbBody');
+  body.innerHTML='';
+  let lineCap=Infinity,bottle='—';
+
+  wbRows.forEach((r,i)=>{
+    const ct=getCT(r);
+    const ctEff=ct>0?ct/r.machines:0;
+    const capDay=ctEff>0?(3600/ctEff)*HOURS_PER_DAY:0;
+
+    if(capDay>0 && capDay<lineCap){
+      lineCap=capDay;
+      bottle=r.name;
+    }
+
+    const tr=document.createElement('tr');
+    tr.className=(bottle===r.name)?'bottleneck':'';
+    tr.innerHTML=`
+      <td><input class="name" value="${r.name}" onchange="wbRows[${i}].name=this.value;renderWB()"></td>
+      <td><input type="number" min="1" value="${r.machines}" onchange="wbRows[${i}].machines=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctA}" onchange="wbRows[${i}].ctA=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctB}" onchange="wbRows[${i}].ctB=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctW}" onchange="wbRows[${i}].ctW=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.scrap}" onchange="wbRows[${i}].scrap=+this.value;renderWB()"></td>
+      <td>${capDay?capDay.toFixed(0):'—'}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  if(!isFinite(lineCap)) lineCap=0;
+  const rolled=calcRolledScrap();
+  const input=lineCap>0?lineCap/(1-rolled):0;
+
+  document.getElementById('wbOut').textContent=lineCap?lineCap.toFixed(0):'—';
+  document.getElementById('wbBottle').textContent=bottle;
+  document.getElementById('wbScrap').textContent=(rolled*100).toFixed(1)+'%';
+  document.getElementById('wbInput').textContent=input?input.toFixed(0):'—';
+}
+
+/* Buttons */
+document.getElementById('wbAdd').onclick=()=>addWBRow();
+document.getElementById('wbReset').onclick=()=>{wbRows=[];renderWB();};
+document.getElementById('wbLoad').onclick=()=>{
+  wbRows=[];
+  taktStats.forEach(t=>addWBRow({
+    name:t.process,machines:1,
+    ctA:t.median,ctB:t.p10,ctW:t.p90,scrap:0
+  }));
+};
+document.getElementById('wbScenario').onchange=e=>{
+  scenario=e.target.value;
+  renderWB();
+};
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaktLab – Cycle Time & Capacity Analyzer</title>
+
+<style>
+:root{
+  --bg-main:#07152b;
+  --bg-card:#0b1f3a;
+  --bg-card-soft:#0f2544;
+  --accent-green:#00c853;
+  --accent-amber:#ffb300;
+  --accent-red:#ff1744;
+  --accent-blue:#29b6f6;
+  --text-main:#ffffff;
+  --text-soft:#c5cae9;
+  --text-muted:#90a4ae;
+  --border-soft:#1c3357;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#020b1a,#07152b,#020b1a);
+  color:var(--text-main);
+}
+.page{max-width:1100px;margin:0 auto;padding:12px 10px 40px;}
+
+.tabs{display:flex;gap:8px;margin:6px 0 10px;}
+.tab-btn{
+  padding:8px 14px;border-radius:999px;
+  border:1px solid var(--border-soft);
+  background:#020b1a;color:var(--text-soft);
+  font-weight:700;cursor:pointer;
+}
+.tab-btn.active{background:var(--accent-blue);color:#fff;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.section-card{
+  background:var(--bg-card);
+  border-radius:18px;border:1px solid var(--border-soft);
+  padding:12px;margin-bottom:10px;
+}
+.section-title{font-size:.9rem;font-weight:700;margin-bottom:6px;}
+
+.wb-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.wb-controls button, .wb-controls select{
+  padding:8px 12px;border-radius:14px;
+  border:none;font-weight:700;cursor:pointer;
+}
+.btn-add{background:var(--accent-green);color:#000;}
+.btn-load{background:var(--accent-amber);color:#000;}
+.btn-reset{background:var(--accent-red);color:#fff;}
+.wb-controls select{
+  background:#020b1a;color:var(--text-soft);
+  border:1px solid var(--border-soft);
+}
+
+.wb-kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;margin-bottom:10px;
+}
+.wb-kpi{
+  background:var(--bg-card-soft);
+  border:1px solid var(--border-soft);
+  border-radius:14px;padding:10px;
+}
+.wb-kpi .label{font-size:.7rem;color:var(--text-muted);}
+.wb-kpi .value{font-size:1.05rem;font-weight:800;}
+
+table{width:100%;border-collapse:collapse;font-size:.72rem;}
+th,td{
+  padding:6px 6px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  text-align:right;
+}
+th:first-child,td:first-child{text-align:left;}
+input{
+  background:#020b1a;border:1px solid var(--border-soft);
+  border-radius:8px;padding:4px 6px;
+  color:var(--text-soft);font-size:.72rem;
+  width:80px;text-align:right;
+}
+input.name{width:120px;text-align:left;}
+.bottleneck{background:rgba(255,23,68,.18);}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabTakt">TaktLab</button>
+  <button class="tab-btn" id="tabWB">WB (Scenarios)</button>
+</div>
+
+<div class="tab-panel active" id="panelTakt">
+  <div class="section-card">
+    <div class="section-title">TaktLab</div>
+    <div style="font-size:.8rem;color:var(--text-soft);">
+      TaktLab engine running.
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panelWB">
+  <div class="section-card">
+    <div class="section-title">WB – Scenario Builder</div>
+
+    <div class="wb-controls">
+      <button class="btn-add" id="wbAdd">+ Add Operation</button>
+      <button class="btn-load" id="wbLoad">Load from TaktLab</button>
+      <button class="btn-reset" id="wbReset">Reset WB</button>
+      <select id="wbScenario">
+        <option value="A">Scenario: Actual</option>
+        <option value="B">Scenario: Best</option>
+        <option value="W">Scenario: Worst</option>
+      </select>
+    </div>
+
+    <div class="wb-kpis">
+      <div class="wb-kpi"><div class="label">Line Capacity (units/day)</div><div class="value" id="wbOut">—</div></div>
+      <div class="wb-kpi"><div class="label">Bottleneck</div><div class="value" id="wbBottle">—</div></div>
+      <div class="wb-kpi"><div class="label">Rolled Scrap</div><div class="value" id="wbScrap">—</div></div>
+      <div class="wb-kpi"><div class="label">Input Required</div><div class="value" id="wbInput">—</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Operation</th>
+          <th>#M</th>
+          <th>CT A</th>
+          <th>CT B</th>
+          <th>CT W</th>
+          <th>Scrap %</th>
+          <th>Launch</th>
+          <th>CO</th>
+          <th>PM</th>
+          <th>CM</th>
+          <th>Other</th>
+          <th>Cap / Day</th>
+        </tr>
+      </thead>
+      <tbody id="wbBody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<script>
+const HOURS_PER_DAY=8;
+let scenario='A';
+
+let taktStats=[
+  {process:'Op 10', median:45, p10:40, p90:55},
+  {process:'Op 20', median:52, p10:48, p90:65},
+  {process:'Op 30', median:60, p10:55, p90:72}
+];
+
+let wbRows=[];
+
+/* Tabs */
+const tabTakt=document.getElementById('tabTakt');
+const tabWB=document.getElementById('tabWB');
+const panelTakt=document.getElementById('panelTakt');
+const panelWB=document.getElementById('panelWB');
+tabTakt.onclick=()=>{tabTakt.classList.add('active');tabWB.classList.remove('active');panelTakt.classList.add('active');panelWB.classList.remove('active');};
+tabWB.onclick=()=>{tabWB.classList.add('active');tabTakt.classList.remove('active');panelWB.classList.add('active');panelTakt.classList.remove('active');};
+
+function getCT(r){
+  if(scenario==='B') return r.ctB;
+  if(scenario==='W') return r.ctW;
+  return r.ctA;
+}
+
+function addWBRow(d){
+  wbRows.push({
+    name:d?.name||'New Op',
+    machines:d?.machines||1,
+    ctA:d?.ctA||0,
+    ctB:d?.ctB||0,
+    ctW:d?.ctW||0,
+    scrap:d?.scrap||0,
+    launch:0,co:0,pm:0,cm:0,other:0
+  });
+  renderWB();
+}
+
+function calcRolledScrap(){
+  let good=1;
+  wbRows.forEach(r=>{
+    const s=Math.max(0,Math.min(r.scrap,100))/100;
+    good*=(1-s);
+  });
+  return 1-good;
+}
+
+function renderWB(){
+  const body=document.getElementById('wbBody');
+  body.innerHTML='';
+  let lineCap=Infinity,bottle='—';
+
+  wbRows.forEach((r,i)=>{
+    const ct=getCT(r);
+    const lostMin=r.launch+r.co+r.pm+r.cm+r.other;
+    const availSec=Math.max(0,(HOURS_PER_DAY*3600)-(lostMin*60));
+    const cap=ct>0?(availSec/ct)*r.machines:0;
+
+    if(cap>0 && cap<lineCap){
+      lineCap=cap;
+      bottle=r.name;
+    }
+
+    const tr=document.createElement('tr');
+    tr.className=(bottle===r.name)?'bottleneck':'';
+    tr.innerHTML=`
+      <td><input class="name" value="${r.name}" onchange="wbRows[${i}].name=this.value;renderWB()"></td>
+      <td><input type="number" value="${r.machines}" min="1" onchange="wbRows[${i}].machines=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctA}" onchange="wbRows[${i}].ctA=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctB}" onchange="wbRows[${i}].ctB=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctW}" onchange="wbRows[${i}].ctW=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.scrap}" onchange="wbRows[${i}].scrap=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.launch}" onchange="wbRows[${i}].launch=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.co}" onchange="wbRows[${i}].co=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.pm}" onchange="wbRows[${i}].pm=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.cm}" onchange="wbRows[${i}].cm=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.other}" onchange="wbRows[${i}].other=+this.value;renderWB()"></td>
+      <td>${cap?cap.toFixed(0):'—'}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  if(!isFinite(lineCap)) lineCap=0;
+  const rolled=calcRolledScrap();
+  const input=lineCap>0?lineCap/(1-rolled):0;
+
+  document.getElementById('wbOut').textContent=lineCap?lineCap.toFixed(0):'—';
+  document.getElementById('wbBottle').textContent=bottle;
+  document.getElementById('wbScrap').textContent=(rolled*100).toFixed(1)+'%';
+  document.getElementById('wbInput').textContent=input?input.toFixed(0):'—';
+}
+
+/* Buttons */
+document.getElementById('wbAdd').onclick=()=>addWBRow();
+document.getElementById('wbReset').onclick=()=>{wbRows=[];renderWB();};
+document.getElementById('wbLoad').onclick=()=>{
+  wbRows=[];
+  taktStats.forEach(t=>addWBRow({
+    name:t.process,machines:1,
+    ctA:t.median,ctB:t.p10,ctW:t.p90,scrap:0
+  }));
+};
+document.getElementById('wbScenario').onchange=e=>{
+  scenario=e.target.value;
+  renderWB();
+};
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaktLab – Cycle Time & Capacity Analyzer</title>
+
+<style>
+:root{
+  --bg-main:#07152b;
+  --bg-card:#0b1f3a;
+  --bg-card-soft:#0f2544;
+  --accent-green:#00c853;
+  --accent-amber:#ffb300;
+  --accent-red:#ff1744;
+  --accent-blue:#29b6f6;
+  --text-main:#ffffff;
+  --text-soft:#c5cae9;
+  --text-muted:#90a4ae;
+  --border-soft:#1c3357;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#020b1a,#07152b,#020b1a);
+  color:var(--text-main);
+}
+.page{max-width:1200px;margin:0 auto;padding:12px 10px 40px;}
+
+.tabs{display:flex;gap:8px;margin:6px 0 10px;}
+.tab-btn{
+  padding:8px 14px;border-radius:999px;
+  border:1px solid var(--border-soft);
+  background:#020b1a;color:var(--text-soft);
+  font-weight:700;cursor:pointer;
+}
+.tab-btn.active{background:var(--accent-blue);color:#fff;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.section-card{
+  background:var(--bg-card);
+  border-radius:18px;border:1px solid var(--border-soft);
+  padding:12px;margin-bottom:10px;
+}
+.section-title{font-size:.95rem;font-weight:800;margin-bottom:6px;}
+
+.wb-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.wb-controls button, .wb-controls select{
+  padding:8px 12px;border-radius:14px;
+  border:none;font-weight:700;cursor:pointer;
+}
+.btn-add{background:var(--accent-green);color:#000;}
+.btn-load{background:var(--accent-amber);color:#000;}
+.btn-reset{background:var(--accent-red);color:#fff;}
+.btn-export{background:var(--accent-blue);color:#000;}
+.wb-controls select{
+  background:#020b1a;color:var(--text-soft);
+  border:1px solid var(--border-soft);
+}
+
+.wb-kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;margin-bottom:10px;
+}
+.wb-kpi{
+  background:var(--bg-card-soft);
+  border:1px solid var(--border-soft);
+  border-radius:14px;padding:10px;
+}
+.wb-kpi .label{font-size:.7rem;color:var(--text-muted);}
+.wb-kpi .value{font-size:1.1rem;font-weight:900;}
+
+table{width:100%;border-collapse:collapse;font-size:.72rem;}
+th,td{
+  padding:6px 6px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  text-align:right;
+}
+th:first-child,td:first-child{text-align:left;}
+input{
+  background:#020b1a;border:1px solid var(--border-soft);
+  border-radius:8px;padding:4px 6px;
+  color:var(--text-soft);font-size:.72rem;
+  width:80px;text-align:right;
+}
+input.name{width:120px;text-align:left;}
+.bottleneck{background:rgba(255,23,68,.18);}
+
+.method{
+  font-size:.75rem;
+  line-height:1.35;
+  color:var(--text-soft);
+}
+.method ul{margin:6px 0 6px 18px;padding:0;}
+.method li{margin-bottom:4px;}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabTakt">TaktLab</button>
+  <button class="tab-btn" id="tabWB">WB (Scenarios)</button>
+</div>
+
+<div class="tab-panel active" id="panelTakt">
+  <div class="section-card">
+    <div class="section-title">TaktLab</div>
+    <div style="font-size:.8rem;color:var(--text-soft);">
+      Measurement engine ready. Capture cycle times as usual.
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panelWB">
+  <div class="section-card">
+    <div class="section-title">WB – Scenario Builder</div>
+
+    <div class="wb-controls">
+      <button class="btn-add" id="wbAdd">+ Add Operation</button>
+      <button class="btn-load" id="wbLoad">Load from TaktLab</button>
+      <button class="btn-reset" id="wbReset">Reset WB</button>
+      <button class="btn-export" id="wbExport">Export WB</button>
+      <select id="wbScenario">
+        <option value="A">Scenario: Actual</option>
+        <option value="B">Scenario: Best</option>
+        <option value="W">Scenario: Worst</option>
+      </select>
+    </div>
+
+    <div class="wb-kpis">
+      <div class="wb-kpi"><div class="label">Line Capacity</div><div class="value" id="wbOut">—</div></div>
+      <div class="wb-kpi"><div class="label">Bottleneck</div><div class="value" id="wbBottle">—</div></div>
+      <div class="wb-kpi"><div class="label">Rolled Scrap</div><div class="value" id="wbScrap">—</div></div>
+      <div class="wb-kpi"><div class="label">Input Required</div><div class="value" id="wbInput">—</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Operation</th>
+          <th>#M</th>
+          <th>CT A</th>
+          <th>CT B</th>
+          <th>CT W</th>
+          <th>Scrap %</th>
+          <th>Launch</th>
+          <th>CO</th>
+          <th>PM</th>
+          <th>CM</th>
+          <th>Other</th>
+          <th>Cap/Day</th>
+        </tr>
+      </thead>
+      <tbody id="wbBody"></tbody>
+    </table>
   </div>
 
-  <!-- PAGE -->
-  <div class="page">
-
-    <!-- DASHBOARD -->
-    <section id="dashboard" class="section">
-      <h2 data-es="Dashboard – Overview" data-en="Dashboard – Overview">Dashboard – Overview</h2>
-      <div class="section-desc" data-es="Resumen ejecutivo del proceso: capacidad, cuellos de botella, variabilidad y avance de acciones."
-           data-en="Executive overview: capacity, bottleneck, variability and action-plan progress.">
-        Resumen ejecutivo del proceso: capacidad, cuellos de botella, variabilidad y avance de acciones.
-      </div>
-      <div class="grid-4">
-        <div class="card">
-          <h3 data-es="Capacidad Requerida vs Demostrada" data-en="Required vs Demonstrated Capacity">
-            Capacidad Requerida vs Demostrada
-          </h3>
-          <div class="value amber" id="db-capacity">--%</div>
-          <div class="section-desc" data-es="Objetivo: ≥ 100% sostenido." data-en="Target: ≥ 100% sustained.">
-            Objetivo: ≥ 100% sostenido.
-          </div>
-        </div>
-        <div class="card">
-          <h3 data-es="Bottleneck Actual" data-en="Current Bottleneck">Bottleneck Actual</h3>
-          <div class="value red" id="db-bottleneck">OP --</div>
-          <div class="section-desc" data-es="Estación con menor capacidad efectiva."
-               data-en="Station with lowest effective capacity.">
-            Estación con menor capacidad efectiva.
-          </div>
-        </div>
-        <div class="card">
-          <h3 data-es="Variabilidad del Proceso" data-en="Process Variability">Variabilidad del Proceso</h3>
-          <div class="value green" id="db-variability">--%</div>
-          <div class="section-desc" data-es="Basado en Std Dev / Promedio de CT."
-               data-en="Based on CT Std Dev / Mean.">
-            Basado en Std Dev / Promedio de CT.
-          </div>
-        </div>
-        <div class="card">
-          <h3 data-es="Acciones Abiertas" data-en="Open Actions">Acciones Abiertas</h3>
-          <div class="value amber" id="db-actions">--</div>
-          <div class="section-desc" data-es="Plan de acción para cerrar gaps y riesgos."
-               data-en="Action plan to close gaps and risks.">
-            Plan de acción para cerrar gaps y riesgos.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TIMESTUDY -->
-    <section id="timestudy" class="section">
-      <h2 data-es="Timestudy – Datos de Ciclo" data-en="Timestudy – Cycle Time Data">
-        Timestudy – Datos de Ciclo
-      </h2>
-      <div class="section-desc"
-           data-es="Captura y análisis de tiempos de ciclo por estación. Aquí se registran las muestras manuales."
-           data-en="Capture and analysis of cycle times by station. Manual samples are recorded here.">
-        Captura y análisis de tiempos de ciclo por estación. Aquí se registran las muestras manuales.
-      </div>
-
-      <div class="grid-3">
-        <!-- Resumen -->
-        <div class="card">
-          <h3 data-es="Resumen Global" data-en="Global Summary">Resumen Global</h3>
-          <div class="section-desc"
-               data-es="Vista rápida de muestras, CT promedio, mediana y variabilidad."
-               data-en="Quick view of samples, mean CT, median and variability.">
-            Vista rápida de muestras, CT promedio, mediana y variabilidad.
-          </div>
-          <ul style="font-size:12px;margin:0 0 0 16px;padding:0;">
-            <li><span data-es="Muestras totales:" data-en="Total samples:">Muestras totales:</span>
-              <span id="ts-total-samples">0</span></li>
-            <li><span data-es="CT promedio global:" data-en="Global mean CT:">CT promedio global:</span>
-              <span id="ts-mean">--</span> s</li>
-            <li><span data-es="Mediana global:" data-en="Global median:">Mediana global:</span>
-              <span id="ts-median">--</span> s</li>
-            <li><span data-es="Std Dev global:" data-en="Global Std Dev:">Std Dev global:</span>
-              <span id="ts-std">--</span> s</li>
-          </ul>
-        </div>
-
-        <!-- Captura manual -->
-        <div class="card">
-          <h3 data-es="Captura manual de muestras" data-en="Manual sample entry">Captura manual de muestras</h3>
-          <div class="section-desc"
-               data-es="Registra una muestra por vez: estación, tiempo de ciclo y comentario opcional."
-               data-en="Register one sample at a time: station, cycle time and optional note.">
-            Registra una muestra por vez: estación, tiempo de ciclo y comentario opcional.
-          </div>
-
-          <form id="ts-form">
-            <div class="form-row">
-              <div class="form-field">
-                <label class="form-label" for="ts-station"
-                       data-es="Estación / Station" data-en="Station">
-                  Estación / Station
-                </label>
-                <input id="ts-station" class="form-input" type="text" required
-                       placeholder="OP10, OP20, etc." />
-              </div>
-              <div class="form-field">
-                <label class="form-label" for="ts-ct"
-                       data-es="Tiempo de ciclo (s)" data-en="Cycle time (s)">
-                  Tiempo de ciclo (s)
-                </label>
-                <input id="ts-ct" class="form-input" type="number" step="0.01" min="0" required
-                       placeholder="ej. 12.34" />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-field">
-                <label class="form-label" for="ts-note"
-                       data-es="Comentario (opcional)" data-en="Comment (optional)">
-                  Comentario (opcional)
-                </label>
-                <input id="ts-note" class="form-input" type="text" placeholder="-" />
-              </div>
-              <button type="submit" class="btn btn-orange"
-                      data-es="Agregar muestra" data-en="Add sample">
-                Agregar muestra
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Placeholder de gráfica -->
-        <div class="card">
-          <h3 data-es="Distribución de CT" data-en="CT Distribution">Distribución de CT</h3>
-          <div class="section-desc"
-               data-es="Más adelante se integrará un histograma o boxplot con los datos capturados."
-               data-en="Later a histogram or boxplot will be added with captured data.">
-            Más adelante se integrará un histograma o boxplot con los datos capturados.
-          </div>
-          <div class="chart-placeholder"
-               data-es="Placeholder – Histograma de CT"
-               data-en="Placeholder – CT histogram">
-            Placeholder – Histograma de CT
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabla por estación -->
-      <div style="margin-top:16px;">
-        <div class="card">
-          <h3 data-es="Detalle por Estación" data-en="Per-station detail">Detalle por Estación</h3>
-          <div class="section-desc"
-               data-es="Indicadores estadísticos por operación/estación calculados con las muestras capturadas."
-               data-en="Statistical indicators per operation/station based on captured samples.">
-            Indicadores estadísticos por operación/estación calculados con las muestras capturadas.
-          </div>
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th data-es="Estación" data-en="Station">Estación</th>
-                  <th data-es="CT Mín (s)" data-en="Min CT (s)">CT Mín (s)</th>
-                  <th data-es="CT Máx (s)" data-en="Max CT (s)">CT Máx (s)</th>
-                  <th data-es="CT Prom (s)" data-en="Mean CT (s)">CT Prom (s)</th>
-                  <th data-es="Mediana (s)" data-en="Median (s)">Mediana (s)</th>
-                  <th data-es="Std Dev (s)" data-en="Std Dev (s)">Std Dev (s)</th>
-                  <th data-es="Muestras" data-en="Samples">Muestras</th>
-                  <th data-es="Comentario" data-en="Comment">Comentario</th>
-                </tr>
-              </thead>
-              <tbody id="ts-detail-body">
-                <tr>
-                  <td colspan="8" style="text-align:center;color:var(--text-muted);">
-                    No hay muestras capturadas todavía.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Las demás secciones siguen siendo layout por ahora -->
-
-    <section id="capacity" class="section">
-      <h2 data-es="Capacity – Capacidad Operativa" data-en="Capacity – Operational Capacity">
-        Capacity – Capacidad Operativa
-      </h2>
-      <div class="section-desc"
-           data-es="Comparativo de capacidad por estación contra el requerimiento del cliente."
-           data-en="Station capacity vs customer requirement.">
-        Comparativo de capacidad por estación contra el requerimiento del cliente.
-      </div>
-
-      <div class="grid-2">
-        <div class="card">
-          <h3 data-es="Resumen de Capacidad" data-en="Capacity summary">Resumen de Capacidad</h3>
-          <ul style="font-size:12px;margin:0 0 0 16px;padding:0;">
-            <li><span data-es="Rate requerido:" data-en="Required rate:">Rate requerido:</span> -- UPH</li>
-            <li><span data-es="Capacidad demostrada:" data-en="Demonstrated capacity:">Capacidad demostrada:</span> -- UPH</li>
-            <li><span data-es="Gap global:" data-en="Global gap:">Gap global:</span> -- UPH</li>
-            <li><span data-es="Turnos evaluados:" data-en="Shifts evaluated:">Turnos evaluados:</span> --</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3 data-es="Bottleneck & Escenarios" data-en="Bottleneck & Scenarios">Bottleneck & Escenarios</h3>
-          <p style="font-size:12px;margin:0;">
-            <span data-es="Bottleneck actual:" data-en="Current bottleneck:">Bottleneck actual:</span>
-            <strong id="cap-bottleneck">OP --</strong><br>
-            <span data-es="Capacidad en bottleneck:" data-en="Bottleneck capacity:">Capacidad en bottleneck:</span> -- UPH<br>
-            <span data-es="Requerido:" data-en="Required:">Requerido:</span> -- UPH<br>
-            <span data-es="Estado:" data-en="Status:">Estado:</span> <span class="tag bad" data-es="No cumple" data-en="Does not comply">No cumple</span>
-          </p>
-          <div class="chart-placeholder"
-               data-es="Placeholder – Capacidad vs Requerido por estación"
-               data-en="Placeholder – Capacity vs Required per station">
-            Placeholder – Capacidad vs Requerido por estación
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="stability" class="section">
-      <h2 data-es="Stability – Estabilidad Operativa" data-en="Stability – Operational Stability">
-        Stability – Estabilidad Operativa
-      </h2>
-      <div class="section-desc"
-           data-es="Evaluación cualitativa de estabilidad por área."
-           data-en="Qualitative stability assessment by area.">
-        Evaluación cualitativa de estabilidad por área.
-      </div>
-
-      <div class="card">
-        <h3 data-es="Checklist por Área" data-en="Area checklist">Checklist por Área</h3>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th data-es="Área" data-en="Area">Área</th>
-                <th data-es="Nivel" data-en="Level">Nivel</th>
-                <th data-es="Indicador" data-en="Indicator">Indicador</th>
-                <th data-es="Comentario" data-en="Comment">Comentario</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td data-es="Operadores" data-en="Operators">Operadores</td>
-                <td><span class="tag ok" data-es="Alta" data-en="High">Alta</span></td>
-                <td data-es="Rotación, habilidades, ausentismo."
-                    data-en="Turnover, skills, absenteeism.">Rotación, habilidades, ausentismo.</td>
-                <td data-es="Sin evaluación aún." data-en="Not evaluated yet.">Sin evaluación aún.</td>
-              </tr>
-              <tr>
-                <td data-es="Documentación" data-en="Documentation">Documentación</td>
-                <td><span class="tag warn" data-es="Media" data-en="Medium">Media</span></td>
-                <td data-es="WI, estándares, cambios recientes."
-                    data-en="WI, standards, recent changes.">WI, estándares, cambios recientes.</td>
-                <td data-es="Sin evaluación aún." data-en="Not evaluated yet.">Sin evaluación aún.</td>
-              </tr>
-              <tr>
-                <td data-es="Mantenimiento" data-en="Maintenance">Mantenimiento</td>
-                <td><span class="tag bad" data-es="Baja" data-en="Low">Baja</span></td>
-                <td data-es="PM, breakdowns, MTTR, MTBF."
-                    data-en="PM, breakdowns, MTTR, MTBF.">PM, breakdowns, MTTR, MTBF.</td>
-                <td data-es="Sin evaluación aún." data-en="Not evaluated yet.">Sin evaluación aún.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="constraints" class="section">
-      <h2 data-es="Constraints – Restricciones Críticas" data-en="Constraints – Critical Restrictions">
-        Constraints – Restricciones Críticas
-      </h2>
-      <div class="section-desc"
-           data-es="Registro de restricciones que afectan capacidad y estabilidad."
-           data-en="Log of restrictions impacting capacity and stability.">
-        Registro de restricciones que afectan capacidad y estabilidad.
-      </div>
-
-      <div class="card">
-        <h3 data-es="Listado de Restricciones" data-en="Constraints list">Listado de Restricciones</h3>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th data-es="Restricción" data-en="Constraint">Restricción</th>
-                <th data-es="Tipo" data-en="Type">Tipo</th>
-                <th data-es="Impacto" data-en="Impact">Impacto</th>
-                <th data-es="Vínculo" data-en="Linked to">Vínculo</th>
-                <th data-es="Comentario" data-en="Comment">Comentario</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>--</td>
-                <td data-es="Máquina / Método / Material / MO"
-                    data-en="Machine / Method / Material / Labor">Máquina / Método / Material / MO</td>
-                <td><span class="tag bad" data-es="Alto" data-en="High">Alto</span></td>
-                <td>OP -- / Bottleneck</td>
-                <td data-es="Sin detalle aún." data-en="No details yet.">Sin detalle aún.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="actions" class="section">
-      <h2 data-es="Action Plan – Plan de Acción" data-en="Action Plan">
-        Action Plan – Plan de Acción
-      </h2>
-      <div class="section-desc"
-           data-es="Acciones para cerrar gaps de capacidad, variabilidad, estabilidad y restricciones."
-           data-en="Actions to close gaps in capacity, variability, stability and constraints.">
-        Acciones para cerrar gaps de capacidad, variabilidad, estabilidad y restricciones.
-      </div>
-
-      <div class="card">
-        <h3 data-es="Acciones por Estado" data-en="Actions by status">Acciones por Estado</h3>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th data-es="Acción" data-en="Action">Acción</th>
-                <th data-es="Responsable" data-en="Owner">Responsable</th>
-                <th data-es="Fecha Compromiso" data-en="Due date">Fecha Compromiso</th>
-                <th data-es="Estado" data-en="Status">Estado</th>
-                <th data-es="Comentario" data-en="Comment">Comentario</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>--</td>
-                <td>--</td>
-                <td>--</td>
-                <td><span class="tag warn" data-es="Pendiente" data-en="Pending">Pendiente</span></td>
-                <td data-es="Sin detalle aún." data-en="No details yet.">Sin detalle aún.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="evidence" class="section">
-      <h2 data-es="Evidence – Evidencia" data-en="Evidence">
-        Evidence – Evidencia
-      </h2>
-      <div class="section-desc"
-           data-es="Administración de evidencia visual y documental."
-           data-en="Management of visual and documentary evidence.">
-        Administración de evidencia visual y documental.
-      </div>
-
-      <div class="grid-3">
-        <div class="card">
-          <h3 data-es="Resumen de Evidencia" data-en="Evidence summary">Resumen de Evidencia</h3>
-          <ul style="font-size:12px;margin:0 0 0 16px;padding:0;">
-            <li data-es="Fotos: --" data-en="Pictures: --">Fotos: --</li>
-            <li data-es="Documentos: --" data-en="Documents: --">Documentos: --</li>
-            <li data-es="Videos: --" data-en="Videos: --">Videos: --</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3 data-es="Galería (placeholder)" data-en="Gallery (placeholder)">Galería (placeholder)</h3>
-          <div class="chart-placeholder"
-               data-es="Aquí irá la galería de fotos."
-               data-en="Picture gallery will be shown here.">
-            Aquí irá la galería de fotos.
-          </div>
-        </div>
-        <div class="card">
-          <h3 data-es="Vinculación" data-en="Linking">Vinculación</h3>
-          <div class="section-desc"
-               data-es="Evidencia asociada a estaciones, restricciones o acciones."
-               data-en="Evidence linked to stations, constraints or actions.">
-            Evidencia asociada a estaciones, restricciones o acciones.
-          </div>
-          <div class="chart-placeholder"
-               data-es="Placeholder – Mapa de evidencias vinculadas"
-               data-en="Placeholder – Evidence link map">
-            Placeholder – Mapa de evidencias vinculadas
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="report" class="section">
-      <h2 data-es="Report – Reporte Final" data-en="Report – Final Report">
-        Report – Reporte Final
-      </h2>
-      <div class="section-desc"
-           data-es="Aquí se generará el reporte consolidado."
-           data-en="The consolidated report will be generated here.">
-        Aquí se generará el reporte consolidado.
-      </div>
-
-      <div class="card">
-        <h3 data-es="Generador de Reporte" data-en="Report generator">Generador de Reporte</h3>
-        <p style="font-size:12px;margin:0;"
-           data-es="Próximamente: exportación a PDF, PPT y HTML."
-           data-en="Coming soon: export to PDF, PPT and HTML.">
-          Próximamente: exportación a PDF, PPT y HTML.
-        </p>
-        <div class="chart-placeholder"
-             data-es="Placeholder – Vista previa del resumen ejecutivo"
-             data-en="Placeholder – Executive summary preview">
-          Placeholder – Vista previa del resumen ejecutivo
-        </div>
-      </div>
-    </section>
-
+  <div class="section-card">
+    <div class="section-title">Statistical Approach & Methodology</div>
+    <div class="method">
+      <ul>
+        <li><b>CT Actual</b> represents the Median (P50) of measured cycle times.</li>
+        <li><b>CT Best</b> uses P10, reflecting a stable best-case execution.</li>
+        <li><b>CT Worst</b> uses P90, representing high-variability conditions.</li>
+        <li>Scenario capacity is calculated using available time after planned and unplanned losses.</li>
+        <li><b>Rolled Scrap</b> is calculated as: <i>1 − Π(1 − scrapᵢ)</i>.</li>
+        <li><b>Input Required</b> compensates scrap losses to achieve final output.</li>
+        <li>The line bottleneck is defined as the operation with the minimum effective capacity.</li>
+      </ul>
+      This model allows evaluating current performance, risk exposure, and improvement potential across the full production line.
+    </div>
   </div>
+</div>
 
-  <script>
-    // ---------- Estado de muestras ----------
-    const samples = []; // {station, ct, note}
+</div>
 
-    function parseNumber(value){
-      if(typeof value !== 'string') return NaN;
-      const v = value.replace(',', '.');
-      return parseFloat(v);
+<script>
+const HOURS_PER_DAY=8;
+let scenario='A';
+
+let taktStats=[
+  {process:'Op 10', median:45, p10:40, p90:55},
+  {process:'Op 20', median:52, p10:48, p90:65},
+  {process:'Op 30', median:60, p10:55, p90:72}
+];
+
+let wbRows=[];
+
+/* Tabs */
+const tabTakt=document.getElementById('tabTakt');
+const tabWB=document.getElementById('tabWB');
+const panelTakt=document.getElementById('panelTakt');
+const panelWB=document.getElementById('panelWB');
+tabTakt.onclick=()=>{tabTakt.classList.add('active');tabWB.classList.remove('active');panelTakt.classList.add('active');panelWB.classList.remove('active');};
+tabWB.onclick=()=>{tabWB.classList.add('active');tabTakt.classList.remove('active');panelWB.classList.add('active');panelTakt.classList.remove('active');};
+
+function getCT(r){
+  if(scenario==='B') return r.ctB;
+  if(scenario==='W') return r.ctW;
+  return r.ctA;
+}
+
+function addWBRow(d){
+  wbRows.push({
+    name:d?.name||'New Op',
+    machines:d?.machines||1,
+    ctA:d?.ctA||0,
+    ctB:d?.ctB||0,
+    ctW:d?.ctW||0,
+    scrap:d?.scrap||0,
+    launch:0,co:0,pm:0,cm:0,other:0
+  });
+  renderWB();
+}
+
+function calcRolledScrap(){
+  let good=1;
+  wbRows.forEach(r=>{
+    const s=Math.max(0,Math.min(r.scrap,100))/100;
+    good*=(1-s);
+  });
+  return 1-good;
+}
+
+function renderWB(){
+  const body=document.getElementById('wbBody');
+  body.innerHTML='';
+  let lineCap=Infinity,bottle='—';
+
+  wbRows.forEach((r,i)=>{
+    const ct=getCT(r);
+    const lostMin=r.launch+r.co+r.pm+r.cm+r.other;
+    const availSec=Math.max(0,(HOURS_PER_DAY*3600)-(lostMin*60));
+    const cap=ct>0?(availSec/ct)*r.machines:0;
+
+    if(cap>0 && cap<lineCap){
+      lineCap=cap;
+      bottle=r.name;
     }
 
-    function computeStats(arr){
-      const n = arr.length;
-      if(!n) return {n:0, mean:null, median:null, std:null, min:null, max:null};
+    const tr=document.createElement('tr');
+    tr.className=(bottle===r.name)?'bottleneck':'';
+    tr.innerHTML=`
+      <td><input class="name" value="${r.name}" onchange="wbRows[${i}].name=this.value;renderWB()"></td>
+      <td><input type="number" value="${r.machines}" onchange="wbRows[${i}].machines=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctA}" onchange="wbRows[${i}].ctA=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctB}" onchange="wbRows[${i}].ctB=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.ctW}" onchange="wbRows[${i}].ctW=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.scrap}" onchange="wbRows[${i}].scrap=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.launch}" onchange="wbRows[${i}].launch=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.co}" onchange="wbRows[${i}].co=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.pm}" onchange="wbRows[${i}].pm=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.cm}" onchange="wbRows[${i}].cm=+this.value;renderWB()"></td>
+      <td><input type="number" value="${r.other}" onchange="wbRows[${i}].other=+this.value;renderWB()"></td>
+      <td>${cap?cap.toFixed(0):'—'}</td>
+    `;
+    body.appendChild(tr);
+  });
 
-      const sorted = [...arr].sort((a,b)=>a-b);
-      const min = sorted[0];
-      const max = sorted[sorted.length-1];
-      const sum = arr.reduce((a,b)=>a+b,0);
-      const mean = sum / n;
-      let median;
-      if(n % 2 === 1){
-        median = sorted[(n-1)/2];
-      }else{
-        median = (sorted[n/2 -1] + sorted[n/2]) / 2;
-      }
-      let variance = 0;
-      if(n > 1){
-        variance = arr.reduce((acc,x)=>acc+Math.pow(x-mean,2),0)/(n-1);
-      }
-      const std = Math.sqrt(variance);
-      return {n, mean, median, std, min, max};
-    }
+  if(!isFinite(lineCap)) lineCap=0;
+  const rolled=calcRolledScrap();
+  const input=lineCap>0?lineCap/(1-rolled):0;
 
-    function updateTimestudyViews(){
-      const totalSamplesEl = document.getElementById('ts-total-samples');
-      const meanEl = document.getElementById('ts-mean');
-      const medianEl = document.getElementById('ts-median');
-      const stdEl = document.getElementById('ts-std');
-      const tbody = document.getElementById('ts-detail-body');
+  document.getElementById('wbOut').textContent=lineCap?lineCap.toFixed(0):'—';
+  document.getElementById('wbBottle').textContent=bottle;
+  document.getElementById('wbScrap').textContent=(rolled*100).toFixed(1)+'%';
+  document.getElementById('wbInput').textContent=input?input.toFixed(0):'—';
+}
 
-      if(!samples.length){
-        totalSamplesEl.textContent = '0';
-        meanEl.textContent = '--';
-        medianEl.textContent = '--';
-        stdEl.textContent = '--';
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);">No hay muestras capturadas todavía.</td></tr>';
-        return;
-      }
+/* Buttons */
+document.getElementById('wbAdd').onclick=()=>addWBRow();
+document.getElementById('wbReset').onclick=()=>{wbRows=[];renderWB();};
+document.getElementById('wbLoad').onclick=()=>{
+  wbRows=[];
+  taktStats.forEach(t=>addWBRow({
+    name:t.process,machines:1,
+    ctA:t.median,ctB:t.p10,ctW:t.p90,scrap:0
+  }));
+};
+document.getElementById('wbScenario').onchange=e=>{
+  scenario=e.target.value;
+  renderWB();
+};
+document.getElementById('wbExport').onclick=()=>{
+  let csv='Operation,Machines,CT_A,CT_B,CT_W,Scrap,Launch,CO,PM,CM,Other,Cap\n';
+  wbRows.forEach(r=>{
+    csv+=`${r.name},${r.machines},${r.ctA},${r.ctB},${r.ctW},${r.scrap},${r.launch},${r.co},${r.pm},${r.cm},${r.other}\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='WB_Scenario.csv';
+  a.click();
+};
+</script>
 
-      // Global stats
-      const allCT = samples.map(s=>s.ct);
-      const g = computeStats(allCT);
-      totalSamplesEl.textContent = g.n;
-      meanEl.textContent = g.mean.toFixed(2);
-      medianEl.textContent = g.median.toFixed(2);
-      stdEl.textContent = g.std.toFixed(2);
-
-      // Per station
-      const byStation = {};
-      samples.forEach(s=>{
-        if(!byStation[s.station]) byStation[s.station] = [];
-        byStation[s.station].push(s.ct);
-      });
-
-      const rows = [];
-      Object.keys(byStation).sort().forEach(station=>{
-        const stStats = computeStats(byStation[station]);
-        rows.push(
-          `<tr>
-            <td>${station}</td>
-            <td>${stStats.min.toFixed(2)}</td>
-            <td>${stStats.max.toFixed(2)}</td>
-            <td>${stStats.mean.toFixed(2)}</td>
-            <td>${stStats.median.toFixed(2)}</td>
-            <td>${stStats.std.toFixed(2)}</td>
-            <td>${stStats.n}</td>
-            <td>-</td>
-          </tr>`
-        );
-      });
-
-      tbody.innerHTML = rows.join('');
-    }
-
-    document.getElementById('ts-form').addEventListener('submit', function(ev){
-      ev.preventDefault();
-      const stationInput = document.getElementById('ts-station');
-      const ctInput = document.getElementById('ts-ct');
-      const noteInput = document.getElementById('ts-note');
-
-      const station = stationInput.value.trim();
-      const ct = parseNumber(ctInput.value);
-      const note = noteInput.value.trim();
-
-      if(!station || isNaN(ct) || ct <= 0){
-        alert('Revisa estación y tiempo de ciclo.');
-        return;
-      }
-
-      samples.push({station, ct, note});
-      stationInput.value = '';
-      ctInput.value = '';
-      noteInput.value = '';
-
-      updateTimestudyViews();
-    });
-
-    // ---------- Sistema bilingüe ----------
-    let currentLang = 'es';
-
-    function applyLanguage(lang){
-      currentLang = lang;
-      const elements = document.querySelectorAll('[data-es]');
-      elements.forEach(el=>{
-        const text = el.getAttribute(`data-${lang}`);
-        if(text !== null){
-          el.textContent = text;
-        }
-      });
-      const placeholders = document.querySelectorAll('[data-es-placeholder]');
-      placeholders.forEach(el=>{
-        const ph = el.getAttribute(`data-${lang}-placeholder`);
-        if(ph !== null){
-          el.setAttribute('placeholder', ph);
-        }
-      });
-
-      document.querySelectorAll('.lang-btn').forEach(btn=>{
-        btn.classList.toggle('active', btn.getAttribute('data-lang-btn') === lang);
-      });
-    }
-
-    document.querySelectorAll('[data-lang-btn]').forEach(btn=>{
-      btn.addEventListener('click', ()=>applyLanguage(btn.getAttribute('data-lang-btn')));
-    });
-
-    // Init
-    applyLanguage('es');
-  </script>
 </body>
 </html>
