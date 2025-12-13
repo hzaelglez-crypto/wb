@@ -271,8 +271,7 @@
     border:3px solid rgba(255,255,255,.08);
     position:relative;
     overflow:hidden;
-    /* oculto por ahora */
-    display:none;
+    display:none; /* oculto por ahora */
   }
   .mini-ring::before{
     content:"";
@@ -306,7 +305,6 @@
     padding:4px 6px;
     text-align:right;
     border-bottom:1px solid rgba(255,255,255,.04);
-    vertical-align:top;
   }
   th:first-child,td:first-child{text-align:left;}
   th{
@@ -327,13 +325,12 @@
     border-radius:999px;
     font-size:.68rem;
     border:1px solid transparent;
-    white-space:nowrap;
   }
   .badge-good{background:var(--badge-green);border-color:#00e676;}
   .badge-warn{background:var(--badge-amber);border-color:#ffe082;}
   .badge-bad{background:var(--badge-red);border-color:#ff8a80;}
 
-  /* Botones Data Controls (más grandes y de colores) */
+  /* Botones Data Controls */
   .btn-row-secondary{
     display:flex;
     flex-wrap:wrap;
@@ -389,41 +386,34 @@
   .btn-edit{color:#81d4fa;}
   .btn-del{color:#ff8a80;}
 
-  /* ===== NEW Stats Focus Table ===== */
-  .sf-wrap{
+  .stats-focus{
     font-size:.74rem;
-    line-height:1.25;
+    line-height:1.3;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
   }
-  .sf-table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:.74rem;
+  .focus-line{
+    padding:3px 6px;
+    border-radius:8px;
   }
-  .sf-table th, .sf-table td{
-    padding:6px 6px;
-    border-bottom:1px solid rgba(255,255,255,.06);
-    text-align:left;
-  }
-  .sf-table th{
-    position:sticky;
-    top:0;
-    z-index:4;
-    background:rgba(255,255,255,.02);
+  .focus-good{background:rgba(0,200,83,.12);border:1px solid rgba(0,200,83,.6);}
+  .focus-warn{background:rgba(255,193,7,.08);border:1px solid rgba(255,193,7,.6);}
+  .focus-bad{background:rgba(244,67,54,.12);border:1px solid rgba(244,67,54,.7);}
+
+  .subsection-title{
+    margin-top:10px;
+    font-size:.82rem;
+    font-weight:650;
     color:var(--text-soft);
-    font-weight:700;
-    letter-spacing:.02em;
   }
-  .sf-muted{color:var(--text-muted);}
-  .sf-chip{
-    display:inline-block;
-    padding:3px 7px;
-    border-radius:10px;
-    border:1px solid transparent;
-    margin:0 0 2px 0;
+
+  .footer-note{
+    margin-top:10px;
+    font-size:.65rem;
+    color:var(--text-muted);
+    text-align:right;
   }
-  .sf-good{background:rgba(0,200,83,.12);border-color:rgba(0,200,83,.6);color:#c8e6c9;}
-  .sf-warn{background:rgba(255,193,7,.10);border-color:rgba(255,193,7,.55);color:#ffe082;}
-  .sf-bad {background:rgba(244,67,54,.12);border-color:rgba(244,67,54,.65);color:#ffab91;}
 
   /* Charts */
   .charts-wrapper{
@@ -447,23 +437,6 @@
     height:180px;
     background:#020b1a;
     border-radius:10px;
-  }
-
-  /* Capacity Snapshot (kept only for Copy Summary; UI card removed) */
-  .capacity-snapshot{
-    margin-top:6px;
-    font-size:.76rem;
-    line-height:1.3;
-    border-top:1px solid rgba(255,255,255,.06);
-    padding-top:6px;
-  }
-  .snapshot-line{
-    margin-bottom:2px;
-  }
-  .capacity-gain{
-    color:var(--accent-green);
-    font-weight:700;
-    margin-left:4px;
   }
 
   /* Method & Guide */
@@ -504,19 +477,11 @@
     margin-bottom:2px;
   }
 
-  .footer-note{
-    margin-top:10px;
-    font-size:.65rem;
-    color:var(--text-muted);
-    text-align:right;
-  }
-
-  @media (max-width:700px){
+  @media (max-width:600px){
     .timer-display{font-size:2.2rem;}
     .btn-row-main{gap:6px;}
     .btn{font-size:.9rem;border-radius:14px;}
     canvas{height:160px;}
-    .sf-table th, .sf-table td{padding:6px 5px;}
   }
 </style>
 </head>
@@ -544,7 +509,7 @@
     <div class="timer-card" id="timerCard">
       <div class="timer-display" id="display">00:00.00</div>
 
-      <!-- Info de muestras estandarizada (ÚNICO método) -->
+      <!-- Info de muestras (MÉTODO CONFIRMADO) -->
       <div class="sample-info sample-neutral" id="sampleInfo">
         No samples yet for current process. Start capturing laps.
       </div>
@@ -651,23 +616,19 @@
 
     </div>
 
-    <!-- ⭐ STATS FOCUS (incluye Contract vs Capacity integrado) -->
+    <!-- ⭐ ENFOQUE ESTADÍSTICO (INTEGRA: Stats Focus + Overview + Detail) -->
     <div class="section-card">
       <div class="section-title" data-i18n="section.statsFocus">Stats Focus</div>
-      <div class="sf-wrap" id="statsFocus"></div>
+
+      <div class="stats-focus" id="statsFocus"></div>
 
       <div style="margin-top:6px;font-size:.68rem;color:var(--text-muted);" data-i18n="stats.note">
         Simple language on purpose: few / enough samples,
         low / high variation, close to normal / not normal, capable / not capable.
       </div>
-    </div>
 
-    <!-- PROCESS CAPACITY OVERVIEW -->
-    <div class="section-card">
-      <div class="section-title" data-i18n="section.capacityOverview">
-        Process Capacity Overview
-      </div>
-
+      <!-- ✅ INTEGRADO: Resumen de Capacidad por Proceso -->
+      <div class="subsection-title" data-i18n="section.capacityOverview">Process Capacity Overview</div>
       <table id="overviewTable">
         <thead>
           <tr>
@@ -675,21 +636,17 @@
             <th data-i18n="col.mode">Mode</th>
             <th data-i18n="col.n">N</th>
             <th>CTmed (s)</th>
-            <th>Cap 100%</th>
-            <th>Cap @Eff</th>
-            <th>% vs contract</th>
+            <th data-i18n="col.capCurrent">Cap Actual @Eff</th>
+            <th data-i18n="col.capPotential">Cap Potencial @Eff (P10)</th>
+            <th data-i18n="col.capWorst">Cap Peor @Eff (P90)</th>
+            <th data-i18n="col.vsContract">% vs contract</th>
           </tr>
         </thead>
         <tbody id="overviewBody"></tbody>
       </table>
-    </div>
 
-    <!-- ESTADÍSTICA DETALLADA -->
-    <div class="section-card">
-      <div class="section-title" data-i18n="section.statsDetail">
-        Statistical Detail (per process)
-      </div>
-
+      <!-- ✅ INTEGRADO: Detalle Estadístico (por proceso) -->
+      <div class="subsection-title" data-i18n="section.statsDetail">Statistical Detail (per process)</div>
       <div style="max-height:260px;overflow:auto;">
         <table id="statsTable">
           <thead>
@@ -716,29 +673,21 @@
 
     <!-- GRÁFICAS -->
     <div class="section-card">
-      <div class="section-title" data-i18n="section.charts">
-        Charts (selected process)
-      </div>
+      <div class="section-title" data-i18n="section.charts">Charts (selected process)</div>
 
       <div style="margin-bottom:6px;font-size:.75rem;">
-        <label for="chartProcessSelect" data-i18n="label.chartProcessLabel">
-          Process / Mode:
-        </label>
+        <label for="chartProcessSelect" data-i18n="label.chartProcessLabel">Process / Mode:</label>
         <select id="chartProcessSelect"></select>
       </div>
 
       <div class="charts-wrapper">
         <div class="chart-card">
-          <div class="chart-title" data-i18n="chart.timeSeriesTitle">
-            Time Series with Mean, Median, ±3σ
-          </div>
+          <div class="chart-title" data-i18n="chart.timeSeriesTitle">Time Series with Mean, Median, ±3σ</div>
           <canvas id="timeSeriesCanvas"></canvas>
         </div>
 
         <div class="chart-card">
-          <div class="chart-title" data-i18n="chart.histTitle">
-            Histogram with Median &amp; Percentiles
-          </div>
+          <div class="chart-title" data-i18n="chart.histTitle">Histogram with Median &amp; Percentiles</div>
           <canvas id="histCanvas"></canvas>
         </div>
       </div>
@@ -768,7 +717,7 @@
       </div>
     </div>
 
-    <!-- Method & Guide (desplegable) -->
+    <!-- Method & Guide -->
     <div class="section-card">
       <div class="section-title" data-i18n="section.methodGuide">Method &amp; Guide</div>
 
@@ -778,10 +727,9 @@
           <ul>
             <li><strong>Cycle times:</strong> based on <strong>raw laps</strong> taken at the process (CT or Machine + Load/Unload).</li>
             <li><strong>CTmed (s):</strong> capacity is calculated using the <strong>median</strong> of the total time (T1+T2 when applicable).</li>
-            <li><strong>Capacity 100%:</strong> 3600 / CTmed → units/hour, then scaled to day/week with the hours &amp; days you set.</li>
-            <li><strong>Capacity @Eff:</strong> applies the Efficiency % (OEE or planned effectiveness) to the theoretical 100% capacity.</li>
-            <li><strong>Contract vs capacity:</strong> compares Capacity @Eff vs Contract Cap, using the selected capacity view (hour/day/week).</li>
-            <li><strong>Potential capacity:</strong> uses the <strong>P10 (best 10%)</strong> of the distribution as the target if the process is stabilized.</li>
+            <li><strong>Capacity @Eff:</strong> applies the Efficiency % (OEE or planned effectiveness) to the theoretical capacity.</li>
+            <li><strong>Potential capacity:</strong> uses the <strong>P10 (best 10%)</strong> as the target if the process is stabilized.</li>
+            <li><strong>Worst scenario:</strong> uses the <strong>P90 (worst 10%)</strong> as the downside risk when the process drifts.</li>
           </ul>
         </div>
       </details>
@@ -795,13 +743,14 @@
             <li><strong>Efficiency %:</strong> expected OEE / planned effectiveness (e.g. 85%).</li>
             <li><strong>Contract Cap (pcs/day):</strong> daily volume committed to customer for that process/part number.</li>
             <li><strong>Hours / Day &amp; Days / Week:</strong> planned schedule actually available for that process (net calendar).</li>
-            <li><strong>Capacity View:</strong> choose whether you want capacity per hour, per day or per week in the tables and snapshot.</li>
+            <li><strong>Capacity View:</strong> choose whether you want capacity per hour, per day or per week.</li>
           </ul>
         </div>
       </details>
 
+      <!-- Tamaño de muestra -->
       <details class="method-details">
-        <summary data-i18n="method.sampleTitle">Sample size &amp; error – quick guide</summary>
+        <summary data-i18n="method.sampleTitle">Sample size & error – quick guide</summary>
         <div class="method-body">
           <p>
             TaktLab links <strong>sample size</strong> (N), <strong>variation</strong> (CV) and the
@@ -810,23 +759,7 @@
           <ul>
             <li><strong>More variation</strong> (higher CV) ⇒ you need <strong>more samples</strong>.</li>
             <li><strong>Target in TaktLab:</strong> be close to ±3% error at 95% confidence on critical/bottleneck processes.</li>
-            <li>
-              As a rule of thumb:
-              <ul>
-                <li>Low CV (&lt;8%) → ~10 laps are usually enough.</li>
-                <li>Medium CV (8–20%) → ~15–25 laps.</li>
-                <li>High CV (&gt;20%) → ~25–40+ laps.</li>
-              </ul>
-            </li>
-            <li>
-              The banner under the stopwatch and the <strong>Stats Focus</strong> block show:
-              <strong>Sample size N / N<sub>target</sub></strong> and the estimated error (±% @95%).
-            </li>
           </ul>
-          <p>
-            Use this as a <strong>guide</strong>, not a rigid rule. If the process is very unstable or mix changes a lot,
-            take more samples and split the studies by family or condition.
-          </p>
         </div>
       </details>
 
@@ -835,21 +768,6 @@
         <div class="method-body">
           <p>
             TaktLab uses your <strong>contract capacity</strong> (pcs/day) and planned hours/day to build a <strong>cycle-time target</strong>.
-            That target is treated as an <strong>upper spec limit (USL)</strong> for capability:
-          </p>
-          <ul>
-            <li><strong>Cp</strong> = (USL − LSL) / (6·σ). Here LSL is 0 s and USL is the CT target. Cp tells you the <strong>potential</strong> capability if the process were perfectly centered.</li>
-            <li><strong>Cpk</strong> = min(Cpu, Cpl) = min[(USL − μ)/(3·σ), (μ − LSL)/(3·σ)]. It reflects the <strong>real</strong> capability with your current mean and spread.</li>
-          </ul>
-          <p>Fast rules of thumb for decision-making:</p>
-          <ul>
-            <li><strong>Cpk &lt; 1.00</strong> → <strong>Not capable</strong> vs target. Expect chronic backlog or need for overtime. This is where you should attack first.</li>
-            <li><strong>1.00 ≤ Cpk &lt; 1.33</strong> → <strong>Borderline</strong>. You can run, but you have little protection against mix changes, breakdowns or demand spikes.</li>
-            <li><strong>Cpk ≥ 1.33</strong> → <strong>Capable</strong> vs target. Improvements here are “nice to have” unless this is the bottleneck.</li>
-          </ul>
-          <p>
-            Remember: these Cp/Cpk values are valid <strong>only if</strong> the data represent a reasonably stable process and the time-study method is consistent
-            (same product family, same operator group, same conditions).
           </p>
         </div>
       </details>
@@ -858,22 +776,9 @@
         <summary data-i18n="method.noticeTitle">Important notice / disclaimer</summary>
         <div class="method-body">
           <p>
-            TaktLab is a <strong>decision-support tool</strong> based on time studies and basic statistical analysis (median, percentiles,
-            standard deviation). Results depend on:
+            TaktLab is a <strong>decision-support tool</strong>. Results depend on method, stability, and assumptions.
           </p>
-          <ul>
-            <li>The quality of the time measurements (method, operator, conditions).</li>
-            <li>The number of samples taken and the stability of the process during the study.</li>
-            <li>The assumptions entered by the user (Efficiency %, hours/day, days/week, contract volume).</li>
-          </ul>
-          <p>
-            The “capacity” and “potential” values are <strong>estimates</strong>, not guarantees. Any change in staffing, methods,
-            maintenance, product mix or demand can modify the real output. Use the results as a structured reference to support
-            engineering and management discussions, always combined with your local standards and technical judgement.
-          </p>
-          <p>
-            For support, feedback or custom studies: <strong>hzaelglez@gmail.com</strong>.
-          </p>
+          <p>For support: <strong>hzaelglez@gmail.com</strong>.</p>
         </div>
       </details>
     </div>
@@ -940,7 +845,7 @@
       'section.capacityOverview':'Process Capacity Overview',
       'section.statsDetail':'Statistical Detail (per process)',
       'section.charts':'Charts (selected process)',
-      'section.statsFocus':'Stats Focus',
+      'section.statsFocus':'Statistical Focus',
       'section.dataControls':'Data Controls',
       'section.rawData':'Raw Time Data',
       'section.methodGuide':'Method & Guide',
@@ -977,6 +882,11 @@
       'col.del':'Del',
       'col.n':'N',
 
+      'col.capCurrent':'Current @Eff',
+      'col.capPotential':'Potential @Eff (P10)',
+      'col.capWorst':'Worst @Eff (P90)',
+      'col.vsContract':'% vs contract',
+
       'chart.timeSeriesTitle':'Time Series with Mean, Median, ±3σ',
       'chart.histTitle':'Histogram with Median & Percentiles',
 
@@ -1010,8 +920,8 @@
       'section.rawData':'Datos Crudos de Tiempo',
       'section.methodGuide':'Método y Guía',
 
-      'label.process':'Proceso / Estación',
-      'label.processPlaceholder':'p. ej. Op 30-1 Mazak #3',
+      'label.process':'Proceso',
+      'label.processPlaceholder':'p. ej. Op 30-1',
       'label.mode':'Modo',
       'label.efficiency':'Eficiencia %',
       'label.contractPcd':'Capacidad contrato (pzs/día)',
@@ -1042,6 +952,11 @@
       'col.del':'Borrar',
       'col.n':'N',
 
+      'col.capCurrent':'Actual @Eff',
+      'col.capPotential':'Potencial @Eff (P10)',
+      'col.capWorst':'Peor @Eff (P90)',
+      'col.vsContract':'% vs contrato',
+
       'chart.timeSeriesTitle':'Serie de tiempo con media, mediana y ±3σ',
       'chart.histTitle':'Histograma con mediana y percentiles',
 
@@ -1069,9 +984,8 @@
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       const key = el.dataset.i18n;
       if(!key) return;
-      const txt = t(key);
       if(el === btnStart) return;
-      el.textContent = txt;
+      el.textContent = t(key);
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
       const key = el.dataset.i18nPlaceholder;
@@ -1087,19 +1001,13 @@
     });
   }
 
-  let running = false;
-
   function setLanguage(lang){
     currentLang = (lang === 'es') ? 'es' : 'en';
     localStorage.setItem('taktlabLang', currentLang);
     document.documentElement.lang = currentLang;
     updateLangButtons();
     applyTranslations();
-    if(running){
-      btnStart.textContent = t('btn.pause');
-    }else{
-      btnStart.textContent = t('btn.start');
-    }
+    btnStart.textContent = running ? t('btn.pause') : t('btn.start');
     renderAll();
   }
 
@@ -1107,6 +1015,7 @@
     btn.addEventListener('click',()=> setLanguage(btn.dataset.lang));
   });
 
+  let running = false;
   let startTime = 0;
   let elapsed = 0;
   let timerId = null;
@@ -1172,8 +1081,7 @@
       if (pendingT1 === null) {
         t1Indicator.textContent = formatSecs(secs) + ' s';
       } else {
-        const t2 = secs;
-        t2Indicator.textContent = formatSecs(t2) + ' s';
+        t2Indicator.textContent = formatSecs(secs) + ' s';
       }
     } else if(running && mode === 'CT'){
       t1Indicator.textContent = formatSecs(secs) + ' s';
@@ -1240,16 +1148,7 @@
     const seconds = Math.max(elapsed/1000,0);
 
     if(mode === 'CT'){
-      laps.push({
-        id:nextId++,
-        process:proc,
-        mode,
-        status,
-        note,
-        t1:seconds,
-        t2:0,
-        total:seconds
-      });
+      laps.push({ id:nextId++, process:proc, mode, status, note, t1:seconds, t2:0, total:seconds });
       elapsed = 0;
       startTime = performance.now();
       updateDisplay();
@@ -1357,10 +1256,8 @@
     const std = Math.sqrt(variance);
     const p10 = percentile(values,0.1);
     const p90 = percentile(values,0.9);
-    const q1  = percentile(values,0.25);
-    const q3  = percentile(values,0.75);
     const cv  = mean ? std/mean : 0;
-    return {n,values,mean,median,min,max,std,p10,p90,q1,q3,cv};
+    return {n,values,mean,median,min,max,std,p10,p90,cv};
   }
 
   function computeCtTargetSeconds(){
@@ -1371,53 +1268,22 @@
     return secondsPerDay/pcd;
   }
 
-  /* ===== ÚNICO MÉTODO: Sample size / error (banner) ===== */
-  function sampleMethod(n, cv){
-    const Z = 1.96;
-    const targetError = 0.03;
-
-    if(!isFinite(cv) || cv<0) cv = 0;
-
-    let recN;
-    let eActualRel;
-
-    if(cv === 0){
-      recN = Math.max(10, n);
-      eActualRel = 0;
-    }else{
-      recN = Math.ceil(Math.pow((Z * cv) / targetError, 2));
-      if(recN < 10) recN = 10;
-      eActualRel = (Z * cv) / Math.sqrt(Math.max(n,1));
-    }
-
-    const eActualPct = eActualRel * 100;
-    const ratio = n / recN;
-
-    let cls = 'warn';
-    let msgExtraEn = 'Almost enough for ±3% – a couple more laps would help.';
-    let msgExtraEs = 'Casi suficiente para ±3% – un par de vueltas más ayudarán.';
-
-    if(ratio < 0.6){
-      cls = 'bad';
-      msgExtraEn = 'Sample too small for ±3% – use only as reference.';
-      msgExtraEs = 'Muestra muy pequeña para ±3% – úsala solo como referencia.';
-    }else if(ratio < 0.9){
-      cls = 'warn';
-    }else{
-      cls = 'good';
-      msgExtraEn = 'Sample size is enough for decisions at ±3% target.';
-      msgExtraEs = 'Tamaño de muestra suficiente para decisiones con objetivo ±3%.';
-    }
-
-    return {
-      recN,
-      eText: (isFinite(eActualPct) ? eActualPct.toFixed(1) : '—'),
-      cls,
-      msgExtraEn,
-      msgExtraEs
-    };
+  function capFromCt(ctSeconds, view, hours, days){
+    if(!ctSeconds || ctSeconds<=0) return 0;
+    const perHour = 3600/ctSeconds;
+    if(view==='hour') return perHour;
+    if(view==='day') return perHour*hours;
+    return perHour*hours*days;
   }
 
+  function contractUnitsFromPcd(pcd, view, hours, days){
+    if(!pcd || pcd<=0) return 0;
+    if(view==='hour') return (pcd/hours)||0;
+    if(view==='day') return pcd;
+    return pcd*days;
+  }
+
+  /* ✅ MÉTODO CONFIRMADO (único) bajo cronómetro */
   function updateSampleInfo(){
     if(!sampleInfoDiv) return;
 
@@ -1447,17 +1313,51 @@
     const n = st.n;
     const cv = st.cv || 0;
 
-    const sm = sampleMethod(n, cv);
+    const Z = 1.96;
+    const targetError = 0.03; // 3%
 
-    const clsMap = {good:'sample-good', warn:'sample-warn', bad:'sample-bad'};
-    sampleInfoDiv.className = 'sample-info ' + (clsMap[sm.cls] || 'sample-warn');
+    let recN;
+    let eActualRel;
 
-    // ⬇️ FORMATO EXACTO que pediste (único método)
+    if(cv === 0){
+      recN = Math.max(10,n);
+      eActualRel = 0;
+    }else{
+      recN = Math.ceil(Math.pow((Z * cv) / targetError, 2));
+      if(recN < 10) recN = 10;
+      eActualRel = (Z * cv) / Math.sqrt(n);
+    }
+
+    const eActualPct = eActualRel * 100;
+    const ratio = n / recN;
+
+    let cls = 'sample-warn';
+    let msgExtra = '';
+
+    if(ratio < 0.6){
+      cls = 'sample-bad';
+      msgExtra = currentLang==='es'
+        ? 'Muestra muy pequeña para ±3% – úsala solo como referencia.'
+        : 'Sample too small for ±3% – use only as reference.';
+    }else if(ratio < 0.9){
+      cls = 'sample-warn';
+      msgExtra = currentLang==='es'
+        ? 'Casi suficiente para ±3% – un par de vueltas más ayudarán.'
+        : 'Almost enough for ±3% – a couple more laps would help.';
+    }else{
+      cls = 'sample-good';
+      msgExtra = currentLang==='es'
+        ? 'Tamaño de muestra suficiente para decisiones con objetivo ±3%.'
+        : 'Sample size is enough for decisions at ±3% target.';
+    }
+
+    const eText = isFinite(eActualPct) ? eActualPct.toFixed(1) : '—';
+    sampleInfoDiv.className = 'sample-info ' + cls;
     sampleInfoDiv.textContent =
       (currentLang==='es'
-        ? `Sample size: ${n} / ${sm.recN} · Est. error: ±${sm.eText}% (95%) – ${sm.msgExtraEn}`
-        : `Sample size: ${n} / ${sm.recN} · Est. error: ±${sm.eText}% (95%) – ${sm.msgExtraEn}`
-      );
+        ? `Tamaño de muestra: ${n} / ${recN} · Error estimado: ±${eText}% (95%) – `
+        : `Sample size: ${n} / ${recN} · Est. error: ±${eText}% (95%) – `
+      ) + msgExtra;
   }
 
   function renderDataTable(){
@@ -1543,7 +1443,8 @@
   function renderOverview(){
     overviewBody.innerHTML='';
     const groups = groupByProcess();
-    const eff = Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
+
+    const eff   = Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
     const hours = Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
     const days  = Math.min(Math.max(parseInt(dInput.value)||5,1),7);
     const pcd   = parseFloat(pcdInput.value)||0;
@@ -1553,26 +1454,20 @@
       const [proc,mode] = key.split('||');
       const st = calcStats(arr);
       if(!st) return;
-      const ctMed = st.median;
-      let cap100 = 0;
-      if(ctMed>0){
-        const perHour = 3600/ctMed;
-        if(view==='hour') cap100 = perHour;
-        else if(view==='day') cap100 = perHour*hours;
-        else cap100 = perHour*hours*days;
-      }
-      const capEff = cap100*(eff/100);
 
-      let contractUnits = 0;
-      if(pcd>0){
-        if(view==='hour') contractUnits = (pcd/hours)||0;
-        else if(view==='day') contractUnits = pcd;
-        else contractUnits = pcd*days;
-      }
-      let pctVs = contractUnits>0 ? (capEff/contractUnits*100) : 0;
-      let badgeClass = '';
-      let badgeText = '';
-      if(contractUnits>0){
+      const capCurrent100 = capFromCt(st.median, view, hours, days);
+      const capPotential100 = capFromCt(st.p10, view, hours, days);
+      const capWorst100 = capFromCt(st.p90, view, hours, days);
+
+      const capCurrentEff = capCurrent100*(eff/100);
+      const capPotentialEff = capPotential100*(eff/100);
+      const capWorstEff = capWorst100*(eff/100);
+
+      const contractUnits = contractUnitsFromPcd(pcd, view, hours, days);
+      const pctVs = contractUnits>0 ? (capCurrentEff/contractUnits*100) : NaN;
+
+      let badgeClass='', badgeText='';
+      if(contractUnits>0 && isFinite(pctVs)){
         if(pctVs<85){badgeClass='badge-bad';badgeText=pctVs.toFixed(0)+'%';}
         else if(pctVs<100){badgeClass='badge-warn';badgeText=pctVs.toFixed(0)+'%';}
         else{badgeClass='badge-good';badgeText=pctVs.toFixed(0)+'%';}
@@ -1583,9 +1478,10 @@
         <td>${proc}</td>
         <td>${mode}</td>
         <td>${st.n}</td>
-        <td>${formatSecs(ctMed)}</td>
-        <td>${cap100?formatUnits(cap100):'-'}</td>
-        <td>${capEff?formatUnits(capEff):'-'}</td>
+        <td>${formatSecs(st.median)}</td>
+        <td>${capCurrentEff?formatUnits(capCurrentEff):'-'}</td>
+        <td>${capPotentialEff?formatUnits(capPotentialEff):'-'}</td>
+        <td>${capWorstEff?formatUnits(capWorstEff):'-'}</td>
         <td>${contractUnits>0?`<span class="badge ${badgeClass}">${badgeText}</span>`:'-'}</td>
       `;
       overviewBody.appendChild(tr);
@@ -1634,52 +1530,24 @@
     });
   }
 
-  /* ===== NEW: Stats Focus TABLE (Opción A) + Contract integrated ===== */
   function renderStatsFocus(){
-    const groups = groupByProcess();
     statsFocusDiv.innerHTML='';
-
+    const groups = groupByProcess();
     if(!groups.size){
-      statsFocusDiv.innerHTML =
-        currentLang==='es'
-          ? '<div class="sf-chip sf-warn">Sin muestras aún. Toma al menos 10–15 vueltas en el proceso cuello de botella.</div>'
-          : '<div class="sf-chip sf-warn">No samples yet. Take at least 10–15 laps on the bottleneck process.</div>';
+      statsFocusDiv.innerHTML = currentLang==='es'
+        ? '<div class="focus-line focus-warn">Sin muestras aún. Toma al menos 10–15 vueltas en el proceso cuello de botella.</div>'
+        : '<div class="focus-line focus-warn">No samples yet. Take at least 10–15 laps on the bottleneck process.</div>';
       return;
     }
 
-    const eff = Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
+    const ctTarget = computeCtTargetSeconds();
+    const eff   = Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
     const hours = Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
     const days  = Math.min(Math.max(parseInt(dInput.value)||5,1),7);
     const pcd   = parseFloat(pcdInput.value)||0;
     const view  = capViewSel.value;
-    const ctTarget = computeCtTargetSeconds();
-
-    const headProcess = currentLang==='es' ? 'Proceso / Estación' : 'Process / Station';
-    const headSample  = currentLang==='es' ? 'Muestras (único método)' : 'Samples (single method)';
-    const headVar     = currentLang==='es' ? 'Variación' : 'Variation';
-    const headNorm    = currentLang==='es' ? 'Normalidad' : 'Normality';
-    const headCap     = currentLang==='es' ? 'Capacidad' : 'Capability';
-    const headContract= currentLang==='es' ? 'Contrato vs Capacidad' : 'Contract vs Capacity';
-    const headRec     = currentLang==='es' ? 'Recomendaciones' : 'Recommendations';
-
-    const table = document.createElement('table');
-    table.className = 'sf-table';
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>${headProcess}</th>
-          <th>${headSample}</th>
-          <th>${headVar}</th>
-          <th>${headNorm}</th>
-          <th>${headCap}</th>
-          <th>${headContract}</th>
-          <th>${headRec}</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
-
-    const tbody = table.querySelector('tbody');
+    const contractUnits = contractUnitsFromPcd(pcd, view, hours, days);
+    const unitsLabel = currentLang==='es' ? 'unidades' : 'units';
 
     groups.forEach((arr,key)=>{
       const [proc,mode] = key.split('||');
@@ -1687,155 +1555,150 @@
       if(!st) return;
 
       const n = st.n;
-      const cv = st.cv || 0;
+      const cv = st.cv;
+      const mean = st.mean;
+      const med = st.median;
 
-      // === Sample line (EXACT method & format) ===
-      let sampleChipClass = 'sf-warn';
-      let extra = '';
-      if(n >= 3){
-        const sm = sampleMethod(n, cv);
-        sampleChipClass = (sm.cls === 'good') ? 'sf-good' : (sm.cls === 'bad' ? 'sf-bad' : 'sf-warn');
-        extra = (currentLang==='es') ? sm.msgExtraEn : sm.msgExtraEn; // keep EN phrasing exactly as requested
-        var sampleLine = `Sample size: ${n} / ${sm.recN} · Est. error: ±${sm.eText}% (95%) – ${extra}`;
+      // ✅ (mantengo tu idea de recomendación por variación) pero SIN tocar el método del banner
+      let recN;
+      if(cv<=0.10) recN = 10;
+      else if(cv<=0.20) recN = 15;
+      else if(cv<=0.30) recN = 25;
+      else recN = 40;
+
+      const ratio = n/recN;
+      let sampleClass='focus-warn';
+      let sampleMsg;
+      if(ratio<0.6){
+        sampleClass='focus-bad';
+        sampleMsg = currentLang==='es'
+          ? `Tamaño de muestra: ${n} / ${recN} – muestra muy pequeña; úsala solo como referencia.`
+          : `Sample size: ${n} / ${recN} – sample too small; use only as reference.`;
+      }else if(ratio<0.9){
+        sampleClass='focus-warn';
+        sampleMsg = currentLang==='es'
+          ? `Tamaño de muestra: ${n} / ${recN} – casi suficiente; un par de vueltas más ayudarán.`
+          : `Sample size: ${n} / ${recN} – almost enough; a couple more laps would help.`;
       }else{
-        sampleChipClass = 'sf-warn';
-        var sampleLine = currentLang==='es'
-          ? `Sample size: ${n} / 3 · Est. error: ±—% (95%) – need ≥3 laps before estimating error.`
-          : `Sample size: ${n} / 3 · Est. error: ±—% (95%) – need ≥3 laps before estimating error.`;
+        sampleClass='focus-good';
+        sampleMsg = currentLang==='es'
+          ? `Tamaño de muestra: ${n} / ${recN} – suficiente para decisión rápida.`
+          : `Sample size: ${n} / ${recN} – enough for quick decisions.`;
       }
 
-      // === Variation ===
-      let varChipClass = 'sf-warn';
-      let varMsg = `Std ≈ ${formatSecs(st.std)} s · CV ${((cv*100).toFixed(1))}%`;
-      if(cv < 0.08) varChipClass = 'sf-good';
-      else if(cv > 0.20) varChipClass = 'sf-bad';
-
-      // === Normality (Mean vs Median) ===
-      const diff = Math.abs(st.mean - st.median);
-      let normChipClass = 'sf-good';
-      let normMsg = `Mean ${formatSecs(st.mean)} · Median ${formatSecs(st.median)}`;
-      if(st.median > 0 && diff > 0.2*st.median){
-        normChipClass = 'sf-warn';
-        normMsg += (currentLang==='es') ? ' · Not normal (check outliers)' : ' · Not normal (check outliers)';
+      // variación
+      let varClass='focus-warn';
+      let varMsg;
+      if(cv<0.08){
+        varClass='focus-good';
+        varMsg = currentLang==='es' ? 'Baja variación – estable.' : 'Low variation – stable.';
+      }else if(cv>0.2){
+        varClass='focus-bad';
+        varMsg = currentLang==='es' ? 'Alta variación – inestable.' : 'High variation – unstable.';
       }else{
-        normMsg += (currentLang==='es') ? ' · Close to normal' : ' · Close to normal';
+        varMsg = currentLang==='es' ? 'Variación moderada.' : 'Moderate variation.';
       }
 
-      // === Contract vs Capacity (integrated) ===
-      let cap100 = 0;
-      let capEff = 0;
-      let contractUnits = 0;
-      let pct = NaN;
-
-      if(st.median > 0){
-        const perHour = 3600/st.median;
-        if(view==='hour') cap100 = perHour;
-        else if(view==='day') cap100 = perHour*hours;
-        else cap100 = perHour*hours*days;
-        capEff = cap100*(eff/100);
-      }
-
-      if(pcd>0){
-        if(view==='hour') contractUnits = (pcd/hours)||0;
-        else if(view==='day') contractUnits = pcd;
-        else contractUnits = pcd*days;
-      }
-
-      if(contractUnits>0 && capEff>0){
-        pct = capEff/contractUnits*100;
-      }
-
-      let contractBlock = '';
-      if(contractUnits<=0){
-        contractBlock = `<span class="sf-muted">${currentLang==='es' ? 'Sin contrato cargado' : 'No contract loaded'}</span>`;
+      // simetría
+      const diff = Math.abs(mean-med);
+      let symClass='focus-good';
+      let symMsg;
+      if(med>0 && diff>0.2*med){
+        symClass='focus-warn';
+        symMsg = currentLang==='es'
+          ? 'Media y mediana alejadas – revisa outliers/método.'
+          : 'Mean and median far – check outliers/method.';
       }else{
-        let badgeClass = 'badge-warn';
-        if(pct < 85) badgeClass = 'badge-bad';
-        else if(pct < 100) badgeClass = 'badge-warn';
-        else badgeClass = 'badge-good';
-
-        contractBlock = `
-          <div><strong>${formatUnits(capEff)}</strong> units/${view} @Eff</div>
-          <div><span class="badge ${badgeClass}">${pct.toFixed(0)}% vs contract</span></div>
-        `;
+        symMsg = currentLang==='es'
+          ? 'Media y mediana cercanas – ok.'
+          : 'Mean and median close – ok.';
       }
 
-      // === Capability Cp/Cpk ===
-      let capChipClass = 'sf-warn';
+      // capacidad Cp/Cpk
+      let capClass='focus-warn';
       let capMsg = currentLang==='es'
-        ? 'Sin contrato cargado'
-        : 'No contract loaded';
-
-      let cp='-', cpk='-';
+        ? 'Sin contrato cargado – no se evalúa capacidad vs objetivo.'
+        : 'No contract loaded – capability vs target not evaluated.';
       if(ctTarget && st.std>0){
         const USL = ctTarget;
         const LSL = 0;
         const cpv = (USL-LSL)/(6*st.std);
-        const cpu = (USL-st.mean)/(3*st.std);
-        const cpl = (st.mean-LSL)/(3*st.std);
+        const cpu = (USL-mean)/(3*st.std);
+        const cpl = (mean-LSL)/(3*st.std);
         const cpkv = Math.min(cpu,cpl);
-        cp = cpv.toFixed(2);
-        cpk = cpkv.toFixed(2);
-
-        if(cpkv < 1.0){ capChipClass = 'sf-bad'; }
-        else if(cpkv < 1.33){ capChipClass = 'sf-warn'; }
-        else { capChipClass = 'sf-good'; }
-
-        capMsg = `Cp=${cp} · Cpk=${cpk}`;
+        if(cpkv<1.0){
+          capClass='focus-bad';
+          capMsg = currentLang==='es'
+            ? `Cp=${cpv.toFixed(2)}, Cpk=${cpkv.toFixed(2)} → NO capaz vs objetivo – atacar aquí.`
+            : `Cp=${cpv.toFixed(2)}, Cpk=${cpkv.toFixed(2)} → NOT capable – focus here.`;
+        }else if(cpkv<1.33){
+          capClass='focus-warn';
+          capMsg = currentLang==='es'
+            ? `Cp=${cpv.toFixed(2)}, Cpk=${cpkv.toFixed(2)} → borderline – reduce variación.`
+            : `Cp=${cpv.toFixed(2)}, Cpk=${cpkv.toFixed(2)} → borderline – reduce variation.`;
+        }else{
+          capClass='focus-good';
+          capMsg = currentLang==='es'
+            ? `Cp=${cpv.toFixed(2)}, Cpk=${cpkv.toFixed(2)} → capaz vs objetivo.`
+            : `Cp=${cpv.toFixed(2)}, Cpk=${cpkv.toFixed(2)} → capable vs target.`;
+        }
       }
 
-      // === Recommendations ===
-      const recLines = [];
+      // ✅ NUEVO: Actual / Potencial / Peor escenario (capacidad @Eff)
+      const curr100 = capFromCt(st.median, view, hours, days);
+      const pot100  = capFromCt(st.p10, view, hours, days);
+      const worst100= capFromCt(st.p90, view, hours, days);
 
-      // sample rec
-      if(n >= 3){
-        const sm = sampleMethod(n, cv);
-        if(sm.cls === 'bad') recLines.push(currentLang==='es' ? 'Tomar más muestras (objetivo ±3%).' : 'Take more samples (±3% target).');
-        else if(sm.cls === 'warn') recLines.push(currentLang==='es' ? 'Completar muestras para ±3%.' : 'Finish samples for ±3%.');
-      } else {
-        recLines.push(currentLang==='es' ? 'Tomar ≥3 muestras para estimar error.' : 'Take ≥3 samples to estimate error.');
-      }
+      const currEff = curr100*(eff/100);
+      const potEff  = pot100*(eff/100);
+      const worstEff= worst100*(eff/100);
 
-      // variation rec
-      if(cv > 0.20) recLines.push(currentLang==='es' ? 'Reducir variación: método, mix, micro-paros, setup.' : 'Reduce variation: method, mix, micro-stops, setup.');
-
-      // contract rec
-      if(contractUnits>0 && isFinite(pct)){
-        if(pct < 100) recLines.push(currentLang==='es' ? 'Riesgo de backlog: atacar cuello de botella / balance / recursos.' : 'Backlog risk: attack bottleneck / balance / resources.');
-        else recLines.push(currentLang==='es' ? 'OK vs contrato: mantener control y no aflojar.' : 'OK vs contract: keep control and hold the gains.');
+      let contractClass='focus-warn';
+      let contractMsg;
+      if(contractUnits<=0){
+        contractClass='focus-warn';
+        contractMsg = currentLang==='es'
+          ? 'Contrato no cargado – no se calcula gap.'
+          : 'Contract not loaded – gap not calculated.';
       }else{
-        recLines.push(currentLang==='es' ? 'Cargar contrato para evaluar capacidad.' : 'Load contract to evaluate capacity.');
+        const pct = currEff>0 ? (currEff/contractUnits*100) : 0;
+        const gap = currEff - contractUnits;
+        const gapTxt = (gap>=0 ? '+' : '') + formatUnits(gap);
+        if(pct<85) contractClass='focus-bad';
+        else if(pct<100) contractClass='focus-warn';
+        else contractClass='focus-good';
+
+        contractMsg = currentLang==='es'
+          ? `Contrato: ${formatUnits(contractUnits)} ${unitsLabel}/${view} · Actual: ${formatUnits(currEff)} · Gap: ${gapTxt} (${pct.toFixed(0)}%)`
+          : `Contract: ${formatUnits(contractUnits)} ${unitsLabel}/${view} · Current: ${formatUnits(currEff)} · Gap: ${gapTxt} (${pct.toFixed(0)}%)`;
       }
 
-      // capability rec
-      if(ctTarget && st.std>0){
-        const cpkvNum = parseFloat(cpk);
-        if(isFinite(cpkvNum) && cpkvNum < 1.0) recLines.push(currentLang==='es' ? 'NO capaz: enfocar acciones aquí primero.' : 'NOT capable: focus actions here first.');
-        else if(isFinite(cpkvNum) && cpkvNum < 1.33) recLines.push(currentLang==='es' ? 'Borderline: bajar σ antes de subir velocidad.' : 'Borderline: reduce σ before pushing speed.');
-      }
+      const capScenarioClass =
+        (worstEff && currEff && worstEff < currEff*0.9) ? 'focus-warn' : 'focus-good';
 
-      const recHtml = recLines.length
-        ? `<div class="${(recLines.join(' ').includes('NO capaz') || recLines.join(' ').includes('NOT capable')) ? 'sf-chip sf-bad' : 'sf-chip sf-warn'}">${recLines.join('<br>')}</div>`
-        : `<span class="sf-muted">—</span>`;
+      const scenarioMsg = currentLang==='es'
+        ? `Capacidad @Eff (${eff.toFixed(0)}%): Actual≈ ${currEff?formatUnits(currEff):'-'} · Potencial(P10)≈ ${potEff?formatUnits(potEff):'-'} · Peor(P90)≈ ${worstEff?formatUnits(worstEff):'-'} ${unitsLabel}/${view}`
+        : `Capacity @Eff (${eff.toFixed(0)}%): Current≈ ${currEff?formatUnits(currEff):'-'} · Potential(P10)≈ ${potEff?formatUnits(potEff):'-'} · Worst(P90)≈ ${worstEff?formatUnits(worstEff):'-'} ${unitsLabel}/${view}`;
 
-      // row
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>${proc}</strong><div class="sf-muted">${mode}</div></td>
-        <td><span class="sf-chip ${sampleChipClass}">${sampleLine}</span></td>
-        <td><span class="sf-chip ${varChipClass}">${varMsg}</span></td>
-        <td><span class="sf-chip ${normChipClass}">${normMsg}</span></td>
-        <td><span class="sf-chip ${capChipClass}">${capMsg}</span></td>
-        <td>${contractBlock}</td>
-        <td>${recHtml}</td>
+      const block = document.createElement('div');
+      block.style.marginBottom='8px';
+      block.innerHTML = `
+        <div style="font-weight:700;margin-bottom:2px;">${proc} (${mode})</div>
+        <div class="focus-line ${sampleClass}">${sampleMsg}</div>
+        <div class="focus-line ${varClass}">Std dev ≈ ${formatSecs(st.std)} s (${(cv*100).toFixed(1)}%). ${varMsg}</div>
+        <div class="focus-line ${symClass}">${currentLang==='es'
+          ? `Media ≈ ${formatSecs(mean)} s, Mediana ≈ ${formatSecs(med)} s. ${symMsg}`
+          : `Mean ≈ ${formatSecs(mean)} s, Median ≈ ${formatSecs(med)} s. ${symMsg}`
+        }</div>
+        <div class="focus-line ${capScenarioClass}">${scenarioMsg}</div>
+        <div class="focus-line ${contractClass}">${contractMsg}</div>
+        <div class="focus-line ${capClass}">${capMsg}</div>
       `;
-      tbody.appendChild(tr);
+      statsFocusDiv.appendChild(block);
     });
-
-    statsFocusDiv.appendChild(table);
   }
 
-  // ===== Gráficas =====
+  // ===== Charts =====
   function updateChartOptions(){
     const groups = groupByProcess();
     const previous = chartSelect.value;
@@ -1970,7 +1833,6 @@
       ctx.lineTo(w-padR,yScale(lcl));
       ctx.stroke();
     }
-
     ctx.strokeStyle='rgba(255,255,255,0.6)';
     ctx.beginPath();
     ctx.moveTo(padL,yScale(st.mean));
@@ -2142,42 +2004,32 @@
   function buildFullSummaryText(){
     const groups = groupByProcess();
     if(!groups.size) return '';
-
     const eff   = Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
     const hours = Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
     const days  = Math.min(Math.max(parseInt(dInput.value)||5,1),7);
     const pcd   = parseFloat(pcdInput.value)||0;
     const view  = capViewSel.value;
     const ctTarget = computeCtTargetSeconds();
+    const contractUnits = contractUnitsFromPcd(pcd, view, hours, days);
 
     const lines = [];
     lines.push('TAKTLAB SUMMARY');
     lines.push('');
 
     lines.push('PROCESS CAPACITY OVERVIEW');
-    lines.push('Process\tMode\tN\tCTmed(s)\tCap100\tCap@Eff\t% vs contract');
+    lines.push('Process\tMode\tN\tCTmed(s)\tCurrent@Eff\tPotential(P10)@Eff\tWorst(P90)@Eff\t% vs contract');
     groups.forEach((arr,key)=>{
       const [proc,mode]=key.split('||');
       const st=calcStats(arr);
       if(!st) return;
-      const ctMed=st.median;
-      let cap100=0;
-      if(ctMed>0){
-        const perHour=3600/ctMed;
-        if(view==='hour') cap100=perHour;
-        else if(view==='day') cap100=perHour*hours;
-        else cap100=perHour*hours*days;
-      }
-      const capEff=cap100*(eff/100);
-      let contractUnits=0;
-      if(pcd>0){
-        if(view==='hour') contractUnits=(pcd/hours)||0;
-        else if(view==='day') contractUnits=pcd;
-        else contractUnits=pcd*days;
-      }
-      let pctVs = contractUnits>0 ? (capEff/contractUnits*100) : NaN;
+
+      const curr = capFromCt(st.median, view, hours, days)*(eff/100);
+      const pot  = capFromCt(st.p10, view, hours, days)*(eff/100);
+      const worst= capFromCt(st.p90, view, hours, days)*(eff/100);
+      const pctVs = contractUnits>0 ? (curr/contractUnits*100) : NaN;
+
       lines.push(
-        `${proc}\t${mode}\t${st.n}\t${formatSecs(ctMed)}\t${cap100?formatUnits(cap100):'-'}\t${capEff?formatUnits(capEff):'-'}\t${isFinite(pctVs)?pctVs.toFixed(0)+'%':''}`
+        `${proc}\t${mode}\t${st.n}\t${formatSecs(st.median)}\t${curr?formatUnits(curr):'-'}\t${pot?formatUnits(pot):'-'}\t${worst?formatUnits(worst):'-'}\t${isFinite(pctVs)?pctVs.toFixed(0)+'%':''}`
       );
     });
 
@@ -2201,30 +2053,6 @@
       lines.push(
         `${proc}\t${mode}\t${st.n}\t${formatSecs(st.mean)}\t${formatSecs(st.median)}\t${formatSecs(st.p10)}\t${formatSecs(st.p90)}\t${formatSecs(st.min)}\t${formatSecs(st.max)}\t${formatSecs(st.std)}\t${(st.cv*100).toFixed(1)}\t${cp}\t${cpk}`
       );
-    });
-
-    lines.push('');
-    lines.push('STATS FOCUS (TABLE VIEW)');
-    groups.forEach((arr,key)=>{
-      const [proc,mode]=key.split('||');
-      const st=calcStats(arr);
-      if(!st) return;
-
-      const n = st.n;
-      const cv = st.cv || 0;
-
-      let sampleLine = '';
-      if(n >= 3){
-        const sm = sampleMethod(n, cv);
-        sampleLine = `Sample size: ${n} / ${sm.recN} · Est. error: ±${sm.eText}% (95%) – ${sm.msgExtraEn}`;
-      }else{
-        sampleLine = `Sample size: ${n} / 3 · Est. error: ±—% (95%) – need ≥3 laps before estimating error.`;
-      }
-
-      lines.push(`${proc} (${mode})`);
-      lines.push(`  - ${sampleLine}`);
-      lines.push(`  - Std ≈ ${formatSecs(st.std)} s · CV ${(cv*100).toFixed(1)}%`);
-      lines.push(`  - Mean ${formatSecs(st.mean)} · Median ${formatSecs(st.median)}`);
     });
 
     return lines.join('\n');
