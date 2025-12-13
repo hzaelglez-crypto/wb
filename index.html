@@ -110,12 +110,15 @@
     font-size:2.8rem;
     font-weight:600;
     letter-spacing:.08em;
-    padding:4px 4px 10px;
+    padding:4px 4px 8px;
   }
 
-  .sample-info{
-    font-size:.78rem;margin:0 0 6px;padding:4px 8px;
-    border-radius:10px;border:1px solid transparent;
+  /* ===== Visual lines (semaforos bajo cronómetro) ===== */
+  .info-stack{ display:flex; flex-direction:column; gap:6px; margin:0 0 8px; }
+  .info-line{
+    font-size:.78rem;margin:0;padding:6px 10px;
+    border-radius:12px;border:1px solid transparent;
+    line-height:1.25;
   }
   .sample-neutral{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);color:var(--text-soft);}
   .sample-good{background:rgba(0,200,83,.15);border-color:rgba(0,200,83,.7);color:#c8e6c9;}
@@ -146,7 +149,7 @@
     padding:10px 10px 12px;
     margin-bottom:10px;
   }
-  .section-title{font-size:.9rem;font-weight:600;margin-bottom:6px;}
+  .section-title{font-size:1.0rem;font-weight:700;margin-bottom:8px;}
 
   .mode-row{
     display:flex;gap:8px;flex-wrap:wrap;align-items:center;
@@ -176,12 +179,12 @@
     font-size:.68rem;border:1px solid transparent;
   }
   .badge-good{background:var(--badge-green);border-color:#00e676;}
-  .badge-warn{background:var(--badge-amber);border-color:#ffe082;}
+  .badge-warn{background:var(--badge-amber);border-color:#ffe082;color:#000;}
   .badge-bad{background:var(--badge-red);border-color:#ff8a80;}
 
   .btn-row-secondary{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px;}
   .btn-small{
-    padding:8px 14px;border-radius:14px;font-size:.8rem;font-weight:600;
+    padding:10px 16px;border-radius:16px;font-size:.86rem;font-weight:700;
     flex:0 0 auto;background:var(--bg-card-soft);color:var(--text-soft);
     border:1px solid var(--border-soft);cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.35);
   }
@@ -247,8 +250,20 @@
     <div class="timer-card" id="timerCard">
       <div class="timer-display" id="display">00:00.00</div>
 
-      <div class="sample-info sample-neutral" id="sampleInfo">
-        No samples yet for current process. Start capturing laps.
+      <!-- ✅ Semáforos / ayudas visuales (regresan) -->
+      <div class="info-stack">
+        <div class="info-line sample-neutral" id="sampleInfo">
+          No samples yet for current process. Start capturing laps.
+        </div>
+        <div class="info-line sample-neutral" id="stdInfo">
+          Std dev: — (—). Capture more laps.
+        </div>
+        <div class="info-line sample-neutral" id="distInfo">
+          Mean vs Median: —. Capture more laps.
+        </div>
+        <div class="info-line sample-neutral" id="contractInfo">
+          No contract loaded – capacity vs target not evaluated.
+        </div>
       </div>
 
       <div class="btn-row-main">
@@ -318,7 +333,7 @@
       </div>
     </div>
 
-    <!-- ✅ ENFOQUE ESTADÍSTICO EN TABLA (lo que pediste) -->
+    <!-- ✅ ENFOQUE ESTADÍSTICO EN TABLA -->
     <div class="section-card">
       <div class="section-title" data-i18n="section.statsFocus">Stat Focus</div>
 
@@ -354,7 +369,6 @@
         </table>
       </div>
 
-      <!-- ✅ Siguen estando tus 2 tablas también en esta tarjeta -->
       <div class="subsection-title" data-i18n="section.capacityOverview">Process Capacity Overview</div>
       <table id="overviewTable">
         <thead>
@@ -455,7 +469,11 @@
   const btnLap = document.getElementById('btnLap');
   const timerCard = document.getElementById('timerCard');
   const logoGear = document.getElementById('logoGear');
+
   const sampleInfoDiv = document.getElementById('sampleInfo');
+  const stdInfoDiv = document.getElementById('stdInfo');
+  const distInfoDiv = document.getElementById('distInfo');
+  const contractInfoDiv = document.getElementById('contractInfo');
 
   const processInput = document.getElementById('processName');
   const modeSelect   = document.getElementById('mode');
@@ -756,69 +774,174 @@
     return pcd*days;
   }
 
-  /* ✅ MÉTODO ÚNICO CONFIRMADO para muestras (banner bajo cronómetro) */
-  function updateSampleInfo(){
+  /* ===== Método único confirmado para muestras ===== */
+  function sampleReqN(cv){
+    const Z=1.96, targetError=0.03;
+    if(!isFinite(cv) || cv<=0) return 10;
+    let n = Math.ceil(Math.pow((Z*cv)/targetError,2));
+    if(n<10) n=10;
+    return n;
+  }
+  function estErrorPct(cv,n){
+    const Z=1.96;
+    if(!isFinite(cv) || cv<=0 || n<=0) return 0;
+    return (Z*cv)/Math.sqrt(n)*100;
+  }
+
+  function setInfo(div, cls, text){
+    div.className = 'info-line ' + cls;
+    div.textContent = text;
+  }
+
+  function updateTopSemaphores(){
     const groups=groupByProcess();
     const {proc,mode}=ensureDefaults();
     const key=proc+'||'+mode;
     const arr=groups.get(key)||[];
+
     if(!arr.length){
-      sampleInfoDiv.className='sample-info sample-neutral';
-      sampleInfoDiv.textContent = currentLang==='es'
+      setInfo(sampleInfoDiv,'sample-neutral',
+        currentLang==='es'
         ? 'Aún no hay muestras para el proceso actual. Comienza a tomar vueltas.'
-        : 'No samples yet for current process. Start capturing laps.';
+        : 'No samples yet for current process. Start capturing laps.'
+      );
+      setInfo(stdInfoDiv,'sample-neutral',
+        currentLang==='es' ? 'Std dev: — (—). Captura más vueltas.' : 'Std dev: — (—). Capture more laps.'
+      );
+      setInfo(distInfoDiv,'sample-neutral',
+        currentLang==='es' ? 'Media vs Mediana: —. Captura más vueltas.' : 'Mean vs Median: —. Capture more laps.'
+      );
+      setInfo(contractInfoDiv,'sample-neutral',
+        currentLang==='es'
+          ? 'Sin contrato cargado – no se evalúa capacidad vs objetivo.'
+          : 'No contract loaded – capacity vs target not evaluated.'
+      );
       return;
     }
+
     const st=calcStats(arr);
+
+    /* 1) SAMPLE SIZE (único método, con semáforo) */
     if(!st || st.n<3){
-      sampleInfoDiv.className='sample-info sample-neutral';
-      sampleInfoDiv.textContent = currentLang==='es'
-        ? `Tamaño de muestra: ${st?st.n:0} / 3 – se requieren ≥3 vueltas antes de estimar el error.`
-        : `Sample size: ${st?st.n:0} / 3 – need ≥3 laps before estimating error.`;
-      return;
+      setInfo(sampleInfoDiv,'sample-neutral',
+        currentLang==='es'
+          ? `Tamaño de muestra: ${st?st.n:0} / 3 – se requieren ≥3 vueltas antes de estimar el error.`
+          : `Sample size: ${st?st.n:0} / 3 – need ≥3 laps before estimating error.`
+      );
+    } else {
+      const n=st.n;
+      const cv=st.cv||0;
+      const recN = sampleReqN(cv);
+      const errPct = estErrorPct(cv,n);
+      const ratio=n/recN;
+
+      let cls='sample-warn', tail='';
+      if(ratio<0.6){
+        cls='sample-bad';
+        tail = currentLang==='es'
+          ? 'Muestra muy pequeña para ±3% – úsala solo como referencia.'
+          : 'Sample too small for ±3% – use only as reference.';
+      }else if(ratio<0.9){
+        cls='sample-warn';
+        tail = currentLang==='es'
+          ? 'Casi suficiente para ±3% – un par de vueltas más ayudarán.'
+          : 'Almost enough, a couple more laps would help.';
+      }else{
+        cls='sample-good';
+        tail = currentLang==='es'
+          ? 'Tamaño suficiente para objetivo ±3%.'
+          : 'Sample size is enough for ±3% target.';
+      }
+
+      // IMPORTANTE: en inglés mantiene el formato que pediste
+      const head = (currentLang==='es')
+        ? `Tamaño de muestra: ${n} / ${recN} · Error estimado: ±${errPct.toFixed(1)}% (95%) – `
+        : `Sample size: ${n} / ${recN} · Est. error: ±${errPct.toFixed(1)}% (95%) – `;
+
+      setInfo(sampleInfoDiv, cls, head + tail);
     }
 
-    const n=st.n;
-    const cv=st.cv||0;
-    const Z=1.96;
-    const targetError=0.03;
+    /* 2) STD DEV / CV% semáforo */
+    if(!st || st.n<3 || !isFinite(st.std)){
+      setInfo(stdInfoDiv,'sample-neutral',
+        currentLang==='es' ? 'Std dev: — (—). Captura más vueltas.' : 'Std dev: — (—). Capture more laps.'
+      );
+    } else {
+      const cvPct = st.cv*100;
+      let cls = 'sample-good';
+      let label = currentLang==='es' ? 'Variación baja.' : 'Low variation.';
+      if(cvPct>=10 && cvPct<20){ cls='sample-warn'; label = currentLang==='es'?'Variación moderada.':'Moderate variation.'; }
+      if(cvPct>=20){ cls='sample-bad'; label = currentLang==='es'?'Variación alta: proceso “nervioso”.':'High variation: process is “nervy”.'; }
 
-    let recN, eRel;
-    if(cv===0){
-      recN=Math.max(10,n);
-      eRel=0;
-    }else{
-      recN=Math.ceil(Math.pow((Z*cv)/targetError,2));
-      if(recN<10) recN=10;
-      eRel=(Z*cv)/Math.sqrt(n);
-    }
-    const ePct=eRel*100;
-    const ratio=n/recN;
-
-    let cls='sample-warn', msgExtra='';
-    if(ratio<0.6){
-      cls='sample-bad';
-      msgExtra = currentLang==='es'
-        ? 'Muestra muy pequeña para ±3% – úsala solo como referencia.'
-        : 'Sample too small for ±3% – use only as reference.';
-    }else if(ratio<0.9){
-      cls='sample-warn';
-      msgExtra = currentLang==='es'
-        ? 'Casi suficiente para ±3% – un par de vueltas más ayudarán.'
-        : 'Almost enough for ±3% – a couple more laps would help.';
-    }else{
-      cls='sample-good';
-      msgExtra = currentLang==='es'
-        ? 'Tamaño de muestra suficiente para objetivo ±3%.'
-        : 'Sample size is enough for ±3% target.';
+      setInfo(stdInfoDiv, cls,
+        (currentLang==='es'
+          ? `Std dev ≈ ${formatSecs(st.std)} s (${cvPct.toFixed(1)}%). ${label}`
+          : `Std dev ≈ ${formatSecs(st.std)} s (${cvPct.toFixed(1)}%). ${label}`
+        )
+      );
     }
 
-    sampleInfoDiv.className='sample-info '+cls;
-    sampleInfoDiv.textContent =
-      (currentLang==='es'
-        ? `Tamaño de muestra: ${n} / ${recN} · Error estimado: ±${isFinite(ePct)?ePct.toFixed(1):'—'}% (95%) – `
-        : `Sample size: ${n} / ${recN} · Est. error: ±${isFinite(ePct)?ePct.toFixed(1):'—'}% (95%) – `
-      ) + msgExtra;
+    /* 3) Media vs Mediana semáforo (forma/distribución) */
+    if(!st || st.n<3 || !isFinite(st.mean) || !isFinite(st.median) || st.mean===0){
+      setInfo(distInfoDiv,'sample-neutral',
+        currentLang==='es' ? 'Media vs Mediana: —. Captura más vueltas.' : 'Mean vs Median: —. Capture more laps.'
+      );
+    } else {
+      const diff = Math.abs(st.mean - st.median) / st.mean * 100;
+      let cls='sample-good';
+      let msg = currentLang==='es'
+        ? 'Media y mediana cercanas – distribución cercana a normal.'
+        : 'Mean and median are close – distribution near normal.';
+      if(diff>=5 && diff<10){
+        cls='sample-warn';
+        msg = currentLang==='es'
+          ? 'Media y mediana algo separadas – posible sesgo.'
+          : 'Mean and median somewhat apart – possible skew.';
+      }
+      if(diff>=10){
+        cls='sample-bad';
+        msg = currentLang==='es'
+          ? 'Media y mediana muy separadas – hay cola/sesgo fuerte.'
+          : 'Mean and median far apart – strong skew/tail.';
+      }
+
+      setInfo(distInfoDiv, cls,
+        (currentLang==='es'
+          ? `Media ≈ ${formatSecs(st.mean)} s, Mediana ≈ ${formatSecs(st.median)} s. ${msg}`
+          : `Mean ≈ ${formatSecs(st.mean)} s, Median ≈ ${formatSecs(st.median)} s. ${msg}`
+        )
+      );
+    }
+
+    /* 4) Contrato vs Capacidad (semaforo) */
+    const eff=Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
+    const hours=Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
+    const days=Math.min(Math.max(parseInt(dInput.value)||5,1),7);
+    const pcd=parseFloat(pcdInput.value)||0;
+    const view=capViewSel.value;
+
+    const contractUnits = contractUnitsFromPcd(pcd,view,hours,days);
+    if(!contractUnits || contractUnits<=0 || !st || st.n<1){
+      setInfo(contractInfoDiv,'sample-neutral',
+        currentLang==='es'
+          ? 'Sin contrato cargado – no se evalúa capacidad vs objetivo.'
+          : 'No contract loaded – capacity vs target not evaluated.'
+      );
+    } else {
+      const capCur = capFromCt(st.median,view,hours,days)*(eff/100);
+      const pct = (capCur/contractUnits*100);
+      let cls='sample-bad';
+      let msg = currentLang==='es' ? 'No alcanza.' : 'Below target.';
+      if(pct>=85 && pct<100){ cls='sample-warn'; msg = currentLang==='es' ? 'Muy justo.' : 'Tight.'; }
+      if(pct>=100){ cls='sample-good'; msg = currentLang==='es' ? 'Cumple contrato.' : 'Meets contract.'; }
+
+      setInfo(contractInfoDiv, cls,
+        (currentLang==='es'
+          ? `Capacidad actual @${eff}%: ${formatUnits(capCur)} vs Contrato: ${formatUnits(contractUnits)} · ${pct.toFixed(0)}% – ${msg}`
+          : `Current capacity @${eff}%: ${formatUnits(capCur)} vs Contract: ${formatUnits(contractUnits)} · ${pct.toFixed(0)}% – ${msg}`
+        )
+      );
+    }
   }
 
   function renderDataTable(){
@@ -976,7 +1099,6 @@
     });
   }
 
-  /* ✅ NUEVO: Stat Focus como TABLA con columnas (conceptos) */
   function renderFocusTable(){
     focusBody.innerHTML='';
     const groups=groupByProcess();
@@ -1001,22 +1123,6 @@
     const ctTarget=computeCtTargetSeconds();
     const contractUnits = contractUnitsFromPcd(pcd,view,hours,days);
 
-    const unitsLabel = currentLang==='es' ? 'u' : 'u';
-
-    function sampleReqN(cv){
-      const Z=1.96, targetError=0.03;
-      if(!isFinite(cv) || cv<=0) return 10;
-      let n = Math.ceil(Math.pow((Z*cv)/targetError,2));
-      if(n<10) n=10;
-      return n;
-    }
-    function estErrorPct(cv,n){
-      const Z=1.96;
-      if(!isFinite(cv) || cv<=0 || n<=0) return 0;
-      return (Z*cv)/Math.sqrt(n)*100;
-    }
-
-    // Ordena por proceso
     const keys=[...groups.keys()].sort((a,b)=>a.localeCompare(b));
 
     keys.forEach(key=>{
@@ -1053,7 +1159,6 @@
         cpk=cpkv.toFixed(2);
       }
 
-      // Nota rápida (humor industrial: cortito y útil)
       let note='';
       const ratio=st.n/recN;
       if(ratio<0.6) note = currentLang==='es' ? 'Muestra chica: no te cases.' : 'Tiny sample: don’t marry it.';
@@ -1125,9 +1230,21 @@
     drawHistogram(arr,st);
   }
 
+  function fitCanvas(canvas){
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
   function drawTimeSeries(arr,st){
+    fitCanvas(timeSeriesCanvas);
     const ctx=timeSeriesCanvas.getContext('2d');
-    const w=timeSeriesCanvas.width, h=timeSeriesCanvas.height;
+    const w=timeSeriesCanvas.getBoundingClientRect().width;
+    const h=timeSeriesCanvas.getBoundingClientRect().height;
+
     ctx.clearRect(0,0,w,h);
     ctx.fillStyle='#020b1a'; ctx.fillRect(0,0,w,h);
 
@@ -1192,8 +1309,11 @@
   }
 
   function drawHistogram(arr,st){
+    fitCanvas(histCanvas);
     const ctx=histCanvas.getContext('2d');
-    const w=histCanvas.width, h=histCanvas.height;
+    const w=histCanvas.getBoundingClientRect().width;
+    const h=histCanvas.getBoundingClientRect().height;
+
     ctx.clearRect(0,0,w,h);
     ctx.fillStyle='#020b1a'; ctx.fillRect(0,0,w,h);
 
@@ -1281,10 +1401,12 @@
     renderOverview();
     renderStatsDetail();
     updateChartOptions();
-    updateSampleInfo();
+    updateTopSemaphores();
   }
 
   chartSelect.addEventListener('change',renderCharts);
+  window.addEventListener('resize',renderCharts);
+
   effInput.addEventListener('change',renderAll);
   pcdInput.addEventListener('change',renderAll);
   hInput.addEventListener('change',renderAll);
