@@ -1,479 +1,2265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>TaktLab – Cycle Time & Capacity Analyzer</title>
-
 <style>
-:root{
---bg-main:#07152b;--bg-card:#0b1f3a;--bg-card-soft:#0f2544;
---accent-green:#00c853;--accent-amber:#ffb300;--accent-red:#ff1744;
---accent-blue:#29b6f6;--accent-grey:#cfd8dc;
---text-main:#fff;--text-soft:#c5cae9;--text-muted:#90a4ae;
---border-soft:#1c3357;
---btn-green:#00c853;--btn-orange:#ff9100;--btn-grey:#455a64;
---badge-green:#004d40;--badge-red:#b71c1c;--badge-amber:#ff8f00
-}
-*{box-sizing:border-box}
-body{
-margin:0;
-font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-background:linear-gradient(180deg,#020b1a 0%,#07152b 40%,#020b1a 100%);
-color:var(--text-main)
-}
-.page{max-width:1100px;margin:0 auto;padding:12px 10px 40px}
+  :root{
+    --bg-main:#07152b;
+    --bg-card:#0b1f3a;
+    --bg-card-soft:#0f2544;
+    --accent-green:#00c853;
+    --accent-amber:#ffb300;
+    --accent-red:#ff1744;
+    --accent-blue:#29b6f6;
+    --accent-grey:#cfd8dc;
+    --text-main:#ffffff;
+    --text-soft:#c5cae9;
+    --text-muted:#90a4ae;
+    --border-soft:#1c3357;
+    --btn-green:#00c853;
+    --btn-orange:#ff9100;
+    --btn-grey:#455a64;
+    --badge-green:#004d40;
+    --badge-red:#b71c1c;
+    --badge-amber:#ff8f00;
+  }
 
-/* ===== Sticky timer bar ===== */
-.sticky-timer-bar{
-position:sticky;top:0;z-index:100;
-background:linear-gradient(180deg,#020b1a 0%,#07152b 90%);
-padding:8px 0 10px
-}
-.top-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.logo-circle{
-width:38px;height:38px;border-radius:50%;
-border:2px solid var(--accent-grey);
-display:flex;align-items:center;justify-content:center;
-overflow:hidden
-}
-.logo-gear{
-width:22px;height:22px;border-radius:50%;
-border:2px solid var(--accent-grey);position:relative
-}
-.logo-gear::before{
-content:"";position:absolute;inset:4px;border-radius:50%;
-border:2px solid var(--accent-green);
-border-right-color:transparent;border-bottom-color:transparent;
-transform-origin:50% 50%
-}
-.logo-gear.spinning::before{animation:logo-spin 2s linear infinite}
-@keyframes logo-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  *{box-sizing:border-box;}
 
-.title-block{display:flex;flex-direction:column;gap:2px}
-.title-main{font-size:1.2rem;font-weight:700;letter-spacing:.03em}
-.title-sub{font-size:.72rem;color:var(--text-soft)}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:linear-gradient(180deg,#020b1a 0%,#07152b 40%,#020b1a 100%);
+    color:var(--text-main);
+  }
 
-.lang-switch{margin-left:auto;display:flex;gap:4px}
-.lang-btn{
-border-radius:999px;border:1px solid var(--border-soft);
-background:rgba(2,11,26,.6);color:var(--text-soft);
-font-size:.7rem;padding:4px 8px;cursor:pointer;min-width:34px
-}
-.lang-btn.active{
-background:var(--accent-blue);color:#fff;
-border-color:var(--accent-blue);font-weight:600
-}
+  .page{
+    max-width:1100px;
+    margin:0 auto;
+    padding:12px 10px 40px;
+  }
 
-/* ===== Timer card ===== */
-.timer-card{
-background:var(--bg-card);border-radius:18px;
-border:1px solid var(--border-soft);
-padding:6px 10px 10px;
-box-shadow:0 8px 18px rgba(0,0,0,.45)
-}
-.timer-display{
-text-align:center;font-size:2.8rem;font-weight:600;
-letter-spacing:.08em;padding:4px 4px 10px
-}
-.sample-info{
-font-size:.78rem;margin:0 0 6px;padding:4px 8px;
-border-radius:10px;border:1px solid transparent
-}
-.sample-neutral{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);color:var(--text-soft)}
-.sample-good{background:rgba(0,200,83,.15);border-color:rgba(0,200,83,.7);color:#c8e6c9}
-.sample-warn{background:rgba(255,193,7,.14);border-color:rgba(255,193,7,.8);color:#ffe082}
-.sample-bad{background:rgba(244,67,54,.16);border-color:rgba(244,67,54,.9);color:#ffab91}
+  /* ===== Sticky ONLY timer bar (title + display + Start/Lap) ===== */
+  .sticky-timer-bar{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:linear-gradient(180deg,#020b1a 0%,#07152b 90%);
+    padding:8px 0 10px;
+  }
 
-.btn-row-main{display:flex;gap:10px;margin-bottom:2px}
-.btn{
-border:none;border-radius:16px;padding:10px 12px;
-font-size:.9rem;font-weight:600;cursor:pointer;color:#fff;
-box-shadow:0 4px 10px rgba(0,0,0,.4);
-flex:1;transition:.04s
-}
-.btn:active{transform:translateY(1px)}
-.btn-start{background:var(--btn-green)}
-.btn-lap{background:var(--btn-orange)}
+  .top-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:8px;
+  }
 
-.flash{animation:flash-bg .12s ease-out}
-@keyframes flash-bg{from{background:rgba(255,255,255,.18)}to{background:transparent}}
+  .logo-circle{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    border:2px solid var(--accent-grey);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .logo-gear{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:2px solid var(--accent-grey);
+    position:relative;
+  }
+  .logo-gear::before{
+    content:"";
+    position:absolute;
+    inset:4px;
+    border-radius:50%;
+    border:2px solid var(--accent-green);
+    border-right-color:transparent;
+    border-bottom-color:transparent;
+    transform-origin:50% 50%;
+  }
+  .logo-gear.spinning::before{
+    animation:logo-spin 2s linear infinite;
+  }
+  @keyframes logo-spin{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
+  }
 
-/* ===== Sections ===== */
-.content-section{margin-top:10px}
-.section-card{
-background:var(--bg-card);border-radius:18px;
-border:1px solid var(--border-soft);
-padding:10px 10px 12px;margin-bottom:10px
-}
-.section-title{font-size:.9rem;font-weight:600;margin-bottom:6px}
+  .title-block{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .title-main{
+    font-size:1.2rem;
+    font-weight:700;
+    letter-spacing:.03em;
+  }
+  .title-sub{
+    font-size:.72rem;
+    color:var(--text-soft);
+  }
 
-/* ===== Tables ===== */
-table{width:100%;border-collapse:collapse;font-size:.75rem}
-th,td{padding:4px 6px;text-align:right;border-bottom:1px solid rgba(255,255,255,.04)}
-th:first-child,td:first-child{text-align:left}
-th{
-color:var(--text-soft);font-weight:600;
-background:rgba(255,255,255,.02);
-position:sticky;top:0;z-index:5
-}
-tbody tr:nth-child(even){background:rgba(255,255,255,.02)}
+  /* == Language switch == */
+  .lang-switch{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .lang-btn{
+    border-radius:999px;
+    border:1px solid var(--border-soft);
+    background:rgba(2,11,26,.6);
+    color:var(--text-soft);
+    font-size:.7rem;
+    padding:4px 8px;
+    cursor:pointer;
+    min-width:34px;
+  }
+  .lang-btn.active{
+    background:var(--accent-blue);
+    color:#fff;
+    border-color:var(--accent-blue);
+    font-weight:600;
+  }
 
-.badge{
-display:inline-block;padding:2px 6px;border-radius:999px;
-font-size:.68rem;border:1px solid transparent
-}
-.badge-good{background:var(--badge-green);border-color:#00e676}
-.badge-warn{background:var(--badge-amber);border-color:#ffe082}
-.badge-bad{background:var(--badge-red);border-color:#ff8a80}
+  .timer-card{
+    background:var(--bg-card);
+    border-radius:18px;
+    border:1px solid var(--border-soft);
+    padding:6px 10px 10px;
+    box-shadow:0 8px 18px rgba(0,0,0,.45);
+  }
 
-/* ===== Responsive ===== */
-@media (max-width:600px){
-.timer-display{font-size:2.2rem}
-.btn-row-main{gap:6px}
-.btn{font-size:.9rem;border-radius:14px}
-}
+  .timer-display{
+    text-align:center;
+    font-size:2.8rem;
+    font-weight:600;
+    letter-spacing:.08em;
+    padding:4px 4px 10px;
+  }
+
+  /* Bloque de info de muestra bajo el cronómetro */
+  .sample-info{
+    font-size:.78rem;
+    margin:0 0 6px;
+    padding:4px 8px;
+    border-radius:10px;
+    border:1px solid transparent;
+  }
+  .sample-neutral{
+    background:rgba(255,255,255,.03);
+    border-color:rgba(255,255,255,.08);
+    color:var(--text-soft);
+  }
+  .sample-good{
+    background:rgba(0,200,83,.15);
+    border-color:rgba(0,200,83,.7);
+    color:#c8e6c9;
+  }
+  .sample-warn{
+    background:rgba(255,193,7,.14);
+    border-color:rgba(255,193,7,.8);
+    color:#ffe082;
+  }
+  .sample-bad{
+    background:rgba(244,67,54,.16);
+    border-color:rgba(244,67,54,.9);
+    color:#ffab91;
+  }
+
+  .btn-row-main{
+    display:flex;
+    gap:10px;
+    margin-bottom:2px;
+  }
+  .btn{
+    border:none;
+    border-radius:16px;
+    padding:10px 12px;
+    font-size:.9rem;
+    font-weight:600;
+    cursor:pointer;
+    color:#fff;
+    box-shadow:0 4px 10px rgba(0,0,0,.4);
+    flex:1;
+    transition:transform .04s ease, box-shadow .04s ease, background .15s;
+    touch-action:manipulation;
+  }
+  .btn:active{
+    transform:translateY(1px);
+    box-shadow:0 1px 4px rgba(0,0,0,.5);
+  }
+  .btn-start{background:var(--btn-green);}
+  .btn-lap{background:var(--btn-orange);}
+
+  .flash{
+    animation:flash-bg .12s ease-out;
+  }
+  @keyframes flash-bg{
+    from{background:rgba(255,255,255,.18);}
+    to{background:transparent;}
+  }
+
+  /* Rest of page */
+  .content-section{margin-top:10px;}
+
+  .section-card{
+    background:var(--bg-card);
+    border-radius:18px;
+    border:1px solid var(--border-soft);
+    padding:10px 10px 12px;
+    margin-bottom:10px;
+  }
+  .section-title{
+    font-size:.9rem;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+
+  .mode-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    font-size:.78rem;
+    color:var(--text-soft);
+  }
+  .mode-row.label{font-weight:500;}
+  .mode-row select,
+  .mode-row input{
+    background:#020b1a;
+    border-radius:8px;
+    border:1px solid var(--border-soft);
+    padding:4px 8px;
+    color:var(--text-soft);
+    font-size:.78rem;
+    min-width:70px;
+  }
+  .mode-row input[type="number"]{width:70px;}
+
+  /* T1/T2 mini indicators */
+  .mini-t12-wrapper{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+  }
+  .mini-t12{
+    flex:1;
+    background:#020b1a;
+    border-radius:14px;
+    border:1px solid var(--border-soft);
+    padding:6px 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-height:56px;
+  }
+  .mini-ring{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:3px solid rgba(255,255,255,.08);
+    position:relative;
+    overflow:hidden;
+    /* oculto por ahora */
+    display:none;
+  }
+  .mini-ring::before{
+    content:"";
+    position:absolute;
+    inset:-3px;
+    border-radius:50%;
+    border:3px solid transparent;
+    border-top-color:var(--accent-green);
+    border-right-color:var(--accent-green);
+    transform-origin:50% 50%;
+    animation:ring-spin 1.2s linear infinite;
+    opacity:.2;
+  }
+  .mini-ring.paused::before{
+    animation-play-state:paused;
+    opacity:.35;
+  }
+  @keyframes ring-spin{
+    from{transform:rotate(0);}
+    to{transform:rotate(360deg);}
+  }
+  .mini-label{font-size:.72rem;color:var(--text-soft);}
+  .mini-value{font-size:.95rem;font-weight:600;}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.75rem;
+  }
+  th,td{
+    padding:4px 6px;
+    text-align:right;
+    border-bottom:1px solid rgba(255,255,255,.04);
+    vertical-align:top;
+  }
+  th:first-child,td:first-child{text-align:left;}
+  th{
+    color:var(--text-soft);
+    font-weight:600;
+    background:rgba(255,255,255,.02);
+    position:sticky;
+    top:0;
+    z-index:5;
+  }
+  tbody tr:nth-child(even){
+    background:rgba(255,255,255,.02);
+  }
+
+  .badge{
+    display:inline-block;
+    padding:2px 6px;
+    border-radius:999px;
+    font-size:.68rem;
+    border:1px solid transparent;
+    white-space:nowrap;
+  }
+  .badge-good{background:var(--badge-green);border-color:#00e676;}
+  .badge-warn{background:var(--badge-amber);border-color:#ffe082;}
+  .badge-bad{background:var(--badge-red);border-color:#ff8a80;}
+
+  /* Botones Data Controls (más grandes y de colores) */
+  .btn-row-secondary{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:8px 0 4px;
+  }
+  .btn-small{
+    padding:8px 14px;
+    border-radius:14px;
+    font-size:.8rem;
+    font-weight:600;
+    flex:0 0 auto;
+    background:var(--bg-card-soft);
+    color:var(--text-soft);
+    border:1px solid var(--border-soft);
+    cursor:pointer;
+    box-shadow:0 3px 8px rgba(0,0,0,.35);
+    transition:transform .04s ease, box-shadow .04s ease, background .15s, color .15s, border-color .15s;
+  }
+  .btn-small:active{
+    transform:translateY(1px);
+    box-shadow:0 1px 4px rgba(0,0,0,.45);
+  }
+  .btn-small-copy{
+    background:var(--accent-blue);
+    border-color:var(--accent-blue);
+    color:#fff;
+  }
+  .btn-small-summary{
+    background:var(--accent-amber);
+    border-color:var(--accent-amber);
+    color:#000;
+  }
+  .btn-small-manual{
+    background:var(--accent-green);
+    border-color:var(--accent-green);
+    color:#000;
+  }
+  .btn-small-reset{
+    background:var(--accent-red);
+    border-color:var(--accent-red);
+    color:#fff;
+  }
+
+  .btn-edit,.btn-del{
+    padding:2px 6px;
+    border-radius:8px;
+    font-size:.7rem;
+    border:1px solid rgba(255,255,255,.2);
+    cursor:pointer;
+    background:transparent;
+  }
+  .btn-edit{color:#81d4fa;}
+  .btn-del{color:#ff8a80;}
+
+  /* ===== NEW Stats Focus Table ===== */
+  .sf-wrap{
+    font-size:.74rem;
+    line-height:1.25;
+  }
+  .sf-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.74rem;
+  }
+  .sf-table th, .sf-table td{
+    padding:6px 6px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    text-align:left;
+  }
+  .sf-table th{
+    position:sticky;
+    top:0;
+    z-index:4;
+    background:rgba(255,255,255,.02);
+    color:var(--text-soft);
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+  .sf-muted{color:var(--text-muted);}
+  .sf-chip{
+    display:inline-block;
+    padding:3px 7px;
+    border-radius:10px;
+    border:1px solid transparent;
+    margin:0 0 2px 0;
+  }
+  .sf-good{background:rgba(0,200,83,.12);border-color:rgba(0,200,83,.6);color:#c8e6c9;}
+  .sf-warn{background:rgba(255,193,7,.10);border-color:rgba(255,193,7,.55);color:#ffe082;}
+  .sf-bad {background:rgba(244,67,54,.12);border-color:rgba(244,67,54,.65);color:#ffab91;}
+
+  /* Charts */
+  .charts-wrapper{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:10px;
+  }
+  .chart-card{
+    background:var(--bg-card-soft);
+    border-radius:14px;
+    border:1px solid var(--border-soft);
+    padding:8px;
+  }
+  .chart-title{
+    font-size:.75rem;
+    margin-bottom:4px;
+    color:var(--text-soft);
+  }
+  canvas{
+    width:100%;
+    height:180px;
+    background:#020b1a;
+    border-radius:10px;
+  }
+
+  /* Capacity Snapshot (kept only for Copy Summary; UI card removed) */
+  .capacity-snapshot{
+    margin-top:6px;
+    font-size:.76rem;
+    line-height:1.3;
+    border-top:1px solid rgba(255,255,255,.06);
+    padding-top:6px;
+  }
+  .snapshot-line{
+    margin-bottom:2px;
+  }
+  .capacity-gain{
+    color:var(--accent-green);
+    font-weight:700;
+    margin-left:4px;
+  }
+
+  /* Method & Guide */
+  .method-details{
+    font-size:.75rem;
+    margin-bottom:6px;
+    background:var(--bg-card-soft);
+    border-radius:10px;
+    border:1px solid var(--border-soft);
+    padding:4px 6px;
+  }
+  .method-details summary{
+    cursor:pointer;
+    font-weight:600;
+    list-style:none;
+  }
+  .method-details summary::-webkit-details-marker{
+    display:none;
+  }
+  .method-details summary::before{
+    content:"+";
+    margin-right:6px;
+    color:var(--accent-blue);
+    font-weight:700;
+  }
+  .method-details[open] summary::before{
+    content:"–";
+  }
+  .method-body{
+    margin-top:4px;
+    color:var(--text-soft);
+  }
+  .method-body ul{
+    padding-left:16px;
+    margin:4px 0;
+  }
+  .method-body li{
+    margin-bottom:2px;
+  }
+
+  .footer-note{
+    margin-top:10px;
+    font-size:.65rem;
+    color:var(--text-muted);
+    text-align:right;
+  }
+
+  @media (max-width:700px){
+    .timer-display{font-size:2.2rem;}
+    .btn-row-main{gap:6px;}
+    .btn{font-size:.9rem;border-radius:14px;}
+    canvas{height:160px;}
+    .sf-table th, .sf-table td{padding:6px 5px;}
+  }
 </style>
 </head>
 <body>
 <div class="page">
 
-<!-- ===== Sticky timer bar ===== -->
-<div class="sticky-timer-bar">
-  <div class="top-row">
-    <div class="logo-circle">
-      <div class="logo-gear" id="logoGear"></div>
+  <!-- STICKY BAR: SOLO cronómetro + Start/Lap -->
+  <div class="sticky-timer-bar">
+    <div class="top-row">
+      <div class="logo-circle">
+        <div class="logo-gear" id="logoGear"></div>
+      </div>
+      <div class="title-block">
+        <div class="title-main">TaktLab</div>
+        <div class="title-sub" data-i18n="title.subtitle">
+          Cycle Time &amp; Capacity Analyzer
+        </div>
+      </div>
+      <div class="lang-switch">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="es">ES</button>
+      </div>
     </div>
-    <div class="title-block">
-      <div class="title-main">TAKTLAB</div>
-      <div class="title-sub">Cycle Time & Capacity Analyzer</div>
-    </div>
-    <div class="lang-switch">
-      <button class="lang-btn active" data-lang="en">EN</button>
-      <button class="lang-btn" data-lang="es">ES</button>
+
+    <div class="timer-card" id="timerCard">
+      <div class="timer-display" id="display">00:00.00</div>
+
+      <!-- Info de muestras estandarizada (ÚNICO método) -->
+      <div class="sample-info sample-neutral" id="sampleInfo">
+        No samples yet for current process. Start capturing laps.
+      </div>
+
+      <div class="btn-row-main">
+        <button class="btn btn-start" id="btnStart" data-i18n="btn.start">Start</button>
+        <button class="btn btn-lap" id="btnLap" data-i18n="btn.lap">LAP</button>
+      </div>
     </div>
   </div>
 
-  <div class="timer-card">
-    <div id="timerDisplay" class="timer-display">00:00.000</div>
-    <div id="sampleInfo" class="sample-info sample-neutral">
-      Samples: 0 · Est. error: — · Waiting for laps
+  <!-- CONTENIDO NORMAL -->
+  <div class="content-section">
+
+    <!-- DATA CONTROLS -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.dataControls">Data Controls</div>
+      <div class="btn-row-secondary">
+        <button class="btn-small btn-small-copy" id="btnCopyAll" data-i18n="btn.copyAll">Copy All</button>
+        <button class="btn-small btn-small-summary" id="btnCopySummary" data-i18n="btn.copySummary">Copy Summary</button>
+        <button class="btn-small btn-small-manual" id="btnAddManualLap" data-i18n="btn.addManualLap">Add Manual Lap</button>
+        <button class="btn-small btn-small-reset" id="btnReset" data-i18n="btn.reset">Reset</button>
+      </div>
     </div>
-    <div class="btn-row-main">
-      <button id="btnStart" class="btn btn-start">Start</button>
-      <button id="btnLap" class="btn btn-lap">Lap</button>
+
+    <!-- CONFIGURACIÓN DE MEDICIÓN -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.measurementSetup">
+        Measurement Setup
+      </div>
+
+      <div class="mode-row">
+        <div>
+          <label for="processName" data-i18n="label.process">Process</label><br/>
+          <input id="processName" type="text"
+            placeholder="e.g. Op 30-1"
+            data-i18n-placeholder="label.processPlaceholder"/>
+        </div>
+
+        <div>
+          <label for="mode" data-i18n="label.mode">Mode</label><br/>
+          <select id="mode">
+            <option value="CT" data-i18n="mode.ct">Cycle Time (CT)</option>
+            <option value="MLD" data-i18n="mode.mld">Machine &amp; Load/Unload</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="efficiency" data-i18n="label.efficiency">Efficiency %</label><br/>
+          <input id="efficiency" type="number" value="100" min="10" max="100" step="1"/>
+        </div>
+
+        <div>
+          <label for="contractPcd" data-i18n="label.contractPcd">
+            Contract Cap (pcs/day)
+          </label><br/>
+          <input id="contractPcd" type="number" min="0" step="1"/>
+        </div>
+
+        <div>
+          <label for="hoursPerDay" data-i18n="label.hoursPerDay">
+            Hours / Day
+          </label><br/>
+          <input id="hoursPerDay" type="number" value="8" min="1" max="24" step=".5"/>
+        </div>
+
+        <div>
+          <label for="daysPerWeek" data-i18n="label.daysPerWeek">
+            Days / Week
+          </label><br/>
+          <input id="daysPerWeek" type="number" value="5" min="1" max="7"/>
+        </div>
+
+        <div>
+          <label for="capView" data-i18n="label.capView">
+            Capacity View
+          </label><br/>
+          <select id="capView">
+            <option value="hour" data-i18n="capView.hour">per Hour</option>
+            <option value="day" data-i18n="capView.day">per Day</option>
+            <option value="week" data-i18n="capView.week">per Week</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- MINI INDICADORES -->
+      <div class="mini-t12-wrapper">
+        <div class="mini-t12">
+          <div class="mini-ring paused" id="ringT1"></div>
+          <div>
+            <div class="mini-label" data-i18n="mini.t1Label">T1 – Machine</div>
+            <div class="mini-value" id="t1Indicator">0.0 s</div>
+          </div>
+        </div>
+
+        <div class="mini-t12">
+          <div class="mini-ring paused" id="ringT2"></div>
+          <div>
+            <div class="mini-label" data-i18n="mini.t2Label">T2 – Load/Unload</div>
+            <div class="mini-value" id="t2Indicator">0.0 s</div>
+          </div>
+        </div>
+      </div>
+
     </div>
+
+    <!-- ⭐ STATS FOCUS (incluye Contract vs Capacity integrado) -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.statsFocus">Stats Focus</div>
+      <div class="sf-wrap" id="statsFocus"></div>
+
+      <div style="margin-top:6px;font-size:.68rem;color:var(--text-muted);" data-i18n="stats.note">
+        Simple language on purpose: few / enough samples,
+        low / high variation, close to normal / not normal, capable / not capable.
+      </div>
+    </div>
+
+    <!-- PROCESS CAPACITY OVERVIEW -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.capacityOverview">
+        Process Capacity Overview
+      </div>
+
+      <table id="overviewTable">
+        <thead>
+          <tr>
+            <th data-i18n="col.process">Process</th>
+            <th data-i18n="col.mode">Mode</th>
+            <th data-i18n="col.n">N</th>
+            <th>CTmed (s)</th>
+            <th>Cap 100%</th>
+            <th>Cap @Eff</th>
+            <th>% vs contract</th>
+          </tr>
+        </thead>
+        <tbody id="overviewBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ESTADÍSTICA DETALLADA -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.statsDetail">
+        Statistical Detail (per process)
+      </div>
+
+      <div style="max-height:260px;overflow:auto;">
+        <table id="statsTable">
+          <thead>
+            <tr>
+              <th data-i18n="col.process">Process</th>
+              <th data-i18n="col.mode">Mode</th>
+              <th data-i18n="col.n">N</th>
+              <th>Mean</th>
+              <th>Median</th>
+              <th>P10</th>
+              <th>P90</th>
+              <th>Min</th>
+              <th>Max</th>
+              <th>Std</th>
+              <th>CV%</th>
+              <th>Cp</th>
+              <th>Cpk</th>
+            </tr>
+          </thead>
+          <tbody id="statsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GRÁFICAS -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.charts">
+        Charts (selected process)
+      </div>
+
+      <div style="margin-bottom:6px;font-size:.75rem;">
+        <label for="chartProcessSelect" data-i18n="label.chartProcessLabel">
+          Process / Mode:
+        </label>
+        <select id="chartProcessSelect"></select>
+      </div>
+
+      <div class="charts-wrapper">
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="chart.timeSeriesTitle">
+            Time Series with Mean, Median, ±3σ
+          </div>
+          <canvas id="timeSeriesCanvas"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="chart.histTitle">
+            Histogram with Median &amp; Percentiles
+          </div>
+          <canvas id="histCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Raw Time Data -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.rawData">Raw Time Data</div>
+      <div style="max-height:320px;overflow:auto;">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th data-i18n="col.index">#</th>
+              <th data-i18n="col.process">Process</th>
+              <th data-i18n="col.mode">Mode</th>
+              <th data-i18n="col.status">Status</th>
+              <th data-i18n="col.note">Note</th>
+              <th data-i18n="col.t1">T1 (s)</th>
+              <th data-i18n="col.t2">T2 (s)</th>
+              <th data-i18n="col.total">Total (s)</th>
+              <th data-i18n="col.edit">Edit</th>
+              <th data-i18n="col.del">Del</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Method & Guide (desplegable) -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.methodGuide">Method &amp; Guide</div>
+
+      <details class="method-details">
+        <summary data-i18n="method.howTitle">How TaktLab estimates capacity</summary>
+        <div class="method-body">
+          <ul>
+            <li><strong>Cycle times:</strong> based on <strong>raw laps</strong> taken at the process (CT or Machine + Load/Unload).</li>
+            <li><strong>CTmed (s):</strong> capacity is calculated using the <strong>median</strong> of the total time (T1+T2 when applicable).</li>
+            <li><strong>Capacity 100%:</strong> 3600 / CTmed → units/hour, then scaled to day/week with the hours &amp; days you set.</li>
+            <li><strong>Capacity @Eff:</strong> applies the Efficiency % (OEE or planned effectiveness) to the theoretical 100% capacity.</li>
+            <li><strong>Contract vs capacity:</strong> compares Capacity @Eff vs Contract Cap, using the selected capacity view (hour/day/week).</li>
+            <li><strong>Potential capacity:</strong> uses the <strong>P10 (best 10%)</strong> of the distribution as the target if the process is stabilized.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="method-details">
+        <summary data-i18n="method.whatTitle">What to enter in each field</summary>
+        <div class="method-body">
+          <ul>
+            <li><strong>Process:</strong> operation ID or description (e.g. “Op 30-1 Mazak #3”).</li>
+            <li><strong>Mode:</strong> CT when you only care about total cycle; Machine &amp; Load/Unload when you want T1 vs T2 split.</li>
+            <li><strong>Efficiency %:</strong> expected OEE / planned effectiveness (e.g. 85%).</li>
+            <li><strong>Contract Cap (pcs/day):</strong> daily volume committed to customer for that process/part number.</li>
+            <li><strong>Hours / Day &amp; Days / Week:</strong> planned schedule actually available for that process (net calendar).</li>
+            <li><strong>Capacity View:</strong> choose whether you want capacity per hour, per day or per week in the tables and snapshot.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="method-details">
+        <summary data-i18n="method.sampleTitle">Sample size &amp; error – quick guide</summary>
+        <div class="method-body">
+          <p>
+            TaktLab links <strong>sample size</strong> (N), <strong>variation</strong> (CV) and the
+            <strong>estimated error</strong> of the mean at 95% confidence.
+          </p>
+          <ul>
+            <li><strong>More variation</strong> (higher CV) ⇒ you need <strong>more samples</strong>.</li>
+            <li><strong>Target in TaktLab:</strong> be close to ±3% error at 95% confidence on critical/bottleneck processes.</li>
+            <li>
+              As a rule of thumb:
+              <ul>
+                <li>Low CV (&lt;8%) → ~10 laps are usually enough.</li>
+                <li>Medium CV (8–20%) → ~15–25 laps.</li>
+                <li>High CV (&gt;20%) → ~25–40+ laps.</li>
+              </ul>
+            </li>
+            <li>
+              The banner under the stopwatch and the <strong>Stats Focus</strong> block show:
+              <strong>Sample size N / N<sub>target</sub></strong> and the estimated error (±% @95%).
+            </li>
+          </ul>
+          <p>
+            Use this as a <strong>guide</strong>, not a rigid rule. If the process is very unstable or mix changes a lot,
+            take more samples and split the studies by family or condition.
+          </p>
+        </div>
+      </details>
+
+      <details class="method-details">
+        <summary data-i18n="method.cpTitle">Cp &amp; Cpk – quick interpretation</summary>
+        <div class="method-body">
+          <p>
+            TaktLab uses your <strong>contract capacity</strong> (pcs/day) and planned hours/day to build a <strong>cycle-time target</strong>.
+            That target is treated as an <strong>upper spec limit (USL)</strong> for capability:
+          </p>
+          <ul>
+            <li><strong>Cp</strong> = (USL − LSL) / (6·σ). Here LSL is 0 s and USL is the CT target. Cp tells you the <strong>potential</strong> capability if the process were perfectly centered.</li>
+            <li><strong>Cpk</strong> = min(Cpu, Cpl) = min[(USL − μ)/(3·σ), (μ − LSL)/(3·σ)]. It reflects the <strong>real</strong> capability with your current mean and spread.</li>
+          </ul>
+          <p>Fast rules of thumb for decision-making:</p>
+          <ul>
+            <li><strong>Cpk &lt; 1.00</strong> → <strong>Not capable</strong> vs target. Expect chronic backlog or need for overtime. This is where you should attack first.</li>
+            <li><strong>1.00 ≤ Cpk &lt; 1.33</strong> → <strong>Borderline</strong>. You can run, but you have little protection against mix changes, breakdowns or demand spikes.</li>
+            <li><strong>Cpk ≥ 1.33</strong> → <strong>Capable</strong> vs target. Improvements here are “nice to have” unless this is the bottleneck.</li>
+          </ul>
+          <p>
+            Remember: these Cp/Cpk values are valid <strong>only if</strong> the data represent a reasonably stable process and the time-study method is consistent
+            (same product family, same operator group, same conditions).
+          </p>
+        </div>
+      </details>
+
+      <details class="method-details">
+        <summary data-i18n="method.noticeTitle">Important notice / disclaimer</summary>
+        <div class="method-body">
+          <p>
+            TaktLab is a <strong>decision-support tool</strong> based on time studies and basic statistical analysis (median, percentiles,
+            standard deviation). Results depend on:
+          </p>
+          <ul>
+            <li>The quality of the time measurements (method, operator, conditions).</li>
+            <li>The number of samples taken and the stability of the process during the study.</li>
+            <li>The assumptions entered by the user (Efficiency %, hours/day, days/week, contract volume).</li>
+          </ul>
+          <p>
+            The “capacity” and “potential” values are <strong>estimates</strong>, not guarantees. Any change in staffing, methods,
+            maintenance, product mix or demand can modify the real output. Use the results as a structured reference to support
+            engineering and management discussions, always combined with your local standards and technical judgement.
+          </p>
+          <p>
+            For support, feedback or custom studies: <strong>hzaelglez@gmail.com</strong>.
+          </p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <div class="footer-note" data-i18n="footer.note">
+    Created by Roberto González – Contact: hzaelglez@gmail.com
   </div>
 </div>
 
-<!-- ===== Main content ===== -->
-<div class="content-section">
+<script>
+(function(){
+  const display = document.getElementById('display');
+  const btnStart = document.getElementById('btnStart');
+  const btnLap = document.getElementById('btnLap');
+  const timerCard = document.getElementById('timerCard');
+  const logoGear = document.getElementById('logoGear');
+  const sampleInfoDiv = document.getElementById('sampleInfo');
 
-<!-- ===== Stats Focus ===== -->
-<div class="section-card">
-  <div class="section-title">Stats Focus</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Metric</th>
-        <th>Value</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>Median (s)</td><td id="sfMedian">—</td><td id="sfMedianStatus">—</td></tr>
-      <tr><td>Mean (s)</td><td id="sfMean">—</td><td id="sfMeanStatus">—</td></tr>
-      <tr><td>P10 (s)</td><td id="sfP10">—</td><td id="sfP10Status">—</td></tr>
-      <tr><td>P90 (s)</td><td id="sfP90">—</td><td id="sfP90Status">—</td></tr>
-      <tr><td>Std Dev</td><td id="sfStd">—</td><td id="sfStdStatus">—</td></tr>
-      <tr><td>CV %</td><td id="sfCV">—</td><td id="sfCVStatus">—</td></tr>
-      <tr><td>Cp</td><td id="sfCp">—</td><td id="sfCpStatus">—</td></tr>
-      <tr><td>Cpk</td><td id="sfCpk">—</td><td id="sfCpkStatus">—</td></tr>
-    </tbody>
-  </table>
-</div>
+  const processInput = document.getElementById('processName');
+  const modeSelect   = document.getElementById('mode');
+  const effInput     = document.getElementById('efficiency');
+  const pcdInput     = document.getElementById('contractPcd');
+  const hInput       = document.getElementById('hoursPerDay');
+  const dInput       = document.getElementById('daysPerWeek');
+  const capViewSel   = document.getElementById('capView');
 
-<!-- ===== Laps ===== -->
-<div class="section-card">
-  <div class="section-title">Laps</div>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Lap Time (s)</th>
-        <th>Cum Time (s)</th>
-      </tr>
-    </thead>
-    <tbody id="lapsBody"></tbody>
-  </table>
-</div>
+  const ringT1 = document.getElementById('ringT1');
+  const ringT2 = document.getElementById('ringT2');
+  const t1Indicator = document.getElementById('t1Indicator');
+  const t2Indicator = document.getElementById('t2Indicator');
 
-<!-- ===== Statistical Detail ===== -->
-<div class="section-card">
-  <div class="section-title">Statistical Detail</div>
-  <div style="overflow:auto;max-height:260px">
-    <table id="statsTable">
+  const overviewBody   = document.getElementById('overviewBody');
+  const statsBody      = document.getElementById('statsBody');
+  const statsFocusDiv  = document.getElementById('statsFocus');
+
+  const dataBody    = document.getElementById('dataBody');
+  const btnCopyAll  = document.getElementById('btnCopyAll');
+  const btnCopySum  = document.getElementById('btnCopySummary');
+  const btnAddMan   = document.getElementById('btnAddManualLap');
+  const btnReset    = document.getElementById('btnReset');
+
+  const chartSelect      = document.getElementById('chartProcessSelect');
+  const timeSeriesCanvas = document.getElementById('timeSeriesCanvas');
+  const histCanvas       = document.getElementById('histCanvas');
+
+  const langButtons = document.querySelectorAll('.lang-btn');
+
+  /* ======== i18n simple EN / ES ======== */
+  const i18n = {
+    en:{
+      'title.subtitle':'Cycle Time & Capacity Analyzer',
+
+      'btn.start':'Start',
+      'btn.pause':'Pause',
+      'btn.lap':'LAP',
+      'btn.copyAll':'Copy All',
+      'btn.copySummary':'Copy Summary',
+      'btn.addManualLap':'Add Manual Lap',
+      'btn.reset':'Reset',
+
+      'section.measurementSetup':'Measurement Setup',
+      'section.capacityOverview':'Process Capacity Overview',
+      'section.statsDetail':'Statistical Detail (per process)',
+      'section.charts':'Charts (selected process)',
+      'section.statsFocus':'Stats Focus',
+      'section.dataControls':'Data Controls',
+      'section.rawData':'Raw Time Data',
+      'section.methodGuide':'Method & Guide',
+
+      'label.process':'Process',
+      'label.processPlaceholder':'e.g. Op 30-1',
+      'label.mode':'Mode',
+      'label.efficiency':'Efficiency %',
+      'label.contractPcd':'Contract Cap (pcs/day)',
+      'label.hoursPerDay':'Hours / Day',
+      'label.daysPerWeek':'Days / Week',
+      'label.capView':'Capacity View',
+      'label.chartProcessLabel':'Process / Mode:',
+
+      'mode.ct':'Cycle Time (CT)',
+      'mode.mld':'Machine & Load/Unload',
+
+      'capView.hour':'per Hour',
+      'capView.day':'per Day',
+      'capView.week':'per Week',
+
+      'mini.t1Label':'T1 – Machine',
+      'mini.t2Label':'T2 – Load/Unload',
+
+      'col.index':'#',
+      'col.process':'Process',
+      'col.mode':'Mode',
+      'col.status':'Status',
+      'col.note':'Note',
+      'col.t1':'T1 (s)',
+      'col.t2':'T2 (s)',
+      'col.total':'Total (s)',
+      'col.edit':'Edit',
+      'col.del':'Del',
+      'col.n':'N',
+
+      'chart.timeSeriesTitle':'Time Series with Mean, Median, ±3σ',
+      'chart.histTitle':'Histogram with Median & Percentiles',
+
+      'method.howTitle':'How TaktLab estimates capacity',
+      'method.whatTitle':'What to enter in each field',
+      'method.sampleTitle':'Sample size & error – quick guide',
+      'method.cpTitle':'Cp & Cpk – quick interpretation',
+      'method.noticeTitle':'Important notice / disclaimer',
+
+      'stats.note':'Simple language on purpose: few / enough samples, low / high variation, close to normal / not normal, capable / not capable.',
+
+      'footer.note':'Created by Roberto González – Contact: hzaelglez@gmail.com'
+    },
+    es:{
+      'title.subtitle':'Analizador de Tiempo de Ciclo y Capacidad',
+
+      'btn.start':'Iniciar',
+      'btn.pause':'Pausar',
+      'btn.lap':'VUELTA',
+      'btn.copyAll':'Copiar todo',
+      'btn.copySummary':'Copiar resumen',
+      'btn.addManualLap':'Agregar vuelta manual',
+      'btn.reset':'Reiniciar',
+
+      'section.measurementSetup':'Configuración de Medición',
+      'section.capacityOverview':'Resumen de Capacidad por Proceso',
+      'section.statsDetail':'Detalle Estadístico (por proceso)',
+      'section.charts':'Gráficas (proceso seleccionado)',
+      'section.statsFocus':'Enfoque Estadístico',
+      'section.dataControls':'Controles de Datos',
+      'section.rawData':'Datos Crudos de Tiempo',
+      'section.methodGuide':'Método y Guía',
+
+      'label.process':'Proceso / Estación',
+      'label.processPlaceholder':'p. ej. Op 30-1 Mazak #3',
+      'label.mode':'Modo',
+      'label.efficiency':'Eficiencia %',
+      'label.contractPcd':'Capacidad contrato (pzs/día)',
+      'label.hoursPerDay':'Horas / día',
+      'label.daysPerWeek':'Días / semana',
+      'label.capView':'Vista de capacidad',
+      'label.chartProcessLabel':'Proceso / Modo:',
+
+      'mode.ct':'Tiempo de ciclo (CT)',
+      'mode.mld':'Máquina y Carga/Descarga',
+
+      'capView.hour':'por hora',
+      'capView.day':'por día',
+      'capView.week':'por semana',
+
+      'mini.t1Label':'T1 – Máquina',
+      'mini.t2Label':'T2 – Carga/Descarga',
+
+      'col.index':'#',
+      'col.process':'Proceso',
+      'col.mode':'Modo',
+      'col.status':'Estatus',
+      'col.note':'Nota',
+      'col.t1':'T1 (s)',
+      'col.t2':'T2 (s)',
+      'col.total':'Total (s)',
+      'col.edit':'Editar',
+      'col.del':'Borrar',
+      'col.n':'N',
+
+      'chart.timeSeriesTitle':'Serie de tiempo con media, mediana y ±3σ',
+      'chart.histTitle':'Histograma con mediana y percentiles',
+
+      'method.howTitle':'Cómo TaktLab estima la capacidad',
+      'method.whatTitle':'Qué capturar en cada campo',
+      'method.sampleTitle':'Tamaño de muestra y error – guía rápida',
+      'method.cpTitle':'Cp y Cpk – interpretación rápida',
+      'method.noticeTitle':'Aviso importante / descargo de responsabilidad',
+
+      'stats.note':'Lenguaje simple a propósito: pocas / suficientes muestras, baja / alta variación, cercano / no cercano a normal, capaz / no capaz.',
+
+      'footer.note':'Creado por Roberto González – Contacto: hzaelglez@gmail.com'
+    }
+  };
+
+  function t(key){
+    return (i18n[currentLang] && i18n[currentLang][key]) ||
+           (i18n.en[key]) ||
+           key;
+  }
+
+  let currentLang = localStorage.getItem('taktlabLang') || 'en';
+
+  function applyTranslations(){
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key = el.dataset.i18n;
+      if(!key) return;
+      const txt = t(key);
+      if(el === btnStart) return;
+      el.textContent = txt;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+      const key = el.dataset.i18nPlaceholder;
+      if(!key) return;
+      const txt = t(key);
+      if(txt) el.placeholder = txt;
+    });
+  }
+
+  function updateLangButtons(){
+    langButtons.forEach(b=>{
+      b.classList.toggle('active', b.dataset.lang === currentLang);
+    });
+  }
+
+  let running = false;
+
+  function setLanguage(lang){
+    currentLang = (lang === 'es') ? 'es' : 'en';
+    localStorage.setItem('taktlabLang', currentLang);
+    document.documentElement.lang = currentLang;
+    updateLangButtons();
+    applyTranslations();
+    if(running){
+      btnStart.textContent = t('btn.pause');
+    }else{
+      btnStart.textContent = t('btn.start');
+    }
+    renderAll();
+  }
+
+  langButtons.forEach(btn=>{
+    btn.addEventListener('click',()=> setLanguage(btn.dataset.lang));
+  });
+
+  let startTime = 0;
+  let elapsed = 0;
+  let timerId = null;
+
+  let laps = []; // {id,process,mode,status,note,t1,t2,total}
+  let nextId = 1;
+  let pendingT1 = null; // para MLD
+
+  function pad2(n){return n<10?'0'+n:''+n;}
+  function formatTime(ms){
+    const total = Math.max(ms,0);
+    const mins = Math.floor(total/60000);
+    const secs = Math.floor((total%60000)/1000);
+    const cent = Math.floor((total%1000)/10);
+    return pad2(mins)+':'+pad2(secs)+'.'+pad2(cent);
+  }
+  function formatSecs(s){
+    if(!isFinite(s)) return '-';
+    return (Math.round(s*10)/10).toFixed(1);
+  }
+  function formatUnits(n){
+    if(!isFinite(n)) return '-';
+    const rounded = Math.round(n);
+    return rounded.toLocaleString('en-US',{maximumFractionDigits:0});
+  }
+
+  function updateDisplay(){
+    display.textContent = formatTime(elapsed);
+  }
+
+  function refreshRingStates(){
+    const mode = modeSelect.value;
+    if(!running){
+      ringT1.classList.add('paused');
+      ringT2.classList.add('paused');
+      logoGear.classList.remove('spinning');
+      return;
+    }
+    logoGear.classList.add('spinning');
+    if(mode === 'CT'){
+      ringT1.classList.remove('paused');
+      ringT2.classList.add('paused');
+    }else{
+      if(pendingT1 === null){
+        ringT1.classList.remove('paused');
+        ringT2.classList.add('paused');
+      }else{
+        ringT1.classList.add('paused');
+        ringT2.classList.remove('paused');
+      }
+    }
+  }
+
+  function tick(){
+    const now = performance.now();
+    elapsed = now - startTime;
+    updateDisplay();
+
+    const mode = modeSelect.value;
+    const secs = Math.max(elapsed/1000,0);
+
+    if(running && mode === 'MLD'){
+      if (pendingT1 === null) {
+        t1Indicator.textContent = formatSecs(secs) + ' s';
+      } else {
+        const t2 = secs;
+        t2Indicator.textContent = formatSecs(t2) + ' s';
+      }
+    } else if(running && mode === 'CT'){
+      t1Indicator.textContent = formatSecs(secs) + ' s';
+    }
+
+    timerId = requestAnimationFrame(tick);
+  }
+
+  function start(){
+    if(running) return;
+    running = true;
+    startTime = performance.now() - elapsed;
+    timerId = requestAnimationFrame(tick);
+    btnStart.textContent = t('btn.pause');
+    refreshRingStates();
+  }
+
+  function pause(){
+    if(!running) return;
+    running = false;
+    cancelAnimationFrame(timerId);
+    timerId = null;
+    btnStart.textContent = t('btn.start');
+    refreshRingStates();
+  }
+
+  btnStart.addEventListener('click',()=>{
+    if(running) pause(); else start();
+  });
+
+  function smallVibration(){
+    if(navigator.vibrate){
+      try{navigator.vibrate(35);}catch(e){}
+    }
+  }
+  function flashCard(){
+    timerCard.classList.add('flash');
+    setTimeout(()=>timerCard.classList.remove('flash'),120);
+  }
+
+  function ensureDefaults(){
+    let proc = (processInput.value||'').trim();
+    if(!proc){
+      proc = currentLang==='es' ? 'Proceso 1' : 'Process 1';
+      processInput.value = proc;
+    }
+    let mode = modeSelect.value || 'CT';
+    modeSelect.value = mode;
+    return {proc,mode};
+  }
+
+  function addLap(manualData){
+    const {proc,mode} = ensureDefaults();
+    const status = '';
+    const note = '';
+
+    if(manualData){
+      const {t1,t2,total} = manualData;
+      laps.push({id:nextId++,process:proc,mode,status,note,t1,t2,total});
+      renderAll();
+      return;
+    }
+
+    const seconds = Math.max(elapsed/1000,0);
+
+    if(mode === 'CT'){
+      laps.push({
+        id:nextId++,
+        process:proc,
+        mode,
+        status,
+        note,
+        t1:seconds,
+        t2:0,
+        total:seconds
+      });
+      elapsed = 0;
+      startTime = performance.now();
+      updateDisplay();
+      t1Indicator.textContent='0.0 s';
+      t2Indicator.textContent='0.0 s';
+      pendingT1 = null;
+      refreshRingStates();
+      renderAll();
+      return;
+    }
+
+    if(pendingT1 === null){
+      pendingT1 = seconds;
+      t1Indicator.textContent = formatSecs(pendingT1)+' s';
+      elapsed = 0;
+      startTime = performance.now();
+      refreshRingStates();
+    }else{
+      const t2 = seconds;
+      const t1 = pendingT1;
+      const total = t1 + t2;
+      laps.push({id:nextId++,process:proc,mode,status,note,t1,t2,total});
+      pendingT1 = null;
+      t1Indicator.textContent='0.0 s';
+      t2Indicator.textContent='0.0 s';
+      elapsed = 0;
+      startTime = performance.now();
+      updateDisplay();
+      refreshRingStates();
+      renderAll();
+    }
+  }
+
+  btnLap.addEventListener('click',()=>{
+    smallVibration();
+    flashCard();
+    addLap();
+  });
+
+  btnAddMan.addEventListener('click',()=>{
+    const promptT1 = currentLang==='es'
+      ? 'T1 (s) – deja vacío si no aplica'
+      : 'T1 (s) – leave blank if not used';
+    const promptT2 = currentLang==='es'
+      ? 'T2 (s) – deja vacío si no aplica'
+      : 'T2 (s) – leave blank if not used';
+    const t1 = parseFloat(prompt(promptT1,''));
+    const t2 = parseFloat(prompt(promptT2,''));
+    if(isNaN(t1) && isNaN(t2)) return;
+    const v1 = isNaN(t1)?0:t1;
+    const v2 = isNaN(t2)?0:t2;
+    addLap({t1:v1,t2:v2,total:v1+v2});
+  });
+
+  btnReset.addEventListener('click',()=>{
+    pause();
+    elapsed = 0;
+    updateDisplay();
+    laps = [];
+    nextId = 1;
+    pendingT1 = null;
+    t1Indicator.textContent='0.0 s';
+    t2Indicator.textContent='0.0 s';
+    refreshRingStates();
+    renderAll();
+  });
+
+  modeSelect.addEventListener('change',()=>{
+    pendingT1 = null;
+    t1Indicator.textContent='0.0 s';
+    t2Indicator.textContent='0.0 s';
+    refreshRingStates();
+  });
+
+  function groupByProcess(){
+    const map = new Map();
+    laps.forEach(l=>{
+      const key = l.process+'||'+l.mode;
+      if(!map.has(key)) map.set(key,[]);
+      map.get(key).push(l);
+    });
+    return map;
+  }
+
+  function percentile(values,p){
+    const n = values.length;
+    if(n===0) return NaN;
+    if(n===1) return values[0];
+    const idx = (n-1)*p;
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if(lo===hi) return values[lo];
+    return values[lo] + (values[hi]-values[lo])*(idx-lo);
+  }
+
+  function calcStats(arr){
+    if(!arr.length) return null;
+    const values = arr.map(x=>x.total).slice().sort((a,b)=>a-b);
+    const n = values.length;
+    const mean = values.reduce((s,v)=>s+v,0)/n;
+    const median = n%2?values[(n-1)/2]:(values[n/2-1]+values[n/2])/2;
+    const min = values[0];
+    const max = values[n-1];
+    const variance = values.reduce((s,v)=>s+Math.pow(v-mean,2),0)/(n-1||1);
+    const std = Math.sqrt(variance);
+    const p10 = percentile(values,0.1);
+    const p90 = percentile(values,0.9);
+    const q1  = percentile(values,0.25);
+    const q3  = percentile(values,0.75);
+    const cv  = mean ? std/mean : 0;
+    return {n,values,mean,median,min,max,std,p10,p90,q1,q3,cv};
+  }
+
+  function computeCtTargetSeconds(){
+    const pcd   = parseFloat(pcdInput.value)||0;
+    const hours = Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
+    if(pcd<=0) return null;
+    const secondsPerDay = hours*3600;
+    return secondsPerDay/pcd;
+  }
+
+  /* ===== ÚNICO MÉTODO: Sample size / error (banner) ===== */
+  function sampleMethod(n, cv){
+    const Z = 1.96;
+    const targetError = 0.03;
+
+    if(!isFinite(cv) || cv<0) cv = 0;
+
+    let recN;
+    let eActualRel;
+
+    if(cv === 0){
+      recN = Math.max(10, n);
+      eActualRel = 0;
+    }else{
+      recN = Math.ceil(Math.pow((Z * cv) / targetError, 2));
+      if(recN < 10) recN = 10;
+      eActualRel = (Z * cv) / Math.sqrt(Math.max(n,1));
+    }
+
+    const eActualPct = eActualRel * 100;
+    const ratio = n / recN;
+
+    let cls = 'warn';
+    let msgExtraEn = 'Almost enough for ±3% – a couple more laps would help.';
+    let msgExtraEs = 'Casi suficiente para ±3% – un par de vueltas más ayudarán.';
+
+    if(ratio < 0.6){
+      cls = 'bad';
+      msgExtraEn = 'Sample too small for ±3% – use only as reference.';
+      msgExtraEs = 'Muestra muy pequeña para ±3% – úsala solo como referencia.';
+    }else if(ratio < 0.9){
+      cls = 'warn';
+    }else{
+      cls = 'good';
+      msgExtraEn = 'Sample size is enough for decisions at ±3% target.';
+      msgExtraEs = 'Tamaño de muestra suficiente para decisiones con objetivo ±3%.';
+    }
+
+    return {
+      recN,
+      eText: (isFinite(eActualPct) ? eActualPct.toFixed(1) : '—'),
+      cls,
+      msgExtraEn,
+      msgExtraEs
+    };
+  }
+
+  function updateSampleInfo(){
+    if(!sampleInfoDiv) return;
+
+    const groups = groupByProcess();
+    const {proc,mode} = ensureDefaults();
+    const key = proc+'||'+mode;
+    const arr = groups.get(key) || [];
+
+    if(!arr.length){
+      sampleInfoDiv.className = 'sample-info sample-neutral';
+      sampleInfoDiv.textContent =
+        currentLang==='es'
+          ? 'Aún no hay muestras para el proceso actual. Comienza a tomar vueltas.'
+          : 'No samples yet for current process. Start capturing laps.';
+      return;
+    }
+
+    const st = calcStats(arr);
+    if(!st || st.n < 3){
+      sampleInfoDiv.className = 'sample-info sample-neutral';
+      sampleInfoDiv.textContent = currentLang==='es'
+        ? `Tamaño de muestra: ${st ? st.n : 0} / 3 – se requieren ≥3 vueltas antes de estimar el error.`
+        : `Sample size: ${st ? st.n : 0} / 3 – need ≥3 laps before estimating error.`;
+      return;
+    }
+
+    const n = st.n;
+    const cv = st.cv || 0;
+
+    const sm = sampleMethod(n, cv);
+
+    const clsMap = {good:'sample-good', warn:'sample-warn', bad:'sample-bad'};
+    sampleInfoDiv.className = 'sample-info ' + (clsMap[sm.cls] || 'sample-warn');
+
+    // ⬇️ FORMATO EXACTO que pediste (único método)
+    sampleInfoDiv.textContent =
+      (currentLang==='es'
+        ? `Sample size: ${n} / ${sm.recN} · Est. error: ±${sm.eText}% (95%) – ${sm.msgExtraEn}`
+        : `Sample size: ${n} / ${sm.recN} · Est. error: ±${sm.eText}% (95%) – ${sm.msgExtraEn}`
+      );
+  }
+
+  function renderDataTable(){
+    dataBody.innerHTML='';
+
+    const statusOptions = currentLang==='es'
+      ? ['','Falta material','Bloqueado','Mtto']
+      : ['','Starved','Blocked','DT Maint'];
+
+    laps.forEach((lap,i)=>{
+      const tr = document.createElement('tr');
+      const statusSelectHtml = `
+        <select class="status-select" data-id="${lap.id}">
+          ${statusOptions.map(opt=>{
+            const sel = opt===lap.status?'selected':'';
+            return `<option value="${opt}" ${sel}>${opt}</option>`;
+          }).join('')}
+        </select>
+      `;
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${lap.process}</td>
+        <td>${lap.mode}</td>
+        <td>${statusSelectHtml}</td>
+        <td>
+          <input type="text"
+                 class="note-input"
+                 data-id="${lap.id}"
+                 value="${lap.note||''}"
+                 style="width:120px;background:#020b1a;border-radius:6px;border:1px solid var(--border-soft);color:var(--text-soft);font-size:.72rem;padding:2px 4px;">
+        </td>
+        <td>${formatSecs(lap.t1)}</td>
+        <td>${formatSecs(lap.t2)}</td>
+        <td>${formatSecs(lap.total)}</td>
+        <td><button class="btn-edit" data-id="${lap.id}">${currentLang==='es' ? 'Editar' : 'Edit'}</button></td>
+        <td><button class="btn-del" data-id="${lap.id}">X</button></td>
+      `;
+      dataBody.appendChild(tr);
+    });
+
+    dataBody.querySelectorAll('.btn-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const id = parseInt(btn.dataset.id,10);
+        laps = laps.filter(l=>l.id!==id);
+        renderAll();
+      });
+    });
+
+    dataBody.querySelectorAll('.btn-edit').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const id = parseInt(btn.dataset.id,10);
+        const lap = laps.find(l=>l.id===id);
+        if(!lap) return;
+        const msgT1 = currentLang==='es' ? 'Editar T1 (s)' : 'Edit T1 (s)';
+        const msgT2 = currentLang==='es' ? 'Editar T2 (s)' : 'Edit T2 (s)';
+        const t1 = parseFloat(prompt(msgT1, lap.t1.toFixed(2)));
+        const t2 = parseFloat(prompt(msgT2, lap.t2.toFixed(2)));
+        if(isNaN(t1) && isNaN(t2)) return;
+        if(!isNaN(t1)) lap.t1 = t1;
+        if(!isNaN(t2)) lap.t2 = t2;
+        lap.total = lap.t1 + lap.t2;
+        renderAll();
+      });
+    });
+
+    dataBody.querySelectorAll('.status-select').forEach(sel=>{
+      sel.addEventListener('change',()=>{
+        const id = parseInt(sel.dataset.id,10);
+        const lap = laps.find(l=>l.id===id);
+        if(lap) lap.status = sel.value;
+      });
+    });
+
+    dataBody.querySelectorAll('.note-input').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const id = parseInt(inp.dataset.id,10);
+        const lap = laps.find(l=>l.id===id);
+        if(lap) lap.note = inp.value;
+      });
+    });
+  }
+
+  function renderOverview(){
+    overviewBody.innerHTML='';
+    const groups = groupByProcess();
+    const eff = Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
+    const hours = Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
+    const days  = Math.min(Math.max(parseInt(dInput.value)||5,1),7);
+    const pcd   = parseFloat(pcdInput.value)||0;
+    const view  = capViewSel.value;
+
+    groups.forEach((arr,key)=>{
+      const [proc,mode] = key.split('||');
+      const st = calcStats(arr);
+      if(!st) return;
+      const ctMed = st.median;
+      let cap100 = 0;
+      if(ctMed>0){
+        const perHour = 3600/ctMed;
+        if(view==='hour') cap100 = perHour;
+        else if(view==='day') cap100 = perHour*hours;
+        else cap100 = perHour*hours*days;
+      }
+      const capEff = cap100*(eff/100);
+
+      let contractUnits = 0;
+      if(pcd>0){
+        if(view==='hour') contractUnits = (pcd/hours)||0;
+        else if(view==='day') contractUnits = pcd;
+        else contractUnits = pcd*days;
+      }
+      let pctVs = contractUnits>0 ? (capEff/contractUnits*100) : 0;
+      let badgeClass = '';
+      let badgeText = '';
+      if(contractUnits>0){
+        if(pctVs<85){badgeClass='badge-bad';badgeText=pctVs.toFixed(0)+'%';}
+        else if(pctVs<100){badgeClass='badge-warn';badgeText=pctVs.toFixed(0)+'%';}
+        else{badgeClass='badge-good';badgeText=pctVs.toFixed(0)+'%';}
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${proc}</td>
+        <td>${mode}</td>
+        <td>${st.n}</td>
+        <td>${formatSecs(ctMed)}</td>
+        <td>${cap100?formatUnits(cap100):'-'}</td>
+        <td>${capEff?formatUnits(capEff):'-'}</td>
+        <td>${contractUnits>0?`<span class="badge ${badgeClass}">${badgeText}</span>`:'-'}</td>
+      `;
+      overviewBody.appendChild(tr);
+    });
+  }
+
+  function renderStatsDetail(){
+    statsBody.innerHTML='';
+    const groups = groupByProcess();
+    const ctTarget = computeCtTargetSeconds();
+
+    groups.forEach((arr,key)=>{
+      const [proc,mode] = key.split('||');
+      const st = calcStats(arr);
+      if(!st) return;
+
+      let cp='-', cpk='-';
+      if(ctTarget && st.std>0){
+        const USL = ctTarget;
+        const LSL = 0;
+        const cpv = (USL-LSL)/(6*st.std);
+        const cpu = (USL-st.mean)/(3*st.std);
+        const cpl = (st.mean-LSL)/(3*st.std);
+        const cpkv = Math.min(cpu,cpl);
+        cp  = cpv.toFixed(2);
+        cpk = cpkv.toFixed(2);
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${proc}</td>
+        <td>${mode}</td>
+        <td>${st.n}</td>
+        <td>${formatSecs(st.mean)}</td>
+        <td>${formatSecs(st.median)}</td>
+        <td>${formatSecs(st.p10)}</td>
+        <td>${formatSecs(st.p90)}</td>
+        <td>${formatSecs(st.min)}</td>
+        <td>${formatSecs(st.max)}</td>
+        <td>${formatSecs(st.std)}</td>
+        <td>${(st.cv*100).toFixed(1)}</td>
+        <td>${cp}</td>
+        <td>${cpk}</td>
+      `;
+      statsBody.appendChild(tr);
+    });
+  }
+
+  /* ===== NEW: Stats Focus TABLE (Opción A) + Contract integrated ===== */
+  function renderStatsFocus(){
+    const groups = groupByProcess();
+    statsFocusDiv.innerHTML='';
+
+    if(!groups.size){
+      statsFocusDiv.innerHTML =
+        currentLang==='es'
+          ? '<div class="sf-chip sf-warn">Sin muestras aún. Toma al menos 10–15 vueltas en el proceso cuello de botella.</div>'
+          : '<div class="sf-chip sf-warn">No samples yet. Take at least 10–15 laps on the bottleneck process.</div>';
+      return;
+    }
+
+    const eff = Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
+    const hours = Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
+    const days  = Math.min(Math.max(parseInt(dInput.value)||5,1),7);
+    const pcd   = parseFloat(pcdInput.value)||0;
+    const view  = capViewSel.value;
+    const ctTarget = computeCtTargetSeconds();
+
+    const headProcess = currentLang==='es' ? 'Proceso / Estación' : 'Process / Station';
+    const headSample  = currentLang==='es' ? 'Muestras (único método)' : 'Samples (single method)';
+    const headVar     = currentLang==='es' ? 'Variación' : 'Variation';
+    const headNorm    = currentLang==='es' ? 'Normalidad' : 'Normality';
+    const headCap     = currentLang==='es' ? 'Capacidad' : 'Capability';
+    const headContract= currentLang==='es' ? 'Contrato vs Capacidad' : 'Contract vs Capacity';
+    const headRec     = currentLang==='es' ? 'Recomendaciones' : 'Recommendations';
+
+    const table = document.createElement('table');
+    table.className = 'sf-table';
+    table.innerHTML = `
       <thead>
         <tr>
-          <th>Process</th>
-          <th>Mode</th>
-          <th>N</th>
-          <th>Mean (s)</th>
-          <th>Median (s)</th>
-          <th>P10</th>
-          <th>P90</th>
-          <th>Min</th>
-          <th>Max</th>
-          <th>Std</th>
-          <th>CV %</th>
-          <th>Cp</th>
-          <th>Cpk</th>
+          <th>${headProcess}</th>
+          <th>${headSample}</th>
+          <th>${headVar}</th>
+          <th>${headNorm}</th>
+          <th>${headCap}</th>
+          <th>${headContract}</th>
+          <th>${headRec}</th>
         </tr>
       </thead>
-      <tbody id="statsBody"></tbody>
-    </table>
-  </div>
-</div>
+      <tbody></tbody>
+    `;
 
-<!-- ===== Copy Summary ===== -->
-<div class="section-card">
-  <div class="section-title">Copy Summary</div>
-  <textarea id="summaryOutput" style="width:100%;min-height:140px;
-    background:var(--bg-card-soft);border:1px solid var(--border-soft);
-    border-radius:12px;color:var(--text-soft);padding:8px;font-size:.72rem"
-    readonly></textarea>
-  <div style="display:flex;gap:8px;margin-top:6px">
-    <button id="btnCopySummary" class="btn btn-start">Copy</button>
-    <button id="btnReset" class="btn btn-grey">Reset</button>
-  </div>
-</div>
+    const tbody = table.querySelector('tbody');
 
-</div><!-- /content-section -->
-</div><!-- /page -->
-<script>
-/* ===== TAKTLAB CORE – TIMER & LAPS (COMPACTED) ===== */
-let startTime=null,elapsed=0,timerInterval=null;
-let laps=[],running=false;
+    groups.forEach((arr,key)=>{
+      const [proc,mode] = key.split('||');
+      const st = calcStats(arr);
+      if(!st) return;
 
-const timerDisplay=document.getElementById("timerDisplay");
-const btnStart=document.getElementById("btnStart");
-const btnLap=document.getElementById("btnLap");
-const lapsBody=document.getElementById("lapsBody");
-const logoGear=document.getElementById("logoGear");
-const sampleInfo=document.getElementById("sampleInfo");
+      const n = st.n;
+      const cv = st.cv || 0;
 
-function fmtTime(ms){
-  const s=Math.floor(ms/1000);
-  const m=Math.floor(s/60);
-  const sec=(s%60).toString().padStart(2,"0");
-  const msr=(ms%1000).toString().padStart(3,"0");
-  return `${m.toString().padStart(2,"0")}:${sec}.${msr}`;
-}
+      // === Sample line (EXACT method & format) ===
+      let sampleChipClass = 'sf-warn';
+      let extra = '';
+      if(n >= 3){
+        const sm = sampleMethod(n, cv);
+        sampleChipClass = (sm.cls === 'good') ? 'sf-good' : (sm.cls === 'bad' ? 'sf-bad' : 'sf-warn');
+        extra = (currentLang==='es') ? sm.msgExtraEn : sm.msgExtraEn; // keep EN phrasing exactly as requested
+        var sampleLine = `Sample size: ${n} / ${sm.recN} · Est. error: ±${sm.eText}% (95%) – ${extra}`;
+      }else{
+        sampleChipClass = 'sf-warn';
+        var sampleLine = currentLang==='es'
+          ? `Sample size: ${n} / 3 · Est. error: ±—% (95%) – need ≥3 laps before estimating error.`
+          : `Sample size: ${n} / 3 · Est. error: ±—% (95%) – need ≥3 laps before estimating error.`;
+      }
 
-function updateTimer(){
-  elapsed=Date.now()-startTime;
-  timerDisplay.textContent=fmtTime(elapsed);
-}
+      // === Variation ===
+      let varChipClass = 'sf-warn';
+      let varMsg = `Std ≈ ${formatSecs(st.std)} s · CV ${((cv*100).toFixed(1))}%`;
+      if(cv < 0.08) varChipClass = 'sf-good';
+      else if(cv > 0.20) varChipClass = 'sf-bad';
 
-function startTimer(){
-  if(running){
-    clearInterval(timerInterval);
-    running=false;
-    btnStart.textContent="Start";
-    logoGear.classList.remove("spinning");
-    return;
+      // === Normality (Mean vs Median) ===
+      const diff = Math.abs(st.mean - st.median);
+      let normChipClass = 'sf-good';
+      let normMsg = `Mean ${formatSecs(st.mean)} · Median ${formatSecs(st.median)}`;
+      if(st.median > 0 && diff > 0.2*st.median){
+        normChipClass = 'sf-warn';
+        normMsg += (currentLang==='es') ? ' · Not normal (check outliers)' : ' · Not normal (check outliers)';
+      }else{
+        normMsg += (currentLang==='es') ? ' · Close to normal' : ' · Close to normal';
+      }
+
+      // === Contract vs Capacity (integrated) ===
+      let cap100 = 0;
+      let capEff = 0;
+      let contractUnits = 0;
+      let pct = NaN;
+
+      if(st.median > 0){
+        const perHour = 3600/st.median;
+        if(view==='hour') cap100 = perHour;
+        else if(view==='day') cap100 = perHour*hours;
+        else cap100 = perHour*hours*days;
+        capEff = cap100*(eff/100);
+      }
+
+      if(pcd>0){
+        if(view==='hour') contractUnits = (pcd/hours)||0;
+        else if(view==='day') contractUnits = pcd;
+        else contractUnits = pcd*days;
+      }
+
+      if(contractUnits>0 && capEff>0){
+        pct = capEff/contractUnits*100;
+      }
+
+      let contractBlock = '';
+      if(contractUnits<=0){
+        contractBlock = `<span class="sf-muted">${currentLang==='es' ? 'Sin contrato cargado' : 'No contract loaded'}</span>`;
+      }else{
+        let badgeClass = 'badge-warn';
+        if(pct < 85) badgeClass = 'badge-bad';
+        else if(pct < 100) badgeClass = 'badge-warn';
+        else badgeClass = 'badge-good';
+
+        contractBlock = `
+          <div><strong>${formatUnits(capEff)}</strong> units/${view} @Eff</div>
+          <div><span class="badge ${badgeClass}">${pct.toFixed(0)}% vs contract</span></div>
+        `;
+      }
+
+      // === Capability Cp/Cpk ===
+      let capChipClass = 'sf-warn';
+      let capMsg = currentLang==='es'
+        ? 'Sin contrato cargado'
+        : 'No contract loaded';
+
+      let cp='-', cpk='-';
+      if(ctTarget && st.std>0){
+        const USL = ctTarget;
+        const LSL = 0;
+        const cpv = (USL-LSL)/(6*st.std);
+        const cpu = (USL-st.mean)/(3*st.std);
+        const cpl = (st.mean-LSL)/(3*st.std);
+        const cpkv = Math.min(cpu,cpl);
+        cp = cpv.toFixed(2);
+        cpk = cpkv.toFixed(2);
+
+        if(cpkv < 1.0){ capChipClass = 'sf-bad'; }
+        else if(cpkv < 1.33){ capChipClass = 'sf-warn'; }
+        else { capChipClass = 'sf-good'; }
+
+        capMsg = `Cp=${cp} · Cpk=${cpk}`;
+      }
+
+      // === Recommendations ===
+      const recLines = [];
+
+      // sample rec
+      if(n >= 3){
+        const sm = sampleMethod(n, cv);
+        if(sm.cls === 'bad') recLines.push(currentLang==='es' ? 'Tomar más muestras (objetivo ±3%).' : 'Take more samples (±3% target).');
+        else if(sm.cls === 'warn') recLines.push(currentLang==='es' ? 'Completar muestras para ±3%.' : 'Finish samples for ±3%.');
+      } else {
+        recLines.push(currentLang==='es' ? 'Tomar ≥3 muestras para estimar error.' : 'Take ≥3 samples to estimate error.');
+      }
+
+      // variation rec
+      if(cv > 0.20) recLines.push(currentLang==='es' ? 'Reducir variación: método, mix, micro-paros, setup.' : 'Reduce variation: method, mix, micro-stops, setup.');
+
+      // contract rec
+      if(contractUnits>0 && isFinite(pct)){
+        if(pct < 100) recLines.push(currentLang==='es' ? 'Riesgo de backlog: atacar cuello de botella / balance / recursos.' : 'Backlog risk: attack bottleneck / balance / resources.');
+        else recLines.push(currentLang==='es' ? 'OK vs contrato: mantener control y no aflojar.' : 'OK vs contract: keep control and hold the gains.');
+      }else{
+        recLines.push(currentLang==='es' ? 'Cargar contrato para evaluar capacidad.' : 'Load contract to evaluate capacity.');
+      }
+
+      // capability rec
+      if(ctTarget && st.std>0){
+        const cpkvNum = parseFloat(cpk);
+        if(isFinite(cpkvNum) && cpkvNum < 1.0) recLines.push(currentLang==='es' ? 'NO capaz: enfocar acciones aquí primero.' : 'NOT capable: focus actions here first.');
+        else if(isFinite(cpkvNum) && cpkvNum < 1.33) recLines.push(currentLang==='es' ? 'Borderline: bajar σ antes de subir velocidad.' : 'Borderline: reduce σ before pushing speed.');
+      }
+
+      const recHtml = recLines.length
+        ? `<div class="${(recLines.join(' ').includes('NO capaz') || recLines.join(' ').includes('NOT capable')) ? 'sf-chip sf-bad' : 'sf-chip sf-warn'}">${recLines.join('<br>')}</div>`
+        : `<span class="sf-muted">—</span>`;
+
+      // row
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${proc}</strong><div class="sf-muted">${mode}</div></td>
+        <td><span class="sf-chip ${sampleChipClass}">${sampleLine}</span></td>
+        <td><span class="sf-chip ${varChipClass}">${varMsg}</span></td>
+        <td><span class="sf-chip ${normChipClass}">${normMsg}</span></td>
+        <td><span class="sf-chip ${capChipClass}">${capMsg}</span></td>
+        <td>${contractBlock}</td>
+        <td>${recHtml}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    statsFocusDiv.appendChild(table);
   }
-  startTime=Date.now()-elapsed;
-  timerInterval=setInterval(updateTimer,10);
-  running=true;
-  btnStart.textContent="Stop";
-  logoGear.classList.add("spinning");
-}
 
-function addLap(){
-  if(!running)return;
-  const lapTime=elapsed-(laps.length?laps[laps.length-1].cum:0);
-  const cum=elapsed;
-  laps.push({lap:lapTime,cum});
-  renderLaps();
-  flash(btnLap);
-  updateStats();
-}
+  // ===== Gráficas =====
+  function updateChartOptions(){
+    const groups = groupByProcess();
+    const previous = chartSelect.value;
+    chartSelect.innerHTML='';
+    if(!groups.size){
+      const opt = document.createElement('option');
+      opt.value='';
+      opt.textContent = currentLang==='es' ? 'Sin procesos aún' : 'No process yet';
+      chartSelect.appendChild(opt);
+      drawTimeSeries(null,null);
+      drawHistogram(null,null);
+      return;
+    }
+    let firstKey=null;
+    groups.forEach((_,key)=>{
+      if(!firstKey) firstKey=key;
+      const opt = document.createElement('option');
+      opt.value=key;
+      const [p,m]=key.split('||');
+      opt.textContent=`${p} (${m})`;
+      chartSelect.appendChild(opt);
+    });
+    if(previous && groups.has(previous)){
+      chartSelect.value=previous;
+    }else{
+      chartSelect.value=firstKey;
+    }
+    renderCharts();
+  }
 
-function renderLaps(){
-  lapsBody.innerHTML="";
-  laps.forEach((l,i)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${i+1}</td>
-      <td>${(l.lap/1000).toFixed(3)}</td>
-      <td>${(l.cum/1000).toFixed(3)}</td>`;
-    lapsBody.appendChild(tr);
+  function renderCharts(){
+    const key = chartSelect.value;
+    const groups = groupByProcess();
+    if(!key || !groups.has(key)){
+      drawTimeSeries(null,null);
+      drawHistogram(null,null);
+      return;
+    }
+    const arr = groups.get(key);
+    const st  = calcStats(arr);
+    drawTimeSeries(arr,st);
+    drawHistogram(arr,st);
+  }
+
+  function drawTimeSeries(arr,st){
+    const ctx = timeSeriesCanvas.getContext('2d');
+    const w = timeSeriesCanvas.width;
+    const h = timeSeriesCanvas.height;
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#020b1a';
+    ctx.fillRect(0,0,w,h);
+
+    if(!arr || !arr.length || !st){
+      ctx.fillStyle='#607d8b';
+      ctx.font='12px system-ui';
+      ctx.fillText(
+        currentLang==='es'
+          ? 'Se requieren al menos 3 muestras para la gráfica.'
+          : 'Need at least 3 samples for chart.',
+        10,20
+      );
+      return;
+    }
+
+    const vals = st.values;
+    let min = st.min;
+    let max = st.max;
+    if(min===max){min-=0.5;max+=0.5;}
+    const padL=35,padR=8,padT=10,padB=18;
+    const innerW = w-padL-padR;
+    const innerH = h-padT-padB;
+
+    function yScale(v){
+      return padT + innerH*(1-(v-min)/(max-min));
+    }
+    function xScale(i){
+      if(vals.length===1) return padL+innerW/2;
+      return padL + innerW*(i/(vals.length-1));
+    }
+
+    ctx.strokeStyle='rgba(255,255,255,0.08)';
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let g=0;g<=4;g++){
+      const y = padT + innerH*g/4;
+      ctx.moveTo(padL,y);
+      ctx.lineTo(w-padR,y);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle='rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.moveTo(padL,padT);
+    ctx.lineTo(padL,h-padB);
+    ctx.lineTo(w-padR,h-padB);
+    ctx.stroke();
+
+    ctx.fillStyle='#90a4ae';
+    ctx.font='10px system-ui';
+    for(let g=0;g<=4;g++){
+      const val = min + (max-min)*g/4;
+      const y = padT + innerH*(1-g/4);
+      ctx.fillText(formatSecs(val),2,y+3);
+    }
+
+    ctx.strokeStyle='#29b6f6';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    vals.forEach((v,i)=>{
+      const x=xScale(i),y=yScale(v);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle='#29b6f6';
+    vals.forEach((v,i)=>{
+      const x=xScale(i),y=yScale(v);
+      ctx.beginPath();
+      ctx.arc(x,y,2.2,0,Math.PI*2);
+      ctx.fill();
+    });
+
+    ctx.setLineDash([4,3]);
+    if(st.std>0){
+      const ucl = st.mean+3*st.std;
+      const lcl = st.mean-3*st.std;
+      ctx.strokeStyle='rgba(255,82,82,0.9)';
+      ctx.beginPath();
+      ctx.moveTo(padL,yScale(ucl));
+      ctx.lineTo(w-padR,yScale(ucl));
+      ctx.moveTo(padL,yScale(lcl));
+      ctx.lineTo(w-padR,yScale(lcl));
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle='rgba(255,255,255,0.6)';
+    ctx.beginPath();
+    ctx.moveTo(padL,yScale(st.mean));
+    ctx.lineTo(w-padR,yScale(st.mean));
+    ctx.stroke();
+
+    ctx.strokeStyle='rgba(0,230,118,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(padL,yScale(st.median));
+    ctx.lineTo(w-padR,yScale(st.median));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const meanLabel   = currentLang==='es' ? 'Media'   : 'Mean';
+    const medianLabel = currentLang==='es' ? 'Mediana' : 'Median';
+
+    ctx.fillStyle='#cfd8dc';
+    ctx.font='10px system-ui';
+    ctx.fillText(meanLabel, w-padR-34,yScale(st.mean)-2);
+    ctx.fillStyle='#00e676';
+    ctx.fillText(medianLabel, w-padR-52,yScale(st.median)-2);
+  }
+
+  function drawHistogram(arr,st){
+    const ctx = histCanvas.getContext('2d');
+    const w = histCanvas.width;
+    const h = histCanvas.height;
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle='#020b1a';
+    ctx.fillRect(0,0,w,h);
+
+    if(!arr || !arr.length || !st){
+      ctx.fillStyle='#607d8b';
+      ctx.font='12px system-ui';
+      ctx.fillText(
+        currentLang==='es'
+          ? 'Se requieren más muestras para el histograma.'
+          : 'Need more samples for histogram.',
+        10,20
+      );
+      return;
+    }
+
+    const vals = st.values;
+    let min = st.min;
+    let max = st.max;
+    if(min===max){min-=0.5;max+=0.5;}
+    const padL=30,padR=8,padT=8,padB=20;
+    const innerW = w-padL-padR;
+    const innerH = h-padT-padB;
+    const binsCount = 8;
+    const binSize = (max-min)/binsCount;
+    const bins = new Array(binsCount).fill(0);
+    vals.forEach(v=>{
+      let idx = Math.floor((v-min)/binSize);
+      if(idx===binsCount) idx=binsCount-1;
+      bins[idx]++;
+    });
+    const maxBin = Math.max(...bins);
+
+    ctx.strokeStyle='rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.moveTo(padL,padT);
+    ctx.lineTo(padL,h-padB);
+    ctx.lineTo(w-padR,h-padB);
+    ctx.stroke();
+
+    const barW = innerW/binsCount;
+    ctx.fillStyle='#29b6f6';
+    bins.forEach((c,i)=>{
+      const x = padL + i*barW + 1;
+      const barH = maxBin? innerH*(c/maxBin) : 0;
+      const y = (h-padB) - barH;
+      ctx.fillRect(x,y,barW-2,barH);
+    });
+
+    if(st.std>0){
+      const points = 80;
+      let maxPdf=0;
+      const pdfVals=[];
+      for(let i=0;i<points;i++){
+        const xVal = min + (max-min)*i/(points-1);
+        const z = (xVal-st.mean)/st.std;
+        const pdf = Math.exp(-0.5*z*z);
+        pdfVals.push({xVal,pdf});
+        if(pdf>maxPdf) maxPdf=pdf;
+      }
+      ctx.strokeStyle='rgba(255,241,118,0.9)';
+      ctx.lineWidth=1.5;
+      ctx.beginPath();
+      pdfVals.forEach((p,i)=>{
+        const x = padL + innerW*( (p.xVal-min)/(max-min) );
+        const y = (h-padB) - innerH*(p.pdf/maxPdf);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+    }
+
+    ctx.fillStyle='#90a4ae';
+    ctx.font='10px system-ui';
+    ctx.fillText(formatSecs(min),padL, h-8);
+    ctx.fillText(formatSecs(max), w-padR-32, h-8);
+    ctx.fillText(formatSecs(st.median), padL+innerW/2-16, h-8);
+
+    const medX = padL + innerW*( (st.median-min)/(max-min) );
+    ctx.strokeStyle='#00e676';
+    ctx.beginPath();
+    ctx.moveTo(medX,padT);
+    ctx.lineTo(medX,h-padB);
+    ctx.stroke();
+
+    const p10x = padL + innerW*( (st.p10-min)/(max-min) );
+    const p90x = padL + innerW*( (st.p90-min)/(max-min) );
+    ctx.strokeStyle='rgba(255,241,118,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(p10x,padT);
+    ctx.lineTo(p10x,h-padB);
+    ctx.moveTo(p90x,padT);
+    ctx.lineTo(p90x,h-padB);
+    ctx.stroke();
+  }
+
+  async function copyToClipboard(text){
+    if(!text) return;
+    try{
+      await navigator.clipboard.writeText(text);
+      alert(currentLang==='es' ? 'Copiado.' : 'Copied.');
+    }catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try{
+        document.execCommand('copy');
+        alert(currentLang==='es' ? 'Copiado.' : 'Copied.');
+      }catch(err){
+        alert(
+          currentLang==='es'
+            ? 'Portapapeles no disponible. Puedes seleccionar y copiar manualmente.'
+            : 'Clipboard not available. You can long-press and copy manually.'
+        );
+      }
+      document.body.removeChild(ta);
+    }
+  }
+
+  btnCopyAll.addEventListener('click',()=>{
+    if(!laps.length){
+      alert(currentLang==='es' ? 'No hay datos para copiar.' : 'No data to copy.');
+      return;
+    }
+    const headerEn = ['#','Process','Mode','Status','Note','T1 (s)','T2 (s)','Total (s)'];
+    const headerEs = ['#','Proceso','Modo','Estatus','Nota','T1 (s)','T2 (s)','Total (s)'];
+    const header = currentLang==='es' ? headerEs : headerEn;
+
+    const rows = laps.map((l,i)=>[
+      i+1,
+      l.process,
+      l.mode,
+      l.status||'',
+      l.note||'',
+      formatSecs(l.t1),
+      formatSecs(l.t2),
+      formatSecs(l.total)
+    ].join('\t'));
+    copyToClipboard(header.join('\t')+'\n'+rows.join('\n'));
   });
-  updateSampleInfo();
-}
 
-function flash(el){
-  el.classList.add("flash");
-  setTimeout(()=>el.classList.remove("flash"),120);
-}
+  function buildFullSummaryText(){
+    const groups = groupByProcess();
+    if(!groups.size) return '';
 
-btnStart.onclick=startTimer;
-btnLap.onclick=addLap;
+    const eff   = Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
+    const hours = Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
+    const days  = Math.min(Math.max(parseInt(dInput.value)||5,1),7);
+    const pcd   = parseFloat(pcdInput.value)||0;
+    const view  = capViewSel.value;
+    const ctTarget = computeCtTargetSeconds();
 
-/* ===== Reset ===== */
-document.getElementById("btnReset").onclick=()=>{
-  clearInterval(timerInterval);
-  startTime=null;elapsed=0;running=false;
-  laps=[];lapsBody.innerHTML="";
-  timerDisplay.textContent="00:00.000";
-  btnStart.textContent="Start";
-  logoGear.classList.remove("spinning");
-  resetStats();
-  updateSampleInfo();
-};
+    const lines = [];
+    lines.push('TAKTLAB SUMMARY');
+    lines.push('');
 
-/* ===== Sample info ===== */
-function updateSampleInfo(){
-  const n=laps.length;
-  if(!n){
-    sampleInfo.className="sample-info sample-neutral";
-    sampleInfo.textContent="Samples: 0 · Est. error: — · Waiting for laps";
-    return;
+    lines.push('PROCESS CAPACITY OVERVIEW');
+    lines.push('Process\tMode\tN\tCTmed(s)\tCap100\tCap@Eff\t% vs contract');
+    groups.forEach((arr,key)=>{
+      const [proc,mode]=key.split('||');
+      const st=calcStats(arr);
+      if(!st) return;
+      const ctMed=st.median;
+      let cap100=0;
+      if(ctMed>0){
+        const perHour=3600/ctMed;
+        if(view==='hour') cap100=perHour;
+        else if(view==='day') cap100=perHour*hours;
+        else cap100=perHour*hours*days;
+      }
+      const capEff=cap100*(eff/100);
+      let contractUnits=0;
+      if(pcd>0){
+        if(view==='hour') contractUnits=(pcd/hours)||0;
+        else if(view==='day') contractUnits=pcd;
+        else contractUnits=pcd*days;
+      }
+      let pctVs = contractUnits>0 ? (capEff/contractUnits*100) : NaN;
+      lines.push(
+        `${proc}\t${mode}\t${st.n}\t${formatSecs(ctMed)}\t${cap100?formatUnits(cap100):'-'}\t${capEff?formatUnits(capEff):'-'}\t${isFinite(pctVs)?pctVs.toFixed(0)+'%':''}`
+      );
+    });
+
+    lines.push('');
+    lines.push('STATISTICAL DETAIL');
+    lines.push('Process\tMode\tN\tMean(s)\tMedian(s)\tP10\tP90\tMin\tMax\tStd\tCV%\tCp\tCpk');
+    groups.forEach((arr,key)=>{
+      const [proc,mode]=key.split('||');
+      const st=calcStats(arr);
+      if(!st) return;
+      let cp='-',cpk='-';
+      if(ctTarget && st.std>0){
+        const USL=ctTarget, LSL=0;
+        const cpv=(USL-LSL)/(6*st.std);
+        const cpu=(USL-st.mean)/(3*st.std);
+        const cpl=(st.mean-LSL)/(3*st.std);
+        const cpkv=Math.min(cpu,cpl);
+        cp = cpv.toFixed(2);
+        cpk = cpkv.toFixed(2);
+      }
+      lines.push(
+        `${proc}\t${mode}\t${st.n}\t${formatSecs(st.mean)}\t${formatSecs(st.median)}\t${formatSecs(st.p10)}\t${formatSecs(st.p90)}\t${formatSecs(st.min)}\t${formatSecs(st.max)}\t${formatSecs(st.std)}\t${(st.cv*100).toFixed(1)}\t${cp}\t${cpk}`
+      );
+    });
+
+    lines.push('');
+    lines.push('STATS FOCUS (TABLE VIEW)');
+    groups.forEach((arr,key)=>{
+      const [proc,mode]=key.split('||');
+      const st=calcStats(arr);
+      if(!st) return;
+
+      const n = st.n;
+      const cv = st.cv || 0;
+
+      let sampleLine = '';
+      if(n >= 3){
+        const sm = sampleMethod(n, cv);
+        sampleLine = `Sample size: ${n} / ${sm.recN} · Est. error: ±${sm.eText}% (95%) – ${sm.msgExtraEn}`;
+      }else{
+        sampleLine = `Sample size: ${n} / 3 · Est. error: ±—% (95%) – need ≥3 laps before estimating error.`;
+      }
+
+      lines.push(`${proc} (${mode})`);
+      lines.push(`  - ${sampleLine}`);
+      lines.push(`  - Std ≈ ${formatSecs(st.std)} s · CV ${(cv*100).toFixed(1)}%`);
+      lines.push(`  - Mean ${formatSecs(st.mean)} · Median ${formatSecs(st.median)}`);
+    });
+
+    return lines.join('\n');
   }
-  sampleInfo.className="sample-info sample-good";
-  sampleInfo.textContent=`Samples: ${n} · Est. error: see stats`;
-}
+
+  btnCopySum.addEventListener('click',()=>{
+    const txt = buildFullSummaryText();
+    if(!txt){
+      alert(currentLang==='es' ? 'No hay resumen para copiar.' : 'No summary to copy.');
+      return;
+    }
+    copyToClipboard(txt);
+  });
+
+  function renderAll(){
+    renderDataTable();
+    renderOverview();
+    renderStatsDetail();
+    renderStatsFocus();
+    updateChartOptions();
+    updateSampleInfo();
+  }
+
+  chartSelect.addEventListener('change',renderCharts);
+  effInput.addEventListener('change',renderAll);
+  pcdInput.addEventListener('change',renderAll);
+  hInput.addEventListener('change',renderAll);
+  dInput.addEventListener('change',renderAll);
+  capViewSel.addEventListener('change',renderAll);
+
+  // init
+  updateDisplay();
+  refreshRingStates();
+  setLanguage(currentLang);
+})();
 </script>
-<script>
-/* ===== TAKTLAB CORE – STATISTICS & TABLES (COMPACTED) ===== */
-const sfMedian=document.getElementById("sfMedian");
-const sfMean=document.getElementById("sfMean");
-const sfP10=document.getElementById("sfP10");
-const sfP90=document.getElementById("sfP90");
-const sfStd=document.getElementById("sfStd");
-const sfCV=document.getElementById("sfCV");
-const sfCp=document.getElementById("sfCp");
-const sfCpk=document.getElementById("sfCpk");
-
-const sfMedianStatus=document.getElementById("sfMedianStatus");
-const sfMeanStatus=document.getElementById("sfMeanStatus");
-const sfP10Status=document.getElementById("sfP10Status");
-const sfP90Status=document.getElementById("sfP90Status");
-const sfStdStatus=document.getElementById("sfStdStatus");
-const sfCVStatus=document.getElementById("sfCVStatus");
-const sfCpStatus=document.getElementById("sfCpStatus");
-const sfCpkStatus=document.getElementById("sfCpkStatus");
-
-const statsBody=document.getElementById("statsBody");
-const summaryOutput=document.getElementById("summaryOutput");
-
-function calcStats(){
-  if(laps.length<2)return null;
-  const data=laps.map(l=>l.lap/1000).sort((a,b)=>a-b);
-  const n=data.length;
-  const mean=data.reduce((a,b)=>a+b,0)/n;
-  const median=n%2?data[(n-1)/2]:(data[n/2-1]+data[n/2])/2;
-  const p10=data[Math.floor(n*0.1)];
-  const p90=data[Math.floor(n*0.9)];
-  const min=data[0],max=data[n-1];
-  const variance=data.reduce((s,x)=>s+(x-mean)**2,0)/(n-1);
-  const std=Math.sqrt(variance);
-  const cv=(std/mean)*100;
-  const usl=p90,lsl=p10;
-  const cp=(usl-lsl)/(6*std||1);
-  const cpk=Math.min((usl-mean),(mean-lsl))/(3*std||1);
-  return {n,mean,median,p10,p90,min,max,std,cv,cp,cpk};
-}
-
-function updateStats(){
-  const s=calcStats();
-  if(!s)return;
-  sfMedian.textContent=s.median.toFixed(3);
-  sfMean.textContent=s.mean.toFixed(3);
-  sfP10.textContent=s.p10.toFixed(3);
-  sfP90.textContent=s.p90.toFixed(3);
-  sfStd.textContent=s.std.toFixed(3);
-  sfCV.textContent=s.cv.toFixed(1);
-  sfCp.textContent=s.cp.toFixed(2);
-  sfCpk.textContent=s.cpk.toFixed(2);
-  renderStatTable(s);
-  buildSummary(s);
-}
-
-function resetStats(){
-  [sfMedian,sfMean,sfP10,sfP90,sfStd,sfCV,sfCp,sfCpk].forEach(el=>el.textContent="—");
-  statsBody.innerHTML="";
-  summaryOutput.value="";
-}
-
-function renderStatTable(s){
-  statsBody.innerHTML="";
-  const tr=document.createElement("tr");
-  tr.innerHTML=`
-    <td>Process</td>
-    <td>Cycle</td>
-    <td>${s.n}</td>
-    <td>${s.mean.toFixed(3)}</td>
-    <td>${s.median.toFixed(3)}</td>
-    <td>${s.p10.toFixed(3)}</td>
-    <td>${s.p90.toFixed(3)}</td>
-    <td>${s.min.toFixed(3)}</td>
-    <td>${s.max.toFixed(3)}</td>
-    <td>${s.std.toFixed(3)}</td>
-    <td>${s.cv.toFixed(1)}</td>
-    <td>${s.cp.toFixed(2)}</td>
-    <td>${s.cpk.toFixed(2)}</td>`;
-  statsBody.appendChild(tr);
-}
-</script>
-<script>
-/* ===== TAKTLAB CORE – SUMMARY + LANGUAGE (COMPACTED) ===== */
-
-/* ===== Copy Summary ===== */
-document.getElementById("btnCopySummary").onclick=()=>{
-  summaryOutput.select();
-  document.execCommand("copy");
-};
-
-/* ===== Build Summary Text ===== */
-function buildSummary(s){
-  const txt=[
-    "TAKTLAB SUMMARY",
-    "",
-    "STATISTICAL DETAIL",
-    "Process\tMode\tN\tMean(s)\tMedian(s)\tP10\tP90\tMin\tMax\tStd\tCV%\tCp\tCpk",
-    `Process\tCycle\t${s.n}\t${s.mean.toFixed(3)}\t${s.median.toFixed(3)}\t${s.p10.toFixed(3)}\t${s.p90.toFixed(3)}\t${s.min.toFixed(3)}\t${s.max.toFixed(3)}\t${s.std.toFixed(3)}\t${s.cv.toFixed(1)}\t${s.cp.toFixed(2)}\t${s.cpk.toFixed(2)}`
-  ];
-  summaryOutput.value=txt.join("\n");
-}
-
-/* ===== Language toggle ===== */
-const langBtns=document.querySelectorAll(".lang-btn");
-langBtns.forEach(btn=>{
-  btn.onclick=()=>{
-    langBtns.forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    const es=btn.dataset.lang==="es";
-    document.querySelector(".title-sub").textContent=
-      es?"Analizador de Tiempo Ciclo y Capacidad":"Cycle Time & Capacity Analyzer";
-    document.querySelector(".section-title").textContent=
-      es?"Enfoque Estadístico":"Stats Focus";
-    btnStart.textContent=running?(es?"Detener":"Stop"):(es?"Iniciar":"Start");
-    btnLap.textContent=es?"Lap":"Lap";
-    document.getElementById("btnCopySummary").textContent=es?"Copiar":"Copy";
-    document.getElementById("btnReset").textContent=es?"Resetear":"Reset";
-  };
-});
-
-/* ===== END OF FILE ===== */
-</script>
-
 </body>
 </html>
-
-<!-- TAKTLAB COMPACTED VERSION
-Original ≈2465 lines
-Compacted ≈1900–2000 lines
-Same logic, same behavior
--->
