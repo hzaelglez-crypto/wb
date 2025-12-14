@@ -320,7 +320,7 @@
 
         <div>
           <label for="efficiency" data-i18n="label.efficiency">Efficiency %</label><br/>
-          <input id="efficiency" type="number" value="100" min="10" max="100" step="1"/>
+          <input id="efficiency" type="number" value="100" min="0" max="100" step="1"/>
         </div>
 
         <div>
@@ -348,7 +348,6 @@
         </div>
       </div>
     </div>
-
     <!-- ✅ ENFOQUE ESTADÍSTICO -->
     <div class="section-card">
       <div class="section-title" data-i18n="section.statsFocus">Stat Focus</div>
@@ -460,10 +459,6 @@
       </div>
       <div class="wb-mini" id="wbConstraintNote"></div>
 
-      <!-- Guide / Method -->
-      <div class="subsection-title" data-i18n="section.methodGuide">Method &amp; Guide</div>
-      <div style="font-size:.72rem;color:var(--text-soft);line-height:1.35;white-space:pre-wrap;" id="methodGuideText"></div>
-
       <div class="subsection-title" data-i18n="section.statsDetail">Statistical Detail (per process)</div>
       <div style="max-height:260px;overflow:auto;">
         <table id="statsTable">
@@ -533,6 +528,17 @@
       </div>
     </div>
 
+    <!-- ✅ Method & Guide AL FINAL, en desplegable, después de Raw Time Data -->
+    <div class="section-card">
+      <div class="section-title" data-i18n="section.methodGuide">Method &amp; Guide</div>
+      <details style="background:var(--bg-card-soft);border:1px solid var(--border-soft);border-radius:14px;padding:10px;">
+        <summary style="cursor:pointer;color:var(--text-soft);font-weight:700;">
+          <span data-i18n="method.open">Open</span>
+        </summary>
+        <div style="margin-top:8px;font-size:.72rem;color:var(--text-soft);line-height:1.35;white-space:pre-wrap;" id="methodGuideText"></div>
+      </details>
+    </div>
+
   </div>
 
   <div class="footer-note" data-i18n="footer.note">
@@ -586,7 +592,6 @@
   const wbNextConstraint = document.getElementById('wbNextConstraint');
   const wbConstraintNote = document.getElementById('wbConstraintNote');
   const methodGuideText = document.getElementById('methodGuideText');
-
   /* ===== i18n ===== */
   const i18n = {
     en:{
@@ -601,6 +606,7 @@
       'section.statsDetail':'Statistical Detail (per process)',
       'section.wbPlanner':'WB – Capacity Planner (by process)',
       'section.methodGuide':'Method & Guide',
+      'method.open':'Open',
 
       'label.process':'Process','label.processPlaceholder':'e.g. Op 30-1',
       'label.mode':'Mode','label.efficiency':'Efficiency %','label.contractPcd':'Contract Cap (pcs/day)',
@@ -615,6 +621,7 @@
       'col.sample':'Sample size / Error',
       'col.capCurrent':'Current @Eff','col.capPotential':'Potential @Eff','col.capWorst':'Worst @Eff',
       'col.contract':'Contract','col.gap':'Gap','col.vsContract':'% vs',
+      'col.note':'Note',
 
       'chart.timeSeriesTitle':'Time Series with Mean, Median, ±3σ',
       'chart.histTitle':'Histogram with Median & Percentiles',
@@ -671,6 +678,7 @@
       'section.statsDetail':'Detalle Estadístico (por proceso)',
       'section.wbPlanner':'WB – Planeador de Capacidad (por proceso)',
       'section.methodGuide':'Método & Guía',
+      'method.open':'Abrir',
 
       'label.process':'Proceso','label.processPlaceholder':'p. ej. Op 30-1',
       'label.mode':'Modo','label.efficiency':'Eficiencia %','label.contractPcd':'Capacidad contrato (pzs/día)',
@@ -685,6 +693,7 @@
       'col.sample':'Tamaño de muestra / Error',
       'col.capCurrent':'Actual @Eff','col.capPotential':'Potencial @Eff','col.capWorst':'Peor @Eff',
       'col.contract':'Contrato','col.gap':'Gap','col.vsContract':'% vs',
+      'col.note':'Nota',
 
       'chart.timeSeriesTitle':'Serie de tiempo con media, mediana y ±3σ',
       'chart.histTitle':'Histograma con mediana y percentiles',
@@ -888,8 +897,44 @@
     return {proc,mode};
   }
 
+  // ✅ Auto-crear/actualizar WB row desde lo que estás midiendo (proceso/estación)
+  // - Hours toma Hours/Day
+  // - Contract toma Contract (pcs/day)
+  // - Yield toma Efficiency% (mapeado a Q% por default)
+  function ensureWbRowForOperation(opName){
+    const op = (opName||'').trim();
+    if(!op) return;
+
+    let row = wbRows.find(r => (r.operation||'').trim() === op);
+    if(!row){
+      row = defaultWbRow();
+      const maxSeq = wbRows.reduce((m,x)=>Math.max(m, parseFloat(x.seq)||0), 0);
+      row.seq = (maxSeq||0) + 10;
+      row.operation = op;
+      wbRows.push(row);
+    }
+
+    const globalHours = clamp(parseFloat(hInput.value)||8, 1, 24);
+    const globalContract = Math.max(0, parseFloat(pcdInput.value)||0);
+    const globalYieldPct = clamp(parseFloat(effInput.value)||100, 0, 100);
+
+    if(!isFinite(parseFloat(row.hours)) || parseFloat(row.hours) <= 0) row.hours = globalHours;
+    if(!isFinite(parseFloat(row.contractPcd)) || parseFloat(row.contractPcd) <= 0) row.contractPcd = globalContract;
+
+    // Si Q está en default (100) o vacío, lo jalamos de Efficiency% (Yield)
+    if(!isFinite(parseFloat(row.oeeQ)) || parseFloat(row.oeeQ) <= 0 || parseFloat(row.oeeQ) === 100){
+      row.oeeQ = globalYieldPct;
+    }
+
+    saveWB();
+  }
+
   function addLap(manualData){
     const {proc,mode}=ensureDefaults();
+
+    // ✅ Siempre amarramos WB a la estación/proceso que estás midiendo
+    ensureWbRowForOperation(proc);
+
     const status='', note='';
     if(manualData){
       const {t1,t2,total}=manualData;
@@ -1056,7 +1101,6 @@
 
     return {cls, text: head + tail};
   }
-
   function updateSemaphores(){
     const groups=groupByProcess();
     const {proc,mode}=ensureDefaults();
@@ -1081,12 +1125,10 @@
 
     const st=calcStats(arr);
 
-    /* SAMPLE SIZE (top + focus duplicado) */
     const sampleLine = buildSampleLine(st);
     setInfo(sampleInfoTop, sampleLine.cls, sampleLine.text);
     setInfo(sampleInfoFocus, sampleLine.cls, sampleLine.text);
 
-    /* STD DEV / CV% (solo en enfoque estadístico) */
     if(!st || st.n<3 || !isFinite(st.std)){
       setInfo(stdInfoFocus,'sample-neutral',
         currentLang==='es' ? 'Std dev: — (—). Captura más vueltas.' : 'Std dev: — (—). Capture more laps.'
@@ -1106,7 +1148,6 @@
       );
     }
 
-    /* Mean vs Median (solo en enfoque estadístico) */
     if(!st || st.n<3 || !isFinite(st.mean) || !isFinite(st.median) || st.mean===0){
       setInfo(distInfoFocus,'sample-neutral',
         currentLang==='es' ? 'Media vs Mediana: —. Captura más vueltas.' : 'Mean vs Median: —. Capture more laps.'
@@ -1138,11 +1179,10 @@
       );
     }
 
-    /* Contract vs Capacity (solo en enfoque estadístico) */
-    const eff=Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
-    const hours=Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
-    const days=Math.min(Math.max(parseInt(dInput.value)||5,1),7);
-    const pcd=parseFloat(pcdInput.value)||0;
+    const eff=clamp(parseFloat(effInput.value)||100,0,100);
+    const hours=clamp(parseFloat(hInput.value)||8,1,24);
+    const days=clamp(parseInt(dInput.value)||5,1,7);
+    const pcd=Math.max(0, parseFloat(pcdInput.value)||0);
     const view=capViewSel.value;
 
     const contractUnits = contractUnitsFromPcd(pcd,view,hours,days);
@@ -1154,16 +1194,16 @@
       );
     } else {
       const capCur = capFromCt(st.median,view,hours,days)*(eff/100);
-      const pct = (capCur/contractUnits*100);
+      const pctVs = (capCur/contractUnits*100);
       let cls='sample-bad';
       let msg = currentLang==='es' ? 'No alcanza.' : 'Below target.';
-      if(pct>=85 && pct<100){ cls='sample-warn'; msg = currentLang==='es' ? 'Muy justo.' : 'Tight.'; }
-      if(pct>=100){ cls='sample-good'; msg = currentLang==='es' ? 'Cumple contrato.' : 'Meets contract.'; }
+      if(pctVs>=85 && pctVs<100){ cls='sample-warn'; msg = currentLang==='es' ? 'Muy justo.' : 'Tight.'; }
+      if(pctVs>=100){ cls='sample-good'; msg = currentLang==='es' ? 'Cumple contrato.' : 'Meets contract.'; }
 
       setInfo(contractInfoFocus, cls,
         (currentLang==='es'
-          ? `Capacidad actual @${eff}%: ${formatUnits(capCur)} vs Contrato: ${formatUnits(contractUnits)} · ${pct.toFixed(0)}% – ${msg}`
-          : `Current capacity @${eff}%: ${formatUnits(capCur)} vs Contract: ${formatUnits(contractUnits)} · ${pct.toFixed(0)}% – ${msg}`
+          ? `Capacidad actual @${eff}%: ${formatUnits(capCur)} vs Contrato: ${formatUnits(contractUnits)} · ${pctVs.toFixed(0)}% – ${msg}`
+          : `Current capacity @${eff}%: ${formatUnits(capCur)} vs Contract: ${formatUnits(contractUnits)} · ${pctVs.toFixed(0)}% – ${msg}`
         )
       );
     }
@@ -1295,10 +1335,10 @@
       return;
     }
 
-    const eff=Math.min(Math.max(parseFloat(effInput.value)||100,10),100);
-    const hours=Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
-    const days=Math.min(Math.max(parseInt(dInput.value)||5,1),7);
-    const pcd=parseFloat(pcdInput.value)||0;
+    const eff=clamp(parseFloat(effInput.value)||100,0,100);
+    const hours=clamp(parseFloat(hInput.value)||8,1,24);
+    const days=clamp(parseInt(dInput.value)||5,1,7);
+    const pcd=Math.max(0, parseFloat(pcdInput.value)||0);
     const view=capViewSel.value;
 
     const ctTarget=computeCtTargetSeconds();
@@ -1379,8 +1419,6 @@
 
   // ===== WB helpers =====
   function lunchMinutesPerShift(hours){
-    // Regla simple y consistente (editable después si quieres):
-    // <=6h:15, <=8h:30, <=10h:45, >10h:60
     if(hours<=6) return 15;
     if(hours<=8) return 30;
     if(hours<=10) return 45;
@@ -1388,31 +1426,28 @@
   }
 
   function getStudyStatsForOperation(opName){
-    // En WB, buscamos por "Process" (nombre exacto) en laps.
-    // Si tienes laps con processName = operación, se auto-llena CT.
     const groups=groupByProcess();
-    // Recorremos keys buscando match exacto del proceso, sin amarrarnos al mode.
     let best=null;
     groups.forEach((arr,key)=>{
       const [proc,mode]=key.split('||');
       if((proc||'').trim() === (opName||'').trim()){
         const st=calcStats(arr);
         if(st && st.n>=1){
-          // Preferimos CT mode si existe, si no, lo que haya
           if(!best) best={st,mode};
           else if(best.mode!=='CT' && mode==='CT') best={st,mode};
           else if(st.n>best.st.n) best={st,mode};
         }
       }
     });
-    return best; // {st,mode} or null
+    return best;
   }
 
+  // ✅ OEE correcto y capado: 0..1 (0%..100%)
   function computeOeePct(row){
-    const a = clamp(parseFloat(row.oeeA),0,100);
-    const p = clamp(parseFloat(row.oeeP),0,100);
-    const q = clamp(parseFloat(row.oeeQ),0,100);
-    return (a*p*q)/10000; // 0..1
+    const a = clamp(parseFloat(row.oeeA),0,100)/100;
+    const p = clamp(parseFloat(row.oeeP),0,100)/100;
+    const q = clamp(parseFloat(row.oeeQ),0,100)/100;
+    return clamp(a*p*q,0,1);
   }
 
   function computeUdtMinutes(row){
@@ -1420,11 +1455,10 @@
     const hours = clamp(parseFloat(row.hours),0,24);
     const v = clamp(parseFloat(row.udtValue),0,1e9);
     if(row.udtUnit==='sec_hour'){
-      // seconds per hour → minutes per day
       const totalSeconds = v * (hours*shifts);
       return totalSeconds/60;
     }
-    return v; // already min/day
+    return v;
   }
 
   function computeGrossMinutes(row){
@@ -1454,7 +1488,6 @@
   }
 
   function getCtTriple(row){
-    // Returns {cur,wst,pot, source}
     const study = getStudyStatsForOperation(row.operation);
     if(study && study.st){
       const st = study.st;
@@ -1465,7 +1498,6 @@
         source: `study (${study.mode}, N=${st.n})`
       };
     }
-    // manual fallback
     const cur = row.ctCurManual!=null ? parseFloat(row.ctCurManual) : NaN;
     const wst = row.ctWstManual!=null ? parseFloat(row.ctWstManual) : NaN;
     const pot = row.ctPotManual!=null ? parseFloat(row.ctPotManual) : NaN;
@@ -1490,7 +1522,6 @@
   }
 
   function renderWB(){
-    // Sort by seq then operation
     wbRows.sort((a,b)=>{
       const sa = parseFloat(a.seq)||0;
       const sb = parseFloat(b.seq)||0;
@@ -1506,13 +1537,13 @@
       const udtMin = computeUdtMinutes(row);
       const net = computeNetMinutes(row);
 
-      const oee = computeOeePct(row); // 0..1
+      const oee = computeOeePct(row);
       const oeePct = oee*100;
 
       const y = computeScrapYield(row);
       const yPct = y*100;
 
-      const ct = getCtTriple(row); // ct.cur, ct.wst, ct.pot
+      const ct = getCtTriple(row);
       const ctCur = ct.cur;
       const ctWst = ct.wst;
       const ctPot = ct.pot;
@@ -1528,8 +1559,6 @@
       const inputReq = (contract>0 && y>0) ? (contract / y) : NaN;
 
       const tr=document.createElement('tr');
-
-      // helpers for input fields
       const inp = (val, cls='') => `<input class="wb-inp ${cls}" value="${val==null?'':val}">`;
 
       tr.innerHTML = `
@@ -1588,12 +1617,10 @@
 
       wbBody.appendChild(tr);
 
-      // attach events per row
       const cells = tr.querySelectorAll('td');
       const getInputAt = (tdIndex) => cells[tdIndex].querySelector('input');
       const getSelectAt = (tdIndex) => cells[tdIndex].querySelector('select');
 
-      // Map of indices by the exact layout above
       const IDX = {
         seq:0, enabled:1, op:2,
         operators:3, shifts:4, hours:5, machines:6, contract:7,
@@ -1627,7 +1654,6 @@
       const oeeQInp = getInputAt(IDX.oeeQ);
 
       const onChange = ()=>{
-        // force numeric where needed
         row.seq = parseFloat(seqInp.value)||0;
         row.enabled = !!enChk.checked;
         row.operation = (opInp.value||'').trim();
@@ -1652,7 +1678,7 @@
         row.oeeQ = parseFloat(oeeQInp.value)||0;
 
         saveWB();
-        renderAll(); // simple & safe
+        renderAll();
       };
 
       [seqInp, enChk, opInp, operatorsInp, shiftsInp, hoursInp, machinesInp, contractInp,
@@ -1662,7 +1688,6 @@
       });
     });
 
-    // delete handlers
     wbBody.querySelectorAll('[data-wbdel]').forEach(btn=>{
       btn.addEventListener('click',()=>{
         const id=btn.getAttribute('data-wbdel');
@@ -1676,7 +1701,6 @@
   }
 
   function computeAndRenderConstraint(){
-    // Use enabled rows only
     const rows = wbRows.filter(r=>r.enabled);
     if(!rows.length){
       wbConstraint.textContent = currentLang==='es' ? 'WB vacío' : 'WB empty';
@@ -1687,7 +1711,6 @@
       return;
     }
 
-    // Evaluate each row: capacity@OEE current vs contract
     const scored = rows.map(r=>{
       const net = computeNetMinutes(r);
       const oee = computeOeePct(r);
@@ -1710,8 +1733,6 @@
     const anyContract = scored.some(x => x.contract>0);
     const anyFail = scored.some(x => x.contract>0 && x.vs<100);
 
-    // If contracts exist and some fail → choose lowest % vs contract
-    // Else → choose lowest output process (capOeeCur)
     let primary, secondary, note;
 
     if(anyContract && anyFail){
@@ -1753,66 +1774,62 @@
   - Actual = Mediana (CTmed)
   - Peor = P90
   - Potencial = P10
-  Si no hay laps, captura CT manual agregando laps (recomendado). (Si quieres, luego habilitamos CT manual directo por fila).
 • Gross minutes/día = Hours × 60 × Shifts × #Machines
-• Lunch (auto, no editable): depende de Hours por turno (15/30/45/60 min) × Shifts
+• Lunch (auto): depende de Hours por turno (15/30/45/60 min) × Shifts
 • Pérdidas editables (min/día): Changeover, 5S/Limpieza, Maintenance, Other
 • Unplanned DT: editable en min/día o seg/h (se convierte a min/día)
 • Net minutes/día = Gross − Lunch − pérdidas − Unplanned DT
 • Capacidad 100% (pzs/día) = (Net minutes × 60) / CT
 • OEE por operación:
   - Capturas A, P, Q en %
-  - OEE = A×P×Q
+  - OEE = (A×P×Q)  → siempre queda entre 0% y 100%
   - Cap@OEE = Capacidad 100% × OEE
-  - CT@OEE = CT / OEE  (misma lógica: menor OEE = CT efectivo mayor)
+  - CT@OEE = CT / OEE
 Scrap (por proceso)
-• Scrap% reduce el Yield del proceso: Yield = 1 − Scrap%
-• Para cumplir un contrato de salida (pzs buenas) en ese proceso:
+• Yield = 1 − Scrap%
+• Para cumplir un contrato de salida (pzs buenas):
   - Input requerido = Contract / Yield
-Restricción / “Proceso con menor salida”
-• Si alguna operación NO cumple su contrato → se marca como restricción la de menor % vs contrato.
-• Si TODAS cumplen → se marca “Proceso con menor salida (no limitante por contrato)”.
-Nota: Operators se captura para documentación/planeación; la capacidad está escalada por #Machines y minutos disponibles.`;
+Restricción
+• Si alguna operación NO cumple su contrato → restricción = menor % vs contrato.
+• Si TODAS cumplen → se marca “Proceso con menor salida”.`;
     }
 
     return `How TaktLab estimates capacity (WB)
-• CT (cycle times): if a time study exists (laps) where Process == Operation, we use:
+• CT (cycle times): if a time study exists (laps) where Process == Operation:
   - Current = Median (CTmed)
   - Worst = P90
   - Potential = P10
-  If no laps exist, capture CT by taking laps (recommended). (We can enable direct manual CT per row later if you want.)
 • Gross min/day = Hours × 60 × Shifts × #Machines
-• Lunch (auto, not editable): based on Hours per shift (15/30/45/60 min) × Shifts
+• Lunch (auto): based on Hours/shift (15/30/45/60 min) × Shifts
 • Editable losses (min/day): Changeover, 5S/Cleaning, Maintenance, Other
-• Unplanned Downtime: editable in min/day or sec/hr (converted to min/day)
+• Unplanned Downtime: min/day or sec/hr (converted)
 • Net min/day = Gross − Lunch − losses − Unplanned DT
 • Capacity 100% (pcs/day) = (Net minutes × 60) / CT
 • OEE per operation:
   - You enter A, P, Q in %
-  - OEE = A×P×Q
+  - OEE = (A×P×Q) → always 0%..100%
   - Cap@OEE = Capacity 100% × OEE
-  - CT@OEE = CT / OEE (same idea: lower OEE increases effective CT)
-Scrap (per process)
-• Scrap% reduces yield: Yield = 1 − Scrap%
-• To achieve a good-output contract at that process:
-  - Required input = Contract / Yield
-Constraint / “Lowest output process”
-• If any operation FAILS contract → constraint = lowest % vs contract.
-• If ALL meet contract → label becomes “Lowest output process (not contract-limiting)”.
-Note: Operators is captured for planning/documentation; capacity is scaled by #Machines and available minutes.`;
+  - CT@OEE = CT / OEE
+Scrap
+• Yield = 1 − Scrap%
+• Required input = Contract / Yield
+Constraint
+• If any operation fails contract → constraint = lowest % vs contract.
+• If all meet → “Lowest output process”.`;
   }
 
-  // WB actions
   btnWbAdd.addEventListener('click',()=>{
     const r = defaultWbRow();
-    // propose seq auto
     const maxSeq = wbRows.reduce((m,x)=>Math.max(m, parseFloat(x.seq)||0), 0);
     r.seq = (maxSeq||0) + 10;
-    r.operation = '';
+    r.operation = (processInput.value||'').trim() || '';
+    // defaults from measurement setup
+    r.hours = clamp(parseFloat(hInput.value)||8,1,24);
+    r.contractPcd = Math.max(0, parseFloat(pcdInput.value)||0);
+    r.oeeQ = clamp(parseFloat(effInput.value)||100,0,100);
     wbRows.push(r);
     saveWB();
     renderAll();
-    // focus the last row operation input (best effort)
     setTimeout(()=>{
       const last = wbBody.querySelector('tr:last-child td:nth-child(3) input');
       if(last) last.focus();
@@ -2023,7 +2040,6 @@ Note: Operators is captured for planning/documentation; capacity is scaled by #M
   });
 
   btnCopySum.addEventListener('click',()=>{
-    // include WB snapshot + constraint
     const lines=[];
     lines.push(currentLang==='es'?'Resumen (WB + Stats)':'Summary (WB + Stats)');
     lines.push('—');
@@ -2065,7 +2081,6 @@ Note: Operators is captured for planning/documentation; capacity is scaled by #M
   dInput.addEventListener('change',renderAll);
   capViewSel.addEventListener('change',renderAll);
 
-  // init
   loadWB();
   updateDisplay();
   refreshRingStates();
