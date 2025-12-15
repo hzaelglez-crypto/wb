@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>TaktLab – Cycle Time & Capacity Analyzer</title>
+
 <style>
   :root{
     --bg-main:#07152b;
@@ -38,7 +39,7 @@
   .page{
     max-width:1100px;
     margin:0 auto;
-    padding:12px 10px 40px;
+    padding:10px 10px 34px; /* compact */
   }
 
   .sticky-timer-bar{
@@ -46,29 +47,23 @@
     top:0;
     z-index:100;
     background:linear-gradient(180deg,#020b1a 0%,#07152b 90%);
-    padding:8px 0 10px;
+    padding:6px 0 8px; /* compact */
   }
 
   .top-row{
     display:flex;
     align-items:center;
     gap:10px;
-    margin-bottom:8px;
+    margin-bottom:6px; /* compact */
   }
 
   .logo-circle{
-    width:38px;
-    height:38px;
-    border-radius:50%;
+    width:38px;height:38px;border-radius:50%;
     border:2px solid var(--accent-grey);
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    display:flex;align-items:center;justify-content:center;
   }
   .logo-gear{
-    width:22px;
-    height:22px;
-    border-radius:50%;
+    width:22px;height:22px;border-radius:50%;
     border:2px solid var(--accent-grey);
     position:relative;
   }
@@ -110,10 +105,9 @@
     font-size:2.8rem;
     font-weight:600;
     letter-spacing:.08em;
-    padding:4px 4px 8px;
+    padding:4px 4px 6px; /* compact */
   }
 
-  /* ===== Visual lines (semaforos) ===== */
   .info-stack{ display:flex; flex-direction:column; gap:6px; margin:0 0 8px; }
   .info-line{
     font-size:.78rem;margin:0;padding:6px 10px;
@@ -140,30 +134,30 @@
   .flash{animation:flash-bg .12s ease-out;}
   @keyframes flash-bg{ from{background:rgba(255,255,255,.18);} to{background:transparent;} }
 
-  .content-section{margin-top:10px;}
+  .content-section{margin-top:8px;} /* compact */
 
   .section-card{
     background:var(--bg-card);
     border-radius:18px;
     border:1px solid var(--border-soft);
-    padding:10px 10px 12px;
+    padding:8px 10px 10px; /* compact */
     margin-bottom:10px;
   }
-  .section-title{font-size:1.0rem;font-weight:700;margin-bottom:8px;}
+  .section-title{font-size:1.0rem;font-weight:700;margin-bottom:6px;} /* compact */
 
   .mode-row{
-    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;
     font-size:.78rem;color:var(--text-soft);
   }
   .mode-row select,.mode-row input{
     background:#020b1a;border-radius:8px;border:1px solid var(--border-soft);
     padding:4px 8px;color:var(--text-soft);font-size:.78rem;min-width:70px;
   }
-  .mode-row input[type="number"]{width:70px;}
+  .mode-row input[type="number"]{width:78px;}
 
-  table{width:100%;border-collapse:collapse;font-size:.75rem;}
+  table{width:100%;border-collapse:collapse;font-size:.72rem;} /* compact */
   th,td{
-    padding:4px 6px;text-align:right;
+    padding:3px 5px;text-align:right; /* compact */
     border-bottom:1px solid rgba(255,255,255,.04);
     white-space:nowrap;
     vertical-align:middle;
@@ -196,9 +190,7 @@
   .btn-small-wbadd{background:rgba(255,255,255,.06);color:var(--text-soft);}
   .btn-small-wbclear{background:rgba(255,23,68,.16);border-color:rgba(255,23,68,.6);color:#ff8a80;}
 
-  .subsection-title{
-    margin-top:10px;font-size:.82rem;font-weight:650;color:var(--text-soft);
-  }
+  .subsection-title{margin-top:10px;font-size:.82rem;font-weight:650;color:var(--text-soft);}
 
   .footer-note{margin-top:10px;font-size:.65rem;color:var(--text-muted);text-align:right;}
 
@@ -214,48 +206,51 @@
     padding:8px;
   }
   .chart-title{font-size:.75rem;margin-bottom:4px;color:var(--text-soft);}
-  canvas{
-    width:100%;height:180px;background:#020b1a;border-radius:10px;
-  }
+  canvas{width:100%;height:180px;background:#020b1a;border-radius:10px;}
 
-  .btn-edit,.btn-del{
+  .btn-edit,.btn-del,.btn-relink{
     padding:2px 6px;border-radius:8px;font-size:.7rem;
     border:1px solid rgba(255,255,255,.2);cursor:pointer;background:transparent;
   }
   .btn-edit{color:#81d4fa;}
   .btn-del{color:#ff8a80;}
+  .btn-relink{color:#ffe082;}
 
-  /* WB inputs */
+  /* WB inputs – más compactos */
   .wb-inp, .wb-sel, .wb-chk{
     background:#020b1a;border-radius:8px;border:1px solid var(--border-soft);
-    padding:3px 6px;color:var(--text-soft);font-size:.72rem;
+    padding:2px 5px;color:var(--text-soft);font-size:.70rem;
   }
-  .wb-inp{width:86px;}
-  .wb-inp.wide{width:160px;}
-  .wb-inp.slim{width:64px;}
-  .wb-sel{width:94px;}
+  .wb-inp{width:72px;}
+  .wb-inp.wide{width:140px;}
+  .wb-inp.slim{width:56px;}
+  .wb-sel{width:84px;}
   .wb-pill{
     display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);
     background:rgba(255,255,255,.03);font-size:.72rem;color:var(--text-soft);
   }
-  .wb-alert{
-    display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;
-  }
+  .wb-alert{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;}
   .wb-alert .badge{font-size:.72rem;padding:4px 10px;}
   .wb-badge-title{font-size:.72rem;color:var(--text-soft);}
   .wb-mini{font-size:.7rem;color:var(--text-muted);line-height:1.25;margin-top:6px;}
+  .wb-sumline{
+    display:flex;justify-content:flex-end;gap:10px;align-items:center;
+    margin-top:6px;font-size:.72rem;color:var(--text-soft);
+  }
+  .wb-sumline .badge{font-size:.70rem}
 
   @media (max-width:600px){
     .timer-display{font-size:2.2rem;}
     .btn-row-main{gap:6px;}
     .btn{font-size:.9rem;border-radius:14px;}
     canvas{height:160px;}
-    th,td{font-size:.72rem;}
-    .wb-inp{width:78px;}
-    .wb-inp.wide{width:140px;}
+    th,td{font-size:.70rem;}
+    .wb-inp{width:66px;}
+    .wb-inp.wide{width:120px;}
   }
 </style>
 </head>
+
 <body>
 <div class="page">
 
@@ -324,7 +319,7 @@
 
         <div>
           <label for="contractPcd" data-i18n="label.contractPcd">Contract Cap (pcs/day)</label><br/>
-          <input id="contractPcd" type="number" min="0" step="1"/>
+          <input id="contractPcd" type="number" min="0" max="99999" step="1"/>
         </div>
 
         <div>
@@ -362,7 +357,7 @@
         <span data-i18n="stats.note">Simple language on purpose: few / enough samples, low / high variation, capable / not capable.</span>
       </div>
 
-      <div style="max-height:320px;overflow:auto;">
+      <div style="max-height:300px;overflow:auto;">
         <table>
           <thead>
             <tr>
@@ -397,7 +392,7 @@
         <button class="btn-small btn-small-wbclear" id="btnWbClear" data-i18n="btn.wbClear">Clear WB</button>
       </div>
 
-      <div style="max-height:360px;overflow:auto;">
+      <div style="max-height:320px;overflow:auto;">
         <table id="wbTable">
           <thead>
             <tr>
@@ -416,6 +411,8 @@
               <th data-i18n="wb.cleaning">5S/Clean</th>
               <th data-i18n="wb.maint">Maintenance</th>
               <th data-i18n="wb.other">Other</th>
+
+              <th data-i18n="wb.shared">Shared Capacity</th>
 
               <th data-i18n="wb.udt">Unplanned DT</th>
               <th data-i18n="wb.udtUnit">Unit</th>
@@ -449,6 +446,11 @@
         </table>
       </div>
 
+      <div class="wb-sumline">
+        <span data-i18n="wb.opsSum">Operators total:</span>
+        <span class="badge badge-warn" id="wbOperatorsSum">0</span>
+      </div>
+
       <div class="wb-alert">
         <span class="wb-badge-title" data-i18n="wb.constraintTitle">Constraint / Next:</span>
         <span class="badge badge-bad" id="wbConstraint">—</span>
@@ -457,7 +459,7 @@
       <div class="wb-mini" id="wbConstraintNote"></div>
 
       <div class="subsection-title" data-i18n="section.statsDetail">Statistical Detail (per process)</div>
-      <div style="max-height:260px;overflow:auto;">
+      <div style="max-height:240px;overflow:auto;">
         <table id="statsTable">
           <thead>
             <tr>
@@ -504,7 +506,7 @@
 
     <div class="section-card">
       <div class="section-title" data-i18n="section.rawData">Raw Time Data</div>
-      <div style="max-height:320px;overflow:auto;">
+      <div style="max-height:300px;overflow:auto;">
         <table id="dataTable">
           <thead>
             <tr>
@@ -551,7 +553,6 @@
   const logoGear = document.getElementById('logoGear');
 
   const sampleInfoTop = document.getElementById('sampleInfoTop');
-
   const sampleInfoFocus = document.getElementById('sampleInfoFocus');
   const stdInfoFocus = document.getElementById('stdInfoFocus');
   const distInfoFocus = document.getElementById('distInfoFocus');
@@ -586,8 +587,10 @@
   const wbConstraint = document.getElementById('wbConstraint');
   const wbNextConstraint = document.getElementById('wbNextConstraint');
   const wbConstraintNote = document.getElementById('wbConstraintNote');
+  const wbOperatorsSum = document.getElementById('wbOperatorsSum');
   const methodGuideText = document.getElementById('methodGuideText');
 
+  /* ====== PARTE 2 VA AQUÍ ABAJO (NO PEGUES NADA MÁS EN MEDIO) ====== */
   const i18n = {
     en:{
       'title.subtitle':'Cycle Time & Capacity Analyzer',
@@ -640,6 +643,7 @@
       'wb.cleaning':'5S/Clean (min/day)',
       'wb.maint':'Maintenance (min/day)',
       'wb.other':'Other (min/day)',
+      'wb.shared':'Shared Capacity (min/day)',
       'wb.udt':'Unplanned DT',
       'wb.udtUnit':'Unit',
       'wb.net':'Net min/day',
@@ -658,7 +662,8 @@
       'wb.vsContract':'% vs contract',
       'wb.inputReq':'Input req. for Contract',
       'wb.actions':'Actions',
-      'wb.constraintTitle':'Constraint / Next:'
+      'wb.constraintTitle':'Constraint / Next:',
+      'wb.opsSum':'Operators total:'
     },
     es:{
       'title.subtitle':'Analizador de Tiempo de Ciclo y Capacidad',
@@ -711,6 +716,7 @@
       'wb.cleaning':'5S/Limpieza (min/día)',
       'wb.maint':'Mtto (min/día)',
       'wb.other':'Otros (min/día)',
+      'wb.shared':'Capacidad compartida (min/día)',
       'wb.udt':'DT no planeado',
       'wb.udtUnit':'Unidad',
       'wb.net':'Min netos/día',
@@ -729,15 +735,13 @@
       'wb.vsContract':'% vs contrato',
       'wb.inputReq':'Entrada req. p/Contrato',
       'wb.actions':'Acciones',
-      'wb.constraintTitle':'Restricción / Siguiente:'
+      'wb.constraintTitle':'Restricción / Siguiente:',
+      'wb.opsSum':'Operadores total:'
     }
   };
 
   let currentLang = localStorage.getItem('taktlabLang') || 'en';
-
-  function t(key){
-    return (i18n[currentLang] && i18n[currentLang][key]) || i18n.en[key] || key;
-  }
+  function t(key){ return (i18n[currentLang] && i18n[currentLang][key]) || i18n.en[key] || key; }
 
   function applyTranslations(){
     document.querySelectorAll('[data-i18n]').forEach(el=>{
@@ -750,9 +754,7 @@
       el.placeholder = t(key);
     });
   }
-  function updateLangButtons(){
-    langButtons.forEach(b=>b.classList.toggle('active', b.dataset.lang === currentLang));
-  }
+  function updateLangButtons(){ langButtons.forEach(b=>b.classList.toggle('active', b.dataset.lang === currentLang)); }
   function setLanguage(lang){
     currentLang = (lang==='es') ? 'es' : 'en';
     localStorage.setItem('taktlabLang', currentLang);
@@ -768,48 +770,9 @@
   let laps=[], nextId=1;
   let pendingT1=null;
 
-  const WB_KEY = 'taktlabWB_v1';
-  function defaultWbRow(){
-    return {
-      id: 'wb_' + Math.random().toString(36).slice(2,9),
-      seq: 10,
-      enabled: true,
-      operation: '',
-      operators: 1,
-      shifts: 1,
-      hours: 8,
-      machines: 1,
-      contractPcd: 0,
-      changeoverMin: 0,
-      cleanMin: 0,
-      maintMin: 0,
-      otherMin: 0,
-      udtValue: 0,
-      udtUnit: 'min_day',
-      scrapPct: 0,
-      oeeA: 100,
-      oeeP: 100,
-      oeeQ: 100,
-      ctCurManual: null,
-      ctWstManual: null,
-      ctPotManual: null
-    };
-  }
-  let wbRows = [];
+  const WB_KEY = 'taktlabWB_v2_sync';
 
-  function loadWB(){
-    try{
-      const raw = localStorage.getItem(WB_KEY);
-      if(!raw){ wbRows=[]; return; }
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed)) wbRows = parsed;
-      else wbRows=[];
-    }catch(e){ wbRows=[]; }
-  }
-  function saveWB(){
-    try{ localStorage.setItem(WB_KEY, JSON.stringify(wbRows)); }catch(e){}
-  }
-
+  function clamp(n,min,max){ n = isFinite(n)?n:0; return Math.min(Math.max(n,min),max); }
   function pad2(n){return n<10?'0'+n:''+n;}
   function formatTime(ms){
     const total=Math.max(ms,0);
@@ -827,21 +790,13 @@
     const rounded=Math.round(n);
     return rounded.toLocaleString('en-US',{maximumFractionDigits:0});
   }
-  function clamp(n,min,max){
-    n = isFinite(n)?n:0;
-    return Math.min(Math.max(n,min),max);
-  }
-  function pct(n, digits=0){
-    if(!isFinite(n)) return '-';
-    return n.toFixed(digits)+'%';
-  }
+  function pct(n, digits=0){ if(!isFinite(n)) return '-'; return n.toFixed(digits)+'%'; }
 
   function updateDisplay(){ display.textContent = formatTime(elapsed); }
   function refreshRingStates(){
     if(!running){ logoGear.classList.remove('spinning'); return; }
     logoGear.classList.add('spinning');
   }
-
   function tick(){
     const now=performance.now();
     elapsed=now-startTime;
@@ -866,14 +821,8 @@
   }
   btnStart.addEventListener('click',()=>{ running?pause():start(); });
 
-  function flashCard(){
-    timerCard.classList.add('flash');
-    setTimeout(()=>timerCard.classList.remove('flash'),120);
-  }
-
-  function vibrate(ms=18){
-    try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){}
-  }
+  function flashCard(){ timerCard.classList.add('flash'); setTimeout(()=>timerCard.classList.remove('flash'),120); }
+  function vibrate(ms=18){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 
   function ensureDefaults(){
     let proc=(processInput.value||'').trim();
@@ -886,6 +835,82 @@
     return {proc,mode};
   }
 
+  /* ================= WB DATA MODEL (SYNC + OVERRIDE) =================
+     - By default, WB row pulls from Measurement Setup (auto).
+     - If user edits Operation / Hours / Contract, it becomes manual for that field.
+     - "Relink" resets the field(s) back to auto behavior.
+  ==================================================================== */
+  function defaultWbRow(){
+    const globalHours = clamp(parseFloat(hInput.value)||8, 1, 24);
+    const globalContract = clamp(parseFloat(pcdInput.value)||0, 0, 99999);
+    const globalQ = clamp(parseFloat(effInput.value)||100, 0, 100);
+
+    return {
+      id: 'wb_' + Math.random().toString(36).slice(2,9),
+      seq: 10,
+      enabled: true,
+
+      operation: '',
+      opAuto: true,
+
+      operators: 1,   // max 99
+      shifts: 1,      // 1..3
+      hours: globalHours,
+      hoursAuto: true,
+
+      machines: 1,    // max 99
+      contractPcd: globalContract,
+      contractAuto: true,
+
+      // losses
+      changeoverMin: 0,
+      cleanMin: 0,
+      maintMin: 0,
+      otherMin: 0,
+
+      // NEW: shared capacity minutes/day (subtract from net)
+      sharedMin: 0,
+
+      udtValue: 0,
+      udtUnit: 'min_day', // min_day | sec_hour
+
+      scrapPct: 0,
+
+      oeeA: 100,
+      oeeP: 100,
+      oeeQ: globalQ,
+      qAuto: true,
+
+      ctCurManual: null,
+      ctWstManual: null,
+      ctPotManual: null
+    };
+  }
+
+  let wbRows = [];
+
+  function loadWB(){
+    try{
+      const raw = localStorage.getItem(WB_KEY);
+      if(!raw){ wbRows=[]; return; }
+      const parsed = JSON.parse(raw);
+      wbRows = Array.isArray(parsed) ? parsed : [];
+    }catch(e){ wbRows=[]; }
+  }
+  function saveWB(){ try{ localStorage.setItem(WB_KEY, JSON.stringify(wbRows)); }catch(e){} }
+
+  function applyGlobalToRow(row){
+    const gHours = clamp(parseFloat(hInput.value)||8,1,24);
+    const gContract = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    const gQ = clamp(parseFloat(effInput.value)||100,0,100);
+    const gOp = (processInput.value||'').trim();
+
+    if(row.opAuto) row.operation = gOp || row.operation;
+    if(row.hoursAuto) row.hours = gHours;
+    if(row.contractAuto) row.contractPcd = gContract;
+    if(row.qAuto) row.oeeQ = gQ;
+  }
+
   function ensureWbRowForOperation(opName){
     const op = (opName||'').trim();
     if(!op) return;
@@ -896,26 +921,14 @@
       const maxSeq = wbRows.reduce((m,x)=>Math.max(m, parseFloat(x.seq)||0), 0);
       row.seq = (maxSeq||0) + 10;
       row.operation = op;
+      row.opAuto = true;
       wbRows.push(row);
+      saveWB();
     }
-
-    const globalHours = clamp(parseFloat(hInput.value)||8, 1, 24);
-    const globalContract = Math.max(0, parseFloat(pcdInput.value)||0);
-    const globalYieldPct = clamp(parseFloat(effInput.value)||100, 0, 100);
-
-    if(!isFinite(parseFloat(row.hours)) || parseFloat(row.hours) <= 0) row.hours = globalHours;
-    if(!isFinite(parseFloat(row.contractPcd)) || parseFloat(row.contractPcd) <= 0) row.contractPcd = globalContract;
-
-    if(!isFinite(parseFloat(row.oeeQ)) || parseFloat(row.oeeQ) <= 0 || parseFloat(row.oeeQ) === 100){
-      row.oeeQ = globalYieldPct;
-    }
-
-    saveWB();
   }
 
   function addLap(manualData){
     const {proc,mode}=ensureDefaults();
-
     ensureWbRowForOperation(proc);
 
     const status='', note='';
@@ -946,11 +959,7 @@
     }
   }
 
-  btnLap.addEventListener('click',()=>{
-    flashCard();
-    vibrate(18);
-    addLap();
-  });
+  btnLap.addEventListener('click',()=>{ flashCard(); vibrate(18); addLap(); });
 
   btnAddMan.addEventListener('click',()=>{
     const t1 = parseFloat(prompt(currentLang==='es'?'T1 (s)':'T1 (s)',''));
@@ -1107,7 +1116,6 @@
     }
 
     const st=calcStats(arr);
-
     const sampleLine = buildSampleLine(st);
     setInfo(sampleInfoTop, sampleLine.cls, sampleLine.text);
     setInfo(sampleInfoFocus, sampleLine.cls, sampleLine.text);
@@ -1122,13 +1130,7 @@
       let label = currentLang==='es' ? 'Variación baja.' : 'Low variation.';
       if(cvPct>=10 && cvPct<20){ cls='sample-warn'; label = currentLang==='es'?'Variación moderada.':'Moderate variation.'; }
       if(cvPct>=20){ cls='sample-bad'; label = currentLang==='es'?'Variación alta: proceso “nervioso”.':'High variation: process is “nervy”.'; }
-
-      setInfo(stdInfoFocus, cls,
-        (currentLang==='es'
-          ? `Std dev ≈ ${formatSecs(st.std)} s (${cvPct.toFixed(1)}%). ${label}`
-          : `Std dev ≈ ${formatSecs(st.std)} s (${cvPct.toFixed(1)}%). ${label}`
-        )
-      );
+      setInfo(stdInfoFocus, cls, `Std dev ≈ ${formatSecs(st.std)} s (${cvPct.toFixed(1)}%). ${label}`);
     }
 
     if(!st || st.n<3 || !isFinite(st.mean) || !isFinite(st.median) || st.mean===0){
@@ -1153,13 +1155,7 @@
           ? 'Media y mediana muy separadas – hay cola/sesgo fuerte.'
           : 'Mean and median far apart – strong skew/tail.';
       }
-
-      setInfo(distInfoFocus, cls,
-        (currentLang==='es'
-          ? `Media ≈ ${formatSecs(st.mean)} s, Mediana ≈ ${formatSecs(st.median)} s. ${msg}`
-          : `Mean ≈ ${formatSecs(st.mean)} s, Median ≈ ${formatSecs(st.median)} s. ${msg}`
-        )
-      );
+      setInfo(distInfoFocus, cls, `Mean ≈ ${formatSecs(st.mean)} s, Median ≈ ${formatSecs(st.median)} s. ${msg}`);
     }
 
     const eff=clamp(parseFloat(effInput.value)||100,0,100);
@@ -1427,9 +1423,9 @@
   }
 
   function computeUdtMinutes(row){
-    const shifts = clamp(parseFloat(row.shifts),0,10);
-    const hours = clamp(parseFloat(row.hours),0,24);
-    const v = clamp(parseFloat(row.udtValue),0,1e9);
+    const shifts = clamp(parseFloat(row.shifts),1,3);
+    const hours = clamp(parseFloat(row.hours),1,24);
+    const v = clamp(parseFloat(row.udtValue),0,999);
     if(row.udtUnit==='sec_hour'){
       const totalSeconds = v * (hours*shifts);
       return totalSeconds/60;
@@ -1438,15 +1434,15 @@
   }
 
   function computeGrossMinutes(row){
-    const shifts = clamp(parseFloat(row.shifts),0,10);
-    const hours = clamp(parseFloat(row.hours),0,24);
-    const machines = clamp(parseFloat(row.machines),0,999);
+    const shifts = clamp(parseFloat(row.shifts),1,3);
+    const hours = clamp(parseFloat(row.hours),1,24);
+    const machines = clamp(parseFloat(row.machines),1,99);
     return hours*60*shifts*machines;
   }
 
   function computeLunchMinutes(row){
-    const shifts = clamp(parseFloat(row.shifts),0,10);
-    const hours = clamp(parseFloat(row.hours),0,24);
+    const shifts = clamp(parseFloat(row.shifts),1,3);
+    const hours = clamp(parseFloat(row.hours),1,24);
     const perShift = lunchMinutesPerShift(hours);
     return perShift*shifts;
   }
@@ -1454,12 +1450,13 @@
   function computeNetMinutes(row){
     const gross = computeGrossMinutes(row);
     const lunch = computeLunchMinutes(row);
-    const changeover = clamp(parseFloat(row.changeoverMin),0,1e9);
-    const clean = clamp(parseFloat(row.cleanMin),0,1e9);
-    const maint = clamp(parseFloat(row.maintMin),0,1e9);
-    const other = clamp(parseFloat(row.otherMin),0,1e9);
+    const changeover = clamp(parseFloat(row.changeoverMin),0,999);
+    const clean = clamp(parseFloat(row.cleanMin),0,999);
+    const maint = clamp(parseFloat(row.maintMin),0,999);
+    const other = clamp(parseFloat(row.otherMin),0,999);
+    const shared = clamp(parseFloat(row.sharedMin),0,999);
     const udt = computeUdtMinutes(row);
-    const net = gross - lunch - changeover - clean - maint - other - udt;
+    const net = gross - lunch - changeover - clean - maint - other - shared - udt;
     return Math.max(0, net);
   }
 
@@ -1467,22 +1464,12 @@
     const study = getStudyStatsForOperation(row.operation);
     if(study && study.st){
       const st = study.st;
-      return {
-        cur: st.median,
-        wst: st.p90,
-        pot: st.p10,
-        source: `study (${study.mode}, N=${st.n})`
-      };
+      return { cur: st.median, wst: st.p90, pot: st.p10, source: `study (${study.mode}, N=${st.n})` };
     }
     const cur = row.ctCurManual!=null ? parseFloat(row.ctCurManual) : NaN;
     const wst = row.ctWstManual!=null ? parseFloat(row.ctWstManual) : NaN;
     const pot = row.ctPotManual!=null ? parseFloat(row.ctPotManual) : NaN;
-    return {
-      cur: isFinite(cur)?cur:NaN,
-      wst: isFinite(wst)?wst:NaN,
-      pot: isFinite(pot)?pot:NaN,
-      source: 'manual'
-    };
+    return { cur:isFinite(cur)?cur:NaN, wst:isFinite(wst)?wst:NaN, pot:isFinite(pot)?pot:NaN, source:'manual' };
   }
 
   function computeCapacityPerDay(netMinutes, ctSeconds){
@@ -1498,6 +1485,9 @@
   }
 
   function renderWB(){
+    // apply Measurement Setup sync to all rows (unless overridden)
+    wbRows.forEach(r => applyGlobalToRow(r));
+
     wbRows.sort((a,b)=>{
       const sa = parseFloat(a.seq)||0;
       const sb = parseFloat(b.seq)||0;
@@ -1506,8 +1496,11 @@
     });
 
     wbBody.innerHTML='';
+    let opsSum = 0;
 
-    wbRows.forEach((row,idx)=>{
+    wbRows.forEach((row)=>{
+      opsSum += clamp(parseFloat(row.operators),0,99);
+
       const gross = computeGrossMinutes(row);
       const lunch = computeLunchMinutes(row);
       const net = computeNetMinutes(row);
@@ -1528,34 +1521,38 @@
       const cap100Cur = computeCapacityPerDay(net, ctCur);
       const capOeeCur = cap100Cur * oee;
 
-      const contract = clamp(parseFloat(row.contractPcd),0,1e12);
-      const vs = (contract>0 && capOeeCur>0) ? (capOeeCur/contract*100) : NaN;
+      const contract = clamp(parseFloat(row.contractPcd),0,99999);
+      const vs = (contract>0) ? (capOeeCur/contract*100) : NaN;
 
       const inputReq = (contract>0 && y>0) ? (contract / y) : NaN;
 
       const tr=document.createElement('tr');
-      const inp = (val, cls='') => `<input class="wb-inp ${cls}" value="${val==null?'':val}">`;
+      const inp = (val, cls='', title='') => `<input title="${title}" class="wb-inp ${cls}" value="${val==null?'':val}">`;
 
       tr.innerHTML = `
-        <td>${inp(row.seq,'slim')}</td>
+        <td>${inp(clamp(parseFloat(row.seq)||0,0,99),'slim','Max 99')}</td>
         <td style="text-align:center"><input type="checkbox" class="wb-chk" ${row.enabled?'checked':''}></td>
-        <td>${`<input class="wb-inp wide" value="${row.operation||''}" placeholder="${currentLang==='es'?'p. ej. Op 30-1':'e.g. Op 30-1'}">`}</td>
 
-        <td>${inp(row.operators,'slim')}</td>
-        <td>${inp(row.shifts,'slim')}</td>
-        <td>${inp(row.hours,'slim')}</td>
-        <td>${inp(row.machines,'slim')}</td>
-        <td>${inp(row.contractPcd,'')}</td>
+        <td>${`<input class="wb-inp wide" value="${row.operation||''}" placeholder="${currentLang==='es'?'p. ej. Op 30-1':'e.g. Op 30-1'}" title="${row.opAuto?(currentLang==='es'?'Auto desde Measurement Setup (edita para override)':'Auto from Measurement Setup (edit to override)'):(currentLang==='es'?'Override manual (Relink para regresar a auto)':'Manual override (Relink to go auto)')}">`}</td>
+
+        <td>${inp(clamp(parseFloat(row.operators)||0,0,99),'slim','Max 99')}</td>
+        <td>${inp(clamp(parseFloat(row.shifts)||1,1,3),'slim','1..3')}</td>
+
+        <td>${inp(clamp(parseFloat(row.hours)||0,1,24),'slim', row.hoursAuto?'Auto':'Manual')}</td>
+        <td>${inp(clamp(parseFloat(row.machines)||1,1,99),'slim','Max 99')}</td>
+        <td>${inp(clamp(parseFloat(row.contractPcd)||0,0,99999),'','Max 99999')}</td>
 
         <td>${formatUnits(gross)}</td>
         <td>${formatUnits(lunch)}</td>
 
-        <td>${inp(row.changeoverMin,'slim')}</td>
-        <td>${inp(row.cleanMin,'slim')}</td>
-        <td>${inp(row.maintMin,'slim')}</td>
-        <td>${inp(row.otherMin,'slim')}</td>
+        <td>${inp(clamp(parseFloat(row.changeoverMin)||0,0,999),'slim','Max 999')}</td>
+        <td>${inp(clamp(parseFloat(row.cleanMin)||0,0,999),'slim','Max 999')}</td>
+        <td>${inp(clamp(parseFloat(row.maintMin)||0,0,999),'slim','Max 999')}</td>
+        <td>${inp(clamp(parseFloat(row.otherMin)||0,0,999),'slim','Max 999')}</td>
 
-        <td>${inp(row.udtValue,'slim')}</td>
+        <td>${inp(clamp(parseFloat(row.sharedMin)||0,0,999),'slim','Max 999 (subtracts from net)')}</td>
+
+        <td>${inp(clamp(parseFloat(row.udtValue)||0,0,999),'slim','Max 999')}</td>
         <td>
           <select class="wb-sel">
             <option value="min_day" ${row.udtUnit==='min_day'?'selected':''}>${currentLang==='es'?'min/día':'min/day'}</option>
@@ -1565,12 +1562,12 @@
 
         <td>${formatUnits(net)}</td>
 
-        <td>${inp(row.scrapPct,'slim')}</td>
+        <td>${inp(clamp(parseFloat(row.scrapPct)||0,0,100),'slim','0..100')}</td>
         <td>${isFinite(yPct)?yPct.toFixed(1)+'%':'-'}</td>
 
-        <td>${inp(row.oeeA,'slim')}</td>
-        <td>${inp(row.oeeP,'slim')}</td>
-        <td>${inp(row.oeeQ,'slim')}</td>
+        <td>${inp(clamp(parseFloat(row.oeeA)||0,0,100),'slim','0..100')}</td>
+        <td>${inp(clamp(parseFloat(row.oeeP)||0,0,100),'slim','0..100')}</td>
+        <td>${inp(clamp(parseFloat(row.oeeQ)||0,0,100),'slim','0..100')}</td>
         <td>${isFinite(oeePct)?oeePct.toFixed(1)+'%':'-'}</td>
 
         <td title="${ct.source}">${isFinite(ctCur)?formatSecs(ctCur):`<span class="wb-pill">${currentLang==='es'?'captura CT':'enter CT'}</span>`}</td>
@@ -1586,6 +1583,7 @@
         <td>${isFinite(inputReq)?formatUnits(inputReq):'-'}</td>
 
         <td style="text-align:left">
+          <button class="btn-relink" data-relink="${row.id}">${currentLang==='es'?'Relink':'Relink'}</button>
           <button class="btn-del" data-wbdel="${row.id}">${currentLang==='es'?'Borrar':'Delete'}</button>
         </td>
       `;
@@ -1600,9 +1598,10 @@
         seq:0, enabled:1, op:2,
         operators:3, shifts:4, hours:5, machines:6, contract:7,
         changeover:10, clean:11, maint:12, other:13,
-        udtVal:14, udtUnit:15,
-        scrap:17,
-        oeeA:19, oeeP:20, oeeQ:21
+        shared:14,
+        udtVal:15, udtUnit:16,
+        scrap:18,
+        oeeA:20, oeeP:21, oeeQ:22
       };
 
       const seqInp = getInputAt(IDX.seq);
@@ -1619,6 +1618,8 @@
       const maintInp = getInputAt(IDX.maint);
       const otherInp = getInputAt(IDX.other);
 
+      const sharedInp = getInputAt(IDX.shared);
+
       const udtValInp = getInputAt(IDX.udtVal);
       const udtUnitSel = getSelectAt(IDX.udtUnit);
 
@@ -1629,44 +1630,93 @@
       const oeeQInp = getInputAt(IDX.oeeQ);
 
       const onChange = ()=>{
-        row.seq = parseFloat(seqInp.value)||0;
+        row.seq = clamp(parseFloat(seqInp.value)||0,0,99);
         row.enabled = !!enChk.checked;
-        row.operation = (opInp.value||'').trim();
-        row.operators = parseFloat(operatorsInp.value)||0;
-        row.shifts = parseFloat(shiftsInp.value)||0;
-        row.hours = parseFloat(hoursInp.value)||0;
-        row.machines = parseFloat(machinesInp.value)||0;
-        row.contractPcd = parseFloat(contractInp.value)||0;
 
-        row.changeoverMin = parseFloat(changeInp.value)||0;
-        row.cleanMin = parseFloat(cleanInp.value)||0;
-        row.maintMin = parseFloat(maintInp.value)||0;
-        row.otherMin = parseFloat(otherInp.value)||0;
+        // Operation in function of Measurement Setup (auto until edited)
+        const opNew = (opInp.value||'').trim();
+        if(opNew !== row.operation){
+          row.operation = opNew;
+          row.opAuto = false; // user override
+        }
 
-        row.udtValue = parseFloat(udtValInp.value)||0;
+        row.operators = clamp(parseFloat(operatorsInp.value)||0,0,99);
+        row.shifts = clamp(parseFloat(shiftsInp.value)||1,1,3);
+
+        const hNew = clamp(parseFloat(hoursInp.value)||0,1,24);
+        if(hNew !== row.hours){
+          row.hours = hNew;
+          row.hoursAuto = false;
+        }else{
+          row.hours = hNew;
+        }
+
+        row.machines = clamp(parseFloat(machinesInp.value)||1,1,99);
+
+        const cNew = clamp(parseFloat(contractInp.value)||0,0,99999);
+        if(cNew !== row.contractPcd){
+          row.contractPcd = cNew;
+          row.contractAuto = false;
+        }else{
+          row.contractPcd = cNew;
+        }
+
+        row.changeoverMin = clamp(parseFloat(changeInp.value)||0,0,999);
+        row.cleanMin = clamp(parseFloat(cleanInp.value)||0,0,999);
+        row.maintMin = clamp(parseFloat(maintInp.value)||0,0,999);
+        row.otherMin = clamp(parseFloat(otherInp.value)||0,0,999);
+
+        row.sharedMin = clamp(parseFloat(sharedInp.value)||0,0,999);
+
+        row.udtValue = clamp(parseFloat(udtValInp.value)||0,0,999);
         row.udtUnit = udtUnitSel.value;
 
-        row.scrapPct = parseFloat(scrapInp.value)||0;
+        row.scrapPct = clamp(parseFloat(scrapInp.value)||0,0,100);
 
-        row.oeeA = parseFloat(oeeAInp.value)||0;
-        row.oeeP = parseFloat(oeePInp.value)||0;
-        row.oeeQ = parseFloat(oeeQInp.value)||0;
+        row.oeeA = clamp(parseFloat(oeeAInp.value)||0,0,100);
+        row.oeeP = clamp(parseFloat(oeePInp.value)||0,0,100);
+        const qNew = clamp(parseFloat(oeeQInp.value)||0,0,100);
+        if(qNew !== row.oeeQ){
+          row.oeeQ = qNew;
+          row.qAuto = false;
+        }else{
+          row.oeeQ = qNew;
+        }
 
         saveWB();
         renderAll();
       };
 
       [seqInp, enChk, opInp, operatorsInp, shiftsInp, hoursInp, machinesInp, contractInp,
-       changeInp, cleanInp, maintInp, otherInp, udtValInp, udtUnitSel, scrapInp, oeeAInp, oeePInp, oeeQInp
-      ].forEach(el=>{
-        el.addEventListener('change', onChange);
-      });
+       changeInp, cleanInp, maintInp, otherInp, sharedInp, udtValInp, udtUnitSel,
+       scrapInp, oeeAInp, oeePInp, oeeQInp
+      ].forEach(el=> el.addEventListener('change', onChange));
     });
 
+    // Operators sum
+    wbOperatorsSum.textContent = String(Math.round(opsSum));
+
+    // delete
     wbBody.querySelectorAll('[data-wbdel]').forEach(btn=>{
       btn.addEventListener('click',()=>{
         const id=btn.getAttribute('data-wbdel');
         wbRows = wbRows.filter(r=>r.id!==id);
+        saveWB();
+        renderAll();
+      });
+    });
+
+    // relink resets auto behaviors to Measurement Setup
+    wbBody.querySelectorAll('[data-relink]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const id=btn.getAttribute('data-relink');
+        const row = wbRows.find(r=>r.id===id);
+        if(!row) return;
+        row.opAuto = true;
+        row.hoursAuto = true;
+        row.contractAuto = true;
+        row.qAuto = true;
+        applyGlobalToRow(row);
         saveWB();
         renderAll();
       });
@@ -1691,7 +1741,7 @@
       const oee = computeOeePct(r);
       const ct = getCtTriple(r);
       const capOeeCur = computeCapacityPerDay(net, ct.cur) * oee;
-      const contract = clamp(parseFloat(r.contractPcd),0,1e12);
+      const contract = clamp(parseFloat(r.contractPcd),0,99999);
       const vs = (contract>0) ? (capOeeCur/contract*100) : NaN;
       return {r, capOeeCur, contract, vs};
     }).filter(x => isFinite(x.capOeeCur) && x.capOeeCur>=0);
@@ -1743,64 +1793,153 @@
   }
 
   function buildMethodGuide(){
+    const legalEN =
+`LEGAL NOTICE / DISCLAIMER
+TaktLab is an aid-to-decision tool.
+Results depend on data quality, process stability and the assumptions entered.
+This tool does not replace engineering judgment, customer standards, or safety rules.
+Use at your own risk.
+
+COPYRIGHT
+© Roberto González. All rights reserved.`;
+
+    const legalES =
+`AVISO LEGAL / DISCLAIMER
+TaktLab es una herramienta de apoyo a la decisión.
+Los resultados dependen de la calidad de datos, estabilidad del proceso y supuestos ingresados.
+No sustituye criterio de ingeniería, estándares del cliente ni reglas de seguridad.
+Uso bajo responsabilidad del usuario.
+
+DERECHOS
+© Roberto González. Todos los derechos reservados.`;
+
     if(currentLang==='es'){
-      return `Cómo TaktLab estima capacidad (WB)
-• CT (tiempos ciclo): si existe estudio (laps) con Process == Operation, se toma:
-  - Actual = Mediana (CTmed)
-  - Peor = P90
-  - Potencial = P10
-• Gross minutes/día = Hours × 60 × Shifts × #Machines
-• Lunch (auto): depende de Hours por turno (15/30/45/60 min) × Shifts
-• Pérdidas editables (min/día): Changeover, 5S/Limpieza, Maintenance, Other
-• Unplanned DT: editable en min/día o seg/h (se convierte a min/día)
-• Net minutes/día = Gross − Lunch − pérdidas − Unplanned DT
-• Capacidad 100% (pzs/día) = (Net minutes × 60) / CT
-• OEE por operación:
-  - Capturas A, P, Q en %
-  - OEE = (A×P×Q)  → siempre queda entre 0% y 100%
-  - Cap@OEE = Capacidad 100% × OEE
-  - CT@OEE = CT / OEE
-Scrap (por proceso)
-• Yield = 1 − Scrap%
-• Para cumplir un contrato de salida (pzs buenas):
-  - Input requerido = Contract / Yield
-Restricción
-• Si alguna operación NO cumple su contrato → restricción = menor % vs contrato.
-• Si TODAS cumplen → se marca “Proceso con menor salida”.`;
+      return `GUÍA POR SECCIONES
+
+1) DATA CONTROLS (Controles de datos)
+- Copy All: copia la tabla Raw Time Data (para Excel).
+- Copy Summary: copia resumen (WB + restricción).
+- Add Manual Lap: agrega una vuelta manual (útil si tomaste el tiempo fuera).
+- Reset: reinicia laps (no borra WB).
+
+2) MEASUREMENT SETUP (Configuración de medición)
+- Process: nombre del proceso actual. También se usa como “Operation” en WB en modo AUTO.
+- Mode:
+  • CT: cada LAP genera una muestra total.
+  • MLD: alterna T1 y T2 y suma total.
+- Efficiency %: usado en Stat Focus y como default de Q% en WB (AUTO).
+- Contract Cap (pcs/day): contrato global (default en WB en AUTO).
+- Hours/Day y Days/Week: base de conversión de capacidad (Stat Focus) y default de Hours en WB (AUTO).
+- Capacity View: muestra cap por hora/día/semana en Stat Focus.
+
+3) STAT FOCUS (Enfoque estadístico)
+- Sample size / Error: estima si tu muestra es suficiente para ±3% (95%).
+- Std dev y CV%: variación del proceso.
+- Mean vs Median: alerta de sesgo/colas.
+- Contract line: compara capacidad vs contrato.
+
+4) WB – CAPACITY PLANNER (Planeador por operación)
+SYNC / AUTO vs MANUAL:
+- Por default, Operation/Hours/Contract/Q% siguen Measurement Setup (AUTO).
+- Si editas la celda, se vuelve MANUAL (override).
+- Botón “Relink” regresa esa fila a AUTO (vuelve a sincronizar).
+
+CÁLCULOS:
+- Gross min/day = Hours × 60 × Shifts × #Machines
+- Lunch min/day: auto según horas por turno (15/30/45/60) × Shifts
+- Pérdidas editables (min/day): Changeover, 5S/Clean, Maintenance, Other
+- Shared Capacity (min/day): minutos compartidos/consumidos por otro flujo. Se resta del Net.
+- Unplanned DT: min/day o sec/hr (convertido a min/day)
+- Net min/day = Gross − Lunch − pérdidas − Shared − Unplanned DT
+- Yield = 1 − Scrap%
+- OEE% = A×P×Q
+- Cap 100% = (Net min × 60) / CT
+- Cap@OEE = Cap 100% × OEE
+- Input required for Contract = Contract / Yield
+
+RESTRICCIÓN:
+- Si alguna operación no cumple contrato → restricción = menor % vs contrato.
+- Si todas cumplen → se marca la operación de menor salida.
+
+5) CHARTS (Gráficas)
+- Time Series: muestra serie, media, mediana, ±3σ.
+- Histogram: distribución, mediana y percentiles.
+
+${legalES}`;
     }
 
-    return `How TaktLab estimates capacity (WB)
-• CT (cycle times): if a time study exists (laps) where Process == Operation:
-  - Current = Median (CTmed)
-  - Worst = P90
-  - Potential = P10
-• Gross min/day = Hours × 60 × Shifts × #Machines
-• Lunch (auto): based on Hours/shift (15/30/45/60 min) × Shifts
-• Editable losses (min/day): Changeover, 5S/Cleaning, Maintenance, Other
-• Unplanned Downtime: min/day or sec/hr (converted)
-• Net min/day = Gross − Lunch − losses − Unplanned DT
-• Capacity 100% (pcs/day) = (Net minutes × 60) / CT
-• OEE per operation:
-  - You enter A, P, Q in %
-  - OEE = (A×P×Q) → always 0%..100%
-  - Cap@OEE = Capacity 100% × OEE
-  - CT@OEE = CT / OEE
-Scrap
-• Yield = 1 − Scrap%
-• Required input = Contract / Yield
-Constraint
-• If any operation fails contract → constraint = lowest % vs contract.
-• If all meet → “Lowest output process”.`;
+    return `SECTION GUIDE
+
+1) DATA CONTROLS
+- Copy All: copies Raw Time Data table (Excel-ready).
+- Copy Summary: copies summary (WB + constraint).
+- Add Manual Lap: adds a manual lap.
+- Reset: clears laps (does not delete WB).
+
+2) MEASUREMENT SETUP
+- Process: current process name. Also drives WB “Operation” in AUTO.
+- Mode:
+  • CT: each LAP is a total sample.
+  • MLD: alternates T1/T2 and sums total.
+- Efficiency %: used in Stat Focus and as default WB Q% (AUTO).
+- Contract Cap (pcs/day): global contract (default WB contract in AUTO).
+- Hours/Day and Days/Week: capacity basis (Stat Focus) and default WB Hours (AUTO).
+- Capacity View: capacity shown per hour/day/week.
+
+3) STAT FOCUS
+- Sample size / Error: checks if sample is enough for ±3% (95%).
+- Std dev & CV%: variability.
+- Mean vs Median: skew/tail indicator.
+- Contract line: compares capacity vs contract.
+
+4) WB – CAPACITY PLANNER
+SYNC / AUTO vs MANUAL:
+- By default Operation/Hours/Contract/Q% follow Measurement Setup (AUTO).
+- Editing a cell turns it MANUAL (override).
+- “Relink” returns that row to AUTO (sync again).
+
+CALCS:
+- Gross min/day = Hours × 60 × Shifts × #Machines
+- Lunch min/day: auto by hours/shift (15/30/45/60) × Shifts
+- Editable losses (min/day): Changeover, 5S/Clean, Maintenance, Other
+- Shared Capacity (min/day): shared/consumed minutes by another flow. Subtracted from Net.
+- Unplanned DT: min/day or sec/hr (converted)
+- Net min/day = Gross − Lunch − losses − Shared − Unplanned DT
+- Yield = 1 − Scrap%
+- OEE% = A×P×Q
+- Cap 100% = (Net min × 60) / CT
+- Cap@OEE = Cap 100% × OEE
+- Input required for Contract = Contract / Yield
+
+CONSTRAINT:
+- If any operation fails contract → constraint = lowest % vs contract.
+- If all meet → lowest output operation.
+
+5) CHARTS
+- Time Series: series, mean, median, ±3σ.
+- Histogram: distribution, median and percentiles.
+
+${legalEN}`;
   }
 
   btnWbAdd.addEventListener('click',()=>{
     const r = defaultWbRow();
     const maxSeq = wbRows.reduce((m,x)=>Math.max(m, parseFloat(x.seq)||0), 0);
-    r.seq = (maxSeq||0) + 10;
+    r.seq = clamp((maxSeq||0) + 10, 0, 99);
+
+    // operation auto by default (from Measurement Setup)
     r.operation = (processInput.value||'').trim() || '';
+    r.opAuto = true;
+
     r.hours = clamp(parseFloat(hInput.value)||8,1,24);
-    r.contractPcd = Math.max(0, parseFloat(pcdInput.value)||0);
+    r.hoursAuto = true;
+
+    r.contractPcd = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    r.contractAuto = true;
+
     r.oeeQ = clamp(parseFloat(effInput.value)||100,0,100);
+    r.qAuto = true;
+
     wbRows.push(r);
     saveWB();
     renderAll();
@@ -2018,6 +2157,7 @@ Constraint
     lines.push('—');
     lines.push((currentLang==='es'?'Restricción: ':'Constraint: ')+wbConstraint.textContent);
     lines.push((currentLang==='es'?'Siguiente: ':'Next: ')+wbNextConstraint.textContent);
+    lines.push((currentLang==='es'?'Operadores total: ':'Operators total: ')+wbOperatorsSum.textContent);
     lines.push('—');
     lines.push(currentLang==='es'?'WB (por operación):':'WB (by operation):');
 
@@ -2048,11 +2188,15 @@ Constraint
   chartSelect.addEventListener('change',renderCharts);
   window.addEventListener('resize',renderCharts);
 
-  effInput.addEventListener('change',renderAll);
-  pcdInput.addEventListener('change',renderAll);
-  hInput.addEventListener('change',renderAll);
-  dInput.addEventListener('change',renderAll);
-  capViewSel.addEventListener('change',renderAll);
+  // IMPORTANT: Measurement Setup changes must update WB immediately
+  [effInput, pcdInput, hInput, dInput, capViewSel, processInput].forEach(el=>{
+    el.addEventListener('change',()=>{
+      // apply global sync immediately
+      wbRows.forEach(r=>applyGlobalToRow(r));
+      saveWB();
+      renderAll();
+    });
+  });
 
   loadWB();
   updateDisplay();
