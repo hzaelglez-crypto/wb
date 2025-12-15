@@ -275,7 +275,6 @@
     <div class="timer-card" id="timerCard">
       <div class="timer-display" id="display">00:00.00</div>
 
-      <!-- ✅ Debajo del cronómetro SOLO se queda Sample Size -->
       <div class="info-stack">
         <div class="info-line sample-neutral" id="sampleInfoTop">
           No samples yet for current process. Start capturing laps.
@@ -349,11 +348,9 @@
       </div>
     </div>
 
-    <!-- ✅ ENFOQUE ESTADÍSTICO -->
     <div class="section-card">
       <div class="section-title" data-i18n="section.statsFocus">Stat Focus</div>
 
-      <!-- ✅ Los 3 bloques + duplicado de tamaño de muestra, aquí viven -->
       <div class="info-stack" style="margin-top:4px;">
         <div class="info-line sample-neutral" id="sampleInfoFocus">Sample size: —</div>
         <div class="info-line sample-neutral" id="stdInfoFocus">Std dev: —</div>
@@ -393,7 +390,6 @@
         </table>
       </div>
 
-      <!-- ✅ WB / Capacity Planner -->
       <div class="subsection-title" data-i18n="section.wbPlanner">WB – Capacity Planner (by process)</div>
 
       <div class="btn-row-secondary" style="margin-top:8px;">
@@ -529,7 +525,6 @@
       </div>
     </div>
 
-    <!-- ✅ Method & Guide AL FINAL, en desplegable, después de Raw Time Data -->
     <div class="section-card">
       <div class="section-title" data-i18n="section.methodGuide">Method &amp; Guide</div>
       <details style="background:var(--bg-card-soft);border:1px solid var(--border-soft);border-radius:14px;padding:10px;">
@@ -585,7 +580,6 @@
 
   const langButtons = document.querySelectorAll('.lang-btn');
 
-  // WB
   const wbBody = document.getElementById('wbBody');
   const btnWbAdd = document.getElementById('btnWbAdd');
   const btnWbClear = document.getElementById('btnWbClear');
@@ -594,7 +588,6 @@
   const wbConstraintNote = document.getElementById('wbConstraintNote');
   const methodGuideText = document.getElementById('methodGuideText');
 
-  /* ===== i18n ===== */
   const i18n = {
     en:{
       'title.subtitle':'Cycle Time & Capacity Analyzer',
@@ -631,7 +624,6 @@
       'stats.note':'Simple language on purpose: few / enough samples, low / high variation, capable / not capable.',
       'footer.note':'Created by Roberto González – Contact: hzaelglez@gmail.com',
 
-      // WB text
       'btn.wbAdd':'+ Add Operation',
       'btn.wbClear':'Clear WB',
       'wb.seq':'Seq',
@@ -703,7 +695,6 @@
       'stats.note':'Lenguaje simple: pocas / suficientes muestras, baja / alta variación, capaz / no capaz.',
       'footer.note':'Creado por Roberto González – Contacto: hzaelglez@gmail.com',
 
-      // WB
       'btn.wbAdd':'+ Agregar operación',
       'btn.wbClear':'Borrar WB',
       'wb.seq':'Orden',
@@ -777,7 +768,6 @@
   let laps=[], nextId=1;
   let pendingT1=null;
 
-  // ===== WB model (persist) =====
   const WB_KEY = 'taktlabWB_v1';
   function defaultWbRow(){
     return {
@@ -795,12 +785,11 @@
       maintMin: 0,
       otherMin: 0,
       udtValue: 0,
-      udtUnit: 'min_day', // 'min_day' | 'sec_hour'
+      udtUnit: 'min_day',
       scrapPct: 0,
       oeeA: 100,
       oeeP: 100,
       oeeQ: 100,
-      // Manual overrides if no study exists
       ctCurManual: null,
       ctWstManual: null,
       ctPotManual: null
@@ -883,9 +872,7 @@
   }
 
   function vibrate(ms=18){
-    try{
-      if(navigator.vibrate) navigator.vibrate(ms);
-    }catch(e){}
+    try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){}
   }
 
   function ensureDefaults(){
@@ -899,7 +886,6 @@
     return {proc,mode};
   }
 
-  // ✅ Auto-crear/actualizar WB row desde lo que estás midiendo (proceso/estación)
   function ensureWbRowForOperation(opName){
     const op = (opName||'').trim();
     if(!op) return;
@@ -1039,7 +1025,6 @@
     return pcd*days;
   }
 
-  /* ===== Método único confirmado para muestras ===== */
   function sampleReqN(cv){
     const Z=1.96, targetError=0.03;
     if(!isFinite(cv) || cv<=0) return 10;
@@ -1383,7 +1368,6 @@
       else if(isFinite(pctVs) && pctVs<100) note = currentLang==='es' ? 'No alcanza contrato.' : 'Below contract.';
       else note = currentLang==='es' ? 'Se ve sano.' : 'Looks healthy.';
 
-      // ✅ Opción B: misma línea EXACTA que arriba (no más versión “a mano”)
       const sLine = buildSampleLine(st);
 
       const tr=document.createElement('tr');
@@ -1411,7 +1395,6 @@
     });
   }
 
-  // ===== WB helpers =====
   function lunchMinutesPerShift(hours){
     if(hours<=6) return 15;
     if(hours<=8) return 30;
@@ -1736,8 +1719,8 @@
       primary = scored[0];
       secondary = scored[1] || null;
       note = currentLang==='es'
-        ? '🔴 Restricción (vs contrato): proceso con menor % vs contrato.'
-        : '🔴 Constraint (vs contract): process with the lowest % vs contract.';
+        ? 'Restricción (vs contrato): proceso con menor % vs contrato.'
+        : 'Constraint (vs contract): process with the lowest % vs contract.';
       wbConstraint.className = 'badge badge-bad';
       wbNextConstraint.className = 'badge badge-warn';
     }else{
@@ -1745,8 +1728,8 @@
       primary = scored[0];
       secondary = scored[1] || null;
       note = currentLang==='es'
-        ? '🔴 Proceso con menor salida (todos cumplen contrato o no hay contrato por operación).'
-        : '🔴 Lowest output process (all meet contract or no per-operation contract).';
+        ? 'Proceso con menor salida (todos cumplen contrato o no hay contrato por operación).'
+        : 'Lowest output process (all meet contract or no per-operation contract).';
       wbConstraint.className = 'badge badge-bad';
       wbNextConstraint.className = 'badge badge-warn';
     }
@@ -1835,7 +1818,6 @@ Constraint
     renderAll();
   });
 
-  // charts
   function updateChartOptions(){
     const groups=groupByProcess();
     const prev=chartSelect.value;
