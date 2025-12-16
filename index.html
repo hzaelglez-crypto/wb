@@ -39,7 +39,7 @@
   .page{
     max-width:1100px;
     margin:0 auto;
-    padding:10px 10px 34px; /* compact */
+    padding:10px 10px 34px;
   }
 
   .sticky-timer-bar{
@@ -47,14 +47,14 @@
     top:0;
     z-index:100;
     background:linear-gradient(180deg,#020b1a 0%,#07152b 90%);
-    padding:6px 0 8px; /* compact */
+    padding:6px 0 8px;
   }
 
   .top-row{
     display:flex;
     align-items:center;
     gap:10px;
-    margin-bottom:6px; /* compact */
+    margin-bottom:6px;
   }
 
   .logo-circle{
@@ -105,7 +105,7 @@
     font-size:2.8rem;
     font-weight:600;
     letter-spacing:.08em;
-    padding:4px 4px 6px; /* compact */
+    padding:4px 4px 6px;
   }
 
   .info-stack{ display:flex; flex-direction:column; gap:6px; margin:0 0 8px; }
@@ -134,16 +134,16 @@
   .flash{animation:flash-bg .12s ease-out;}
   @keyframes flash-bg{ from{background:rgba(255,255,255,.18);} to{background:transparent;} }
 
-  .content-section{margin-top:8px;} /* compact */
+  .content-section{margin-top:8px;}
 
   .section-card{
     background:var(--bg-card);
     border-radius:18px;
     border:1px solid var(--border-soft);
-    padding:8px 10px 10px; /* compact */
+    padding:8px 10px 10px;
     margin-bottom:10px;
   }
-  .section-title{font-size:1.0rem;font-weight:700;margin-bottom:6px;} /* compact */
+  .section-title{font-size:1.0rem;font-weight:700;margin-bottom:6px;}
 
   .mode-row{
     display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;
@@ -155,9 +155,9 @@
   }
   .mode-row input[type="number"]{width:78px;}
 
-  table{width:100%;border-collapse:collapse;font-size:.72rem;} /* compact */
+  table{width:100%;border-collapse:collapse;font-size:.72rem;}
   th,td{
-    padding:3px 5px;text-align:right; /* compact */
+    padding:3px 5px;text-align:right;
     border-bottom:1px solid rgba(255,255,255,.04);
     white-space:nowrap;
     vertical-align:middle;
@@ -179,10 +179,10 @@
 
   .btn-row-secondary{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px;}
   .btn-small{
-    padding:12px 18px;            /* BIGGER */
-    border-radius:18px;           /* BIGGER */
-    font-size:.95rem;             /* BIGGER */
-    font-weight:800;              /* BIGGER */
+    padding:12px 18px;
+    border-radius:18px;
+    font-size:.95rem;
+    font-weight:800;
     flex:0 0 auto;background:var(--bg-card-soft);color:var(--text-soft);
     border:1px solid var(--border-soft);cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.35);
   }
@@ -190,11 +190,11 @@
   .btn-small-summary{background:var(--accent-amber);border-color:var(--accent-amber);color:#000;}
   .btn-small-manual{background:var(--accent-green);border-color:var(--accent-green);color:#000;}
   .btn-small-reset{background:var(--accent-red);border-color:var(--accent-red);color:#fff;}
+  .btn-small-wbcopy{background:rgba(41,182,246,.18);border-color:rgba(41,182,246,.7);color:#b3e5fc;}
   .btn-small-wbadd{background:rgba(255,255,255,.06);color:var(--text-soft);}
   .btn-small-wbclear{background:rgba(255,23,68,.16);border-color:rgba(255,23,68,.6);color:#ff8a80;}
 
   .subsection-title{margin-top:10px;font-size:.82rem;font-weight:650;color:var(--text-soft);}
-
   .footer-note{margin-top:10px;font-size:.65rem;color:var(--text-muted);text-align:right;}
 
   .charts-wrapper{
@@ -219,7 +219,6 @@
   .btn-del{color:#ff8a80;}
   .btn-relink{color:#ffe082;}
 
-  /* WB inputs – más compactos */
   .wb-inp, .wb-sel, .wb-chk{
     background:#020b1a;border-radius:8px;border:1px solid var(--border-soft);
     padding:2px 5px;color:var(--text-soft);font-size:.70rem;
@@ -337,7 +336,6 @@
       </div>
     </div>
 
-    <!-- NEW: CONTRACT vs CAPACITY SUMMARY -->
     <div class="section-card">
       <div class="section-title" data-i18n="section.contractSummary">Contract vs Capacity Summary</div>
 
@@ -352,6 +350,7 @@
         <span data-i18n="contract.note">Uses current process + your laps (Median/P10/P90) with the Measurement Setup assumptions.</span>
       </div>
     </div>
+
     <div class="section-card">
       <div class="section-title" data-i18n="section.statsFocus">Stat Focus</div>
 
@@ -492,14 +491,17 @@
       </div>
     </div>
 
-    <!-- MOVED: DATA CONTROLS AFTER STAT FOCUS -->
     <div class="section-card">
       <div class="section-title" data-i18n="section.dataControls">Data Controls</div>
       <div class="btn-row-secondary">
         <button class="btn-small btn-small-copy" id="btnCopyAll" data-i18n="btn.copyAll">Copy All</button>
         <button class="btn-small btn-small-summary" id="btnCopySummary" data-i18n="btn.copySummary">Copy Summary</button>
+        <button class="btn-small btn-small-wbcopy" id="btnCopyWB" data-i18n="btn.copyWB">Copy WB</button>
         <button class="btn-small btn-small-manual" id="btnAddManualLap" data-i18n="btn.addManualLap">Add Manual Lap</button>
         <button class="btn-small btn-small-reset" id="btnReset" data-i18n="btn.reset">Reset</button>
+      </div>
+      <div style="font-size:.68rem;color:var(--text-muted);margin:6px 0 0;">
+        <span data-i18n="data.note">Note: stats/capacity ignore laps marked as Starved/Blocked/DT. Raw data keeps everything.</span>
       </div>
     </div>
 
@@ -563,6 +565,7 @@
     Created by Roberto González – Contact: hzaelglez@gmail.com
   </div>
 </div>
+
 <script>
 (function(){
   const display = document.getElementById('display');
@@ -577,7 +580,6 @@
   const distInfoFocus = document.getElementById('distInfoFocus');
   const contractInfoFocus = document.getElementById('contractInfoFocus');
 
-  // NEW: Contract Summary lines
   const contractSumLine1 = document.getElementById('contractSumLine1');
   const contractSumLine2 = document.getElementById('contractSumLine2');
   const contractSumLine3 = document.getElementById('contractSumLine3');
@@ -597,6 +599,7 @@
   const dataBody    = document.getElementById('dataBody');
   const btnCopyAll  = document.getElementById('btnCopyAll');
   const btnCopySum  = document.getElementById('btnCopySummary');
+  const btnCopyWB   = document.getElementById('btnCopyWB');
   const btnAddMan   = document.getElementById('btnAddManualLap');
   const btnReset    = document.getElementById('btnReset');
 
@@ -619,12 +622,13 @@
     en:{
       'title.subtitle':'Cycle Time & Capacity Analyzer',
       'btn.start':'Start','btn.pause':'Pause','btn.lap':'LAP',
-      'btn.copyAll':'Copy All','btn.copySummary':'Copy Summary','btn.addManualLap':'Add Manual Lap','btn.reset':'Reset',
+      'btn.copyAll':'Copy All','btn.copySummary':'Copy Summary','btn.copyWB':'Copy WB','btn.addManualLap':'Add Manual Lap','btn.reset':'Reset',
       'section.measurementSetup':'Measurement Setup',
       'section.contractSummary':'Contract vs Capacity Summary',
       'contract.note':'Uses current process + your laps (Median/P10/P90) with the Measurement Setup assumptions.',
       'section.statsFocus':'Stat Focus',
       'section.dataControls':'Data Controls',
+      'data.note':'Note: stats/capacity ignore laps marked as Starved/Blocked/DT. Raw data keeps everything.',
       'section.rawData':'Raw Time Data',
       'section.charts':'Charts (selected process)',
       'section.statsDetail':'Statistical Detail (per process)',
@@ -694,12 +698,13 @@
     es:{
       'title.subtitle':'Analizador de Tiempo de Ciclo y Capacidad',
       'btn.start':'Iniciar','btn.pause':'Pausar','btn.lap':'VUELTA',
-      'btn.copyAll':'Copiar todo','btn.copySummary':'Copiar resumen','btn.addManualLap':'Agregar vuelta manual','btn.reset':'Reiniciar',
+      'btn.copyAll':'Copiar todo','btn.copySummary':'Copiar resumen','btn.copyWB':'Copiar WB','btn.addManualLap':'Agregar vuelta manual','btn.reset':'Reiniciar',
       'section.measurementSetup':'Configuración de Medición',
       'section.contractSummary':'Resumen Contrato vs Capacidad',
       'contract.note':'Usa el proceso actual + tus vueltas (Mediana/P10/P90) con los supuestos de Measurement Setup.',
       'section.statsFocus':'Enfoque Estadístico',
       'section.dataControls':'Controles de Datos',
+      'data.note':'Nota: stats/capacidad ignoran vueltas marcadas como Hambriento/Bloqueado/DT. Datos crudos conservan todo.',
       'section.rawData':'Datos Crudos de Tiempo',
       'section.charts':'Gráficas (proceso seleccionado)',
       'section.statsDetail':'Detalle Estadístico (por proceso)',
@@ -863,6 +868,18 @@
     return {proc,mode};
   }
 
+  /* ============== RAW vs STATS FILTER ============== */
+  function isDowntimeStatus(status){
+    const s = (status||'').trim();
+    if(!s) return false;
+    // Any non-empty status is treated as non-productive time for stats/capacity.
+    // (Raw Data still keeps everything.)
+    return true;
+  }
+  function lapsForStats(){
+    return laps.filter(l => !isDowntimeStatus(l.status));
+  }
+
   /* ================= WB DATA MODEL (SYNC + OVERRIDE) ================= */
   function defaultWbRow(){
     const globalHours = clamp(parseFloat(hInput.value)||8, 1, 24);
@@ -949,6 +966,13 @@
     }
   }
 
+  /* Auto-create WB row when process is declared (no need to press LAP) */
+  function syncWbOnProcessDeclared(){
+    const op = (processInput.value||'').trim();
+    if(!op) return;
+    ensureWbRowForOperation(op);
+  }
+
   function addLap(manualData){
     const {proc,mode}=ensureDefaults();
     ensureWbRowForOperation(proc);
@@ -1000,9 +1024,10 @@
 
   modeSelect.addEventListener('change',()=>{ pendingT1=null; });
 
-  function groupByProcess(){
+  function groupByProcess(useRaw=false){
     const map=new Map();
-    laps.forEach(l=>{
+    const src = useRaw ? laps : lapsForStats();
+    src.forEach(l=>{
       const key=l.process+'||'+l.mode;
       if(!map.has(key)) map.set(key,[]);
       map.get(key).push(l);
@@ -1108,9 +1133,8 @@
     return {cls, text: head + tail};
   }
 
-  // NEW: Contract vs Capacity Summary updater
   function updateContractSummary(){
-    const groups=groupByProcess();
+    const groups=groupByProcess(false);
     const {proc,mode}=ensureDefaults();
     const key=proc+'||'+mode;
     const arr=groups.get(key)||[];
@@ -1122,18 +1146,15 @@
     const view=capViewSel.value;
 
     if(!arr.length){
+      const ignored = laps.filter(l => (l.process||'').trim()===proc && (l.mode||'')===mode && isDowntimeStatus(l.status)).length;
       setInfo(contractSumLine1,'sample-neutral', currentLang==='es'
-        ? 'Sin muestras para el proceso actual.'
-        : 'No samples for current process.');
+        ? `Sin muestras productivas para el proceso actual.${ignored?` (Ignoradas por estatus: ${ignored})`:''}`
+        : `No productive samples for current process.${ignored?` (Ignored by status: ${ignored})`:''}`);
       setInfo(contractSumLine2,'sample-neutral', currentLang==='es'
-        ? 'Toma vueltas para calcular CT (mediana/P10/P90).'
-        : 'Capture laps to compute CT (Median/P10/P90).');
-      setInfo(contractSumLine3,'sample-neutral', currentLang==='es'
-        ? 'Contrato: —'
-        : 'Contract: —');
-      setInfo(contractSumLine4,'sample-neutral', currentLang==='es'
-        ? 'Resultado: —'
-        : 'Result: —');
+        ? 'Tip: deja Status en blanco para “tiempo productivo”.'
+        : 'Tip: keep Status empty for “productive time”.');
+      setInfo(contractSumLine3,'sample-neutral', currentLang==='es' ? 'Contrato: —' : 'Contract: —');
+      setInfo(contractSumLine4,'sample-neutral', currentLang==='es' ? 'Resultado: —' : 'Result: —');
       return;
     }
 
@@ -1192,17 +1213,18 @@
   }
 
   function updateSemaphores(){
-    const groups=groupByProcess();
+    const groups=groupByProcess(false);
     const {proc,mode}=ensureDefaults();
     const key=proc+'||'+mode;
     const arr=groups.get(key)||[];
 
     if(!arr.length){
+      const ignored = laps.filter(l => (l.process||'').trim()===proc && (l.mode||'')===mode && isDowntimeStatus(l.status)).length;
       const topMsg = currentLang==='es'
-        ? 'Aún no hay muestras para el proceso actual. Comienza a tomar vueltas.'
-        : 'No samples yet for current process. Start capturing laps.';
-      setInfo(sampleInfoTop,'sample-neutral', topMsg);
+        ? `Aún no hay muestras productivas para el proceso actual.${ignored?` (Ignoradas por estatus: ${ignored})`:''}`
+        : `No productive samples yet for current process.${ignored?` (Ignored by status: ${ignored})`:''}`;
 
+      setInfo(sampleInfoTop,'sample-neutral', topMsg);
       setInfo(sampleInfoFocus,'sample-neutral', topMsg);
       setInfo(stdInfoFocus,'sample-neutral', currentLang==='es' ? 'Std dev: — (—). Captura más vueltas.' : 'Std dev: — (—). Capture more laps.');
       setInfo(distInfoFocus,'sample-neutral', currentLang==='es' ? 'Media vs Mediana: —. Captura más vueltas.' : 'Mean vs Median: —. Capture more laps.');
@@ -1289,8 +1311,6 @@
     updateContractSummary();
   }
 
-  /* ===== REST OF YOUR ORIGINAL CODE BELOW (UNCHANGED LOGIC) ===== */
-
   function renderDataTable(){
     dataBody.innerHTML='';
     const statusOptions = currentLang==='es'
@@ -1349,6 +1369,7 @@
         const id=parseInt(sel.dataset.id,10);
         const lap=laps.find(l=>l.id===id);
         if(lap) lap.status=sel.value;
+        renderAll(); // status affects stats/capacity now
       });
     });
 
@@ -1361,12 +1382,6 @@
     });
   }
 
-  /* ====== TODO: the rest is your original script unchanged ====== */
-  /* NOTE: I kept your WB, focus table, stats, charts, copy, etc. exactly as you had it. */
-
-  // --- START: Paste the remaining original functions from your last version here (unchanged) ---
-  // For brevity in chat limits, I must include the rest verbatim — but since you asked "full code", I will continue exactly now:
-
   function computeCtTargetSeconds(){
     const pcd=parseFloat(pcdInput.value)||0;
     const hours=Math.min(Math.max(parseFloat(hInput.value)||8,1),24);
@@ -1376,7 +1391,7 @@
 
   function renderStatsDetail(){
     statsBody.innerHTML='';
-    const groups=groupByProcess();
+    const groups=groupByProcess(false);
     const ctTarget=computeCtTargetSeconds();
 
     groups.forEach((arr,key)=>{
@@ -1413,18 +1428,28 @@
       `;
       statsBody.appendChild(tr);
     });
+
+    if(!groups.size){
+      const tr=document.createElement('tr');
+      tr.innerHTML = `<td colspan="13" style="text-align:left;color:var(--text-muted);">
+        ${currentLang==='es'
+          ? 'Sin muestras productivas aún. (Tip: Status en blanco = productivo).'
+          : 'No productive samples yet. (Tip: empty Status = productive).'}
+      </td>`;
+      statsBody.appendChild(tr);
+    }
   }
 
   function renderFocusTable(){
     focusBody.innerHTML='';
-    const groups=groupByProcess();
+    const groups=groupByProcess(false);
 
     if(!groups.size){
       const tr=document.createElement('tr');
       tr.innerHTML = `<td colspan="18" style="text-align:left;color:var(--text-muted);">
         ${currentLang==='es'
-          ? 'Sin muestras aún. Toma vueltas y aquí se llenará la tabla con conceptos.'
-          : 'No samples yet. Take laps and this table will populate with concepts.'}
+          ? 'Sin muestras productivas aún. Toma vueltas (Status en blanco) y aquí se llenará la tabla.'
+          : 'No productive samples yet. Take laps (empty Status) and this table will populate.'}
       </td>`;
       focusBody.appendChild(tr);
       return;
@@ -1515,7 +1540,7 @@
   }
 
   function getStudyStatsForOperation(opName){
-    const groups=groupByProcess();
+    const groups=groupByProcess(false);
     let best=null;
     groups.forEach((arr,key)=>{
       const [proc,mode]=key.split('||');
@@ -1861,8 +1886,8 @@
       wbConstraint.textContent = currentLang==='es' ? 'Sin CT' : 'No CT';
       wbNextConstraint.textContent = '—';
       wbConstraintNote.textContent = currentLang==='es'
-        ? 'No hay CT (medición o manual). Captura laps o define CT manual.'
-        : 'No CT (study or manual). Capture laps or set manual CT.';
+        ? 'No hay CT (medición o manual). Captura laps (productivos) o define CT manual.'
+        : 'No CT (study or manual). Capture laps (productive) or set manual CT.';
       return;
     }
 
@@ -1907,7 +1932,7 @@
     const legalEN =
 `LEGAL NOTICE / DISCLAIMER
 TaktLab is an aid-to-decision tool.
-Results depend on data quality, process stability and the assumptions entered.
+Results depend on data quality, process stability and assumptions entered.
 This tool does not replace engineering judgment, customer standards, or safety rules.
 Use at your own risk.
 
@@ -1925,55 +1950,146 @@ DERECHOS
 © Roberto González. Todos los derechos reservados.`;
 
     if(currentLang==='es'){
-      return `GUÍA POR SECCIONES
+      return `GUÍA POR SECCIONES (rápida, pero completa)
 
-1) DATA CONTROLS (Controles de datos)
-- Copy All: copia la tabla Raw Time Data (para Excel).
-- Copy Summary: copia resumen (WB + restricción).
-- Add Manual Lap: agrega una vuelta manual (útil si tomaste el tiempo fuera).
-- Reset: reinicia laps (no borra WB).
+0) REGLA DE ORO (para que no te engañe el Excel)
+- “Status” en blanco = tiempo PRODUCTIVO (entra a Stats/Capacidad).
+- “Status” con algo (Falta material / Bloqueado / Mtto) = NO productivo (se queda en Raw Data, pero NO entra a Stats/Capacidad).
 
-2) MEASUREMENT SETUP (Configuración de medición)
-- Process: nombre del proceso actual. También se usa como “Operation” en WB en modo AUTO.
-- Mode:
-  • CT: cada LAP genera una muestra total.
-  • MLD: alterna T1 y T2 y suma total.
-- Efficiency %: usado en Stat Focus y como default de Q% en WB (AUTO).
-- Contract Cap (pcs/day): contrato global (default en WB en AUTO).
-- Hours/Day y Days/Week: base de conversión de capacidad (Stat Focus) y default de Hours en WB (AUTO).
-- Capacity View: muestra cap por hora/día/semana en Stat Focus.
+1) STICKY TIMER (arriba)
+- Start/Pause: inicia o pausa el cronómetro.
+- VUELTA:
+  • CT: cada vuelta = un tiempo total (Total = T1).
+  • MLD: alterna T1 y T2 (Load/Unload vs Machine, o como tú lo uses). Total = T1 + T2.
+Tip: si te equivocas, siempre puedes editar/borrar en Raw Time Data.
 
-3) CONTRACT vs CAPACITY SUMMARY
-- Resumen directo del proceso actual contra el contrato.
+2) DATA CONTROLS
+- Copiar todo: copia Raw Time Data (incluye status y notas).
+- Copiar resumen: copia restricción + WB (operaciones activas).
+- Copiar WB: copia la tabla WB completa (lista para Excel).
+- Agregar vuelta manual: útil si mediste en papel / otra app.
+- Reiniciar: borra SOLO laps (NO borra WB).
 
-4) STAT FOCUS (Enfoque estadístico)
-- Sample size / Error: estima si tu muestra es suficiente para ±3% (95%).
-- Std dev y CV%: variación del proceso.
-- Mean vs Median: alerta de sesgo/colas.
-- Contract line: compara capacidad vs contrato.
+3) MEASUREMENT SETUP (Configuración)
+- Proceso: nombre del proceso. IMPORTANTÍSIMO:
+  • También se usa para crear/ligar la operación en WB automáticamente.
+- Modo:
+  • CT o MLD.
+- Eficiencia %:
+  • En Stat Focus: aplica sobre capacidad calculada.
+  • En WB: se usa como default de Q% (AUTO).
+- Contract Cap (pzs/día):
+  • Contrato global (Stat Focus / Summary).
+  • WB (AUTO) copia este valor a la fila (puedes override por operación).
+- Horas/día, Días/semana, Vista de capacidad:
+  • Solo afectan cómo se muestra la capacidad (hora/día/semana) en Stat Focus/Summary.
 
-5) WB – CAPACITY PLANNER (Planeador por operación)
-... (sin cambios)
+4) CONTRACT vs CAPACITY SUMMARY
+- “Resumen rápido” del proceso ACTUAL contra el contrato global.
+- Usa mediana/P10/P90 (productivo) + Efficiency%.
+
+5) STAT FOCUS
+- Sample size / Error:
+  • Te dice si tu muestra ya sirve para ±3% (95%).
+- Std dev + CV%:
+  • Variación (si CV alto: el proceso está “nervioso”).
+- Mean vs Median:
+  • Si se separan mucho: hay cola/sesgo (outliers).
+- Contract line:
+  • % vs contrato global.
+
+6) WB – CAPACITY PLANNER (por operación)
+Concepto: capacidad “de ingeniería” usando Net Minutes + CT + OEE.
+Campos clave:
+- Seq: orden.
+- On: prende/apaga operación (para constraint).
+- Operation:
+  • AUTO: se rellena desde Measurement Setup.
+  • Si lo editas manual, queda override (Relink lo regresa a AUTO).
+- Operators / Shifts / Hours / #Machines:
+  • #Machines multiplica minutos brutos (si son paralelas reales).
+- Contract (pzs/día):
+  • Ideal por operación (si aplica). Si no, puedes dejar en 0.
+- Gross min/day:
+  • horas * 60 * shifts * machines
+- Lunch min/day:
+  • auto por horas/turno (heurística).
+- Changeover / 5S / Maintenance / Other / Shared / Unplanned DT:
+  • Restan del tiempo neto.
+- Net min/day:
+  • lo que “de verdad” produce.
+- Scrap% y Yield:
+  • Input req = Contract / Yield (para dimensionar entrada).
+- OEE%:
+  • A * P * Q (Q por default viene de Efficiency% si está en AUTO).
+- CT Current/Worst/Potential:
+  • Si existe estudio (laps productivos) -> toma Mediana/P90/P10.
+  • Si no, te pide capturar CT o meter CT manual (con estudio ya no hace falta).
+- Cap 100% y Cap@OEE:
+  • salida diaria usando Net + CT y luego aplicando OEE.
+- Constraint / Next:
+  • Si hay contratos por operación y alguien no cumple, usa “% vs contrato”.
+  • Si todos cumplen (o no hay contrato), usa menor salida.
+
+7) CHARTS
+- Usa SOLO laps productivos (Status vacío).
+- Time series: media, mediana y ±3σ.
+- Histograma: mediana y percentiles (P10/P90).
+
+8) RAW TIME DATA
+- Aquí vive TODO (productivo y no productivo).
+- Editar: corrige T1/T2.
+- Status: define si entra o no a stats/capacidad.
+- Nota: comentario libre.
 
 ${legalES}`;
     }
 
-    return `SECTION GUIDE
+    return `SECTION GUIDE (short, but complete)
 
-1) DATA CONTROLS
-- Copy All: copies Raw Time Data table (Excel-ready).
-- Copy Summary: copies summary (WB + constraint).
-- Add Manual Lap: adds a manual lap.
-- Reset: clears laps (does not delete WB).
+0) GOLDEN RULE
+- Empty Status = PRODUCTIVE time (included in Stats/Capacity).
+- Non-empty Status (Starved/Blocked/DT) = NON-productive (kept in Raw Data, excluded from Stats/Capacity).
 
-2) MEASUREMENT SETUP
-... (no changes)
+1) STICKY TIMER
+- Start/Pause: timer control.
+- LAP:
+  • CT: each lap = total time.
+  • MLD: alternates T1 and T2. Total = T1 + T2.
+Tip: mistakes are fixable in Raw Time Data (edit/delete).
 
-3) CONTRACT vs CAPACITY SUMMARY
-- Direct summary of current process vs contract.
+2) DATA CONTROLS
+- Copy All: copies Raw Time Data (includes status + notes).
+- Copy Summary: constraint + enabled WB rows.
+- Copy WB: copies the WB table (Excel-ready).
+- Add Manual Lap: enter times manually.
+- Reset: clears laps only (WB stays).
 
-4) STAT FOCUS
-... (no changes)
+3) MEASUREMENT SETUP
+- Process: process name (also auto-creates/links WB operation).
+- Mode: CT / MLD.
+- Efficiency%: affects Stat Focus capacity; defaults WB Q% when AUTO.
+- Contract Cap (pcs/day): global contract; WB can auto-copy (override per row).
+- Hours/Day, Days/Week, Capacity View: display conversion for Stat Focus/Summary.
+
+4) CONTRACT vs CAPACITY SUMMARY
+- Direct comparison (current process vs global contract) using median/P10/P90 + Efficiency%.
+
+5) STAT FOCUS
+- Sample size/error: tells if you’re close to ±3% (95%).
+- Std dev/CV: variation.
+- Mean vs median: skew/outliers signal.
+- Contract line: % vs global contract.
+
+6) WB – CAPACITY PLANNER
+- Uses Net Minutes + CT + OEE to compute daily output.
+- CT comes from productive laps when available (Median/P90/P10), otherwise manual.
+
+7) CHARTS
+- Productive laps only.
+
+8) RAW TIME DATA
+- Stores everything. Status controls inclusion in Stats/Capacity.
 
 ${legalEN}`;
   }
@@ -2013,7 +2129,7 @@ ${legalEN}`;
   });
 
   function updateChartOptions(){
-    const groups=groupByProcess();
+    const groups=groupByProcess(false);
     const prev=chartSelect.value;
     chartSelect.innerHTML='';
     if(!groups.size){
@@ -2038,7 +2154,7 @@ ${legalEN}`;
 
   function renderCharts(){
     const key=chartSelect.value;
-    const groups=groupByProcess();
+    const groups=groupByProcess(false);
     if(!key || !groups.has(key)){ drawTimeSeries(null,null); drawHistogram(null,null); return; }
     const arr=groups.get(key);
     const st=calcStats(arr);
@@ -2066,7 +2182,7 @@ ${legalEN}`;
 
     if(!arr || !arr.length || !st || st.n<3){
       ctx.fillStyle='#607d8b'; ctx.font='12px system-ui';
-      ctx.fillText(currentLang==='es'?'Se requieren al menos 3 muestras.':'Need at least 3 samples.',10,20);
+      ctx.fillText(currentLang==='es'?'Se requieren al menos 3 muestras productivas.':'Need at least 3 productive samples.',10,20);
       return;
     }
 
@@ -2135,7 +2251,7 @@ ${legalEN}`;
 
     if(!arr || !arr.length || !st || st.n<3){
       ctx.fillStyle='#607d8b'; ctx.font='12px system-ui';
-      ctx.fillText(currentLang==='es'?'Se requieren más muestras.':'Need more samples.',10,20);
+      ctx.fillText(currentLang==='es'?'Se requieren más muestras productivas.':'Need more productive samples.',10,20);
       return;
     }
 
@@ -2226,8 +2342,72 @@ ${legalEN}`;
     });
 
     lines.push('—');
-    lines.push(currentLang==='es'?'Nota: usa "Copy All" para datos crudos.':'Note: use "Copy All" for raw data.');
+    lines.push(currentLang==='es'
+      ? 'Nota: Stats/Capacidad ignoran laps con Status (no productivos).'
+      : 'Note: Stats/Capacity ignore laps with Status (non-productive).');
     copyToClipboard(lines.join('\n'));
+  });
+
+  btnCopyWB.addEventListener('click',()=>{
+    if(!wbRows.length){ alert(currentLang==='es'?'WB está vacío.':'WB is empty.'); return; }
+
+    const header = currentLang==='es'
+      ? ['Seq','On','Operación','Operadores','Turnos','Horas','Máquinas','Contrato(pzs/día)','Gross(min/día)','Comida(min/día)','Changeover','5S','Mtto','Otros','Shared','UDT','UDTUnit','Net(min/día)','Scrap%','Yield','A%','P%','Q%','OEE%','CT Cur','CT Wst','CT Pot','CT@OEE(Cur)','Cap100(Cur/día)','Cap@OEE(Cur/día)','%vsContrato','InputReq']
+      : ['Seq','On','Operation','Operators','Shifts','Hours','Machines','Contract(pcs/day)','Gross(min/day)','Lunch(min/day)','Changeover','5S/Clean','Maint','Other','Shared','UDT','UDTUnit','Net(min/day)','Scrap%','Yield','A%','P%','Q%','OEE%','CT Cur','CT Wst','CT Pot','CT@OEE(Cur)','Cap100(Cur/day)','Cap@OEE(Cur/day)','%vsContract','InputReq'];
+
+    const rows = wbRows
+      .slice()
+      .sort((a,b)=>(parseFloat(a.seq)||0)-(parseFloat(b.seq)||0))
+      .map(r=>{
+        const gross = computeGrossMinutes(r);
+        const lunch = computeLunchMinutes(r);
+        const net = computeNetMinutes(r);
+        const oee = computeOeePct(r);
+        const y = computeScrapYield(r);
+        const ct = getCtTriple(r);
+        const cap100Cur = computeCapacityPerDay(net, ct.cur);
+        const capOeeCur = cap100Cur * oee;
+        const contract = clamp(parseFloat(r.contractPcd),0,99999);
+        const vs = (contract>0) ? (capOeeCur/contract*100) : NaN;
+        const inputReq = (contract>0 && y>0) ? (contract / y) : NaN;
+
+        return [
+          (parseFloat(r.seq)||0),
+          (r.enabled?1:0),
+          (r.operation||''),
+          clamp(parseFloat(r.operators)||0,0,99),
+          clamp(parseFloat(r.shifts)||1,1,3),
+          clamp(parseFloat(r.hours)||0,1,24),
+          clamp(parseFloat(r.machines)||1,1,99),
+          contract,
+          Math.round(gross),
+          Math.round(lunch),
+          clamp(parseFloat(r.changeoverMin)||0,0,999),
+          clamp(parseFloat(r.cleanMin)||0,0,999),
+          clamp(parseFloat(r.maintMin)||0,0,999),
+          clamp(parseFloat(r.otherMin)||0,0,999),
+          clamp(parseFloat(r.sharedMin)||0,0,999),
+          clamp(parseFloat(r.udtValue)||0,0,999),
+          (r.udtUnit||'min_day'),
+          Math.round(net),
+          clamp(parseFloat(r.scrapPct)||0,0,100),
+          isFinite(y)?(y*100).toFixed(1)+'%':'-',
+          clamp(parseFloat(r.oeeA)||0,0,100),
+          clamp(parseFloat(r.oeeP)||0,0,100),
+          clamp(parseFloat(r.oeeQ)||0,0,100),
+          (oee*100).toFixed(1)+'%',
+          isFinite(ct.cur)?formatSecs(ct.cur):'',
+          isFinite(ct.wst)?formatSecs(ct.wst):'',
+          isFinite(ct.pot)?formatSecs(ct.pot):'',
+          (isFinite(ct.cur) && oee>0)?formatSecs(ct.cur/oee):'',
+          isFinite(cap100Cur)?Math.round(cap100Cur):'',
+          isFinite(capOeeCur)?Math.round(capOeeCur):'',
+          isFinite(vs)?vs.toFixed(1)+'%':'',
+          isFinite(inputReq)?Math.round(inputReq):''
+        ].join('\t');
+      });
+
+    copyToClipboard(header.join('\t')+'\n'+rows.join('\n'));
   });
 
   function renderAll(){
@@ -2243,12 +2423,23 @@ ${legalEN}`;
   chartSelect.addEventListener('change',renderCharts);
   window.addEventListener('resize',renderCharts);
 
-  [effInput, pcdInput, hInput, dInput, capViewSel, processInput, modeSelect].forEach(el=>{
+  // Keep WB synced to globals AND auto-create row when process is declared
+  [effInput, pcdInput, hInput, dInput, capViewSel, modeSelect].forEach(el=>{
     el.addEventListener('change',()=>{
       wbRows.forEach(r=>applyGlobalToRow(r));
       saveWB();
       renderAll();
     });
+  });
+
+  processInput.addEventListener('input',()=>{
+    // only create once the user actually types a name
+    syncWbOnProcessDeclared();
+    renderAll();
+  });
+  processInput.addEventListener('change',()=>{
+    syncWbOnProcessDeclared();
+    renderAll();
   });
 
   loadWB();
