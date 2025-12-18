@@ -545,6 +545,10 @@
               <th data-i18n="wb.shifts">Shifts</th>
               <th data-i18n="wb.hours">Hours</th>
               <th data-i18n="wb.machines"># Machines</th>
+
+              <!-- ✅ NEW: Pcs/Op -->
+              <th data-i18n="wb.pcsPerOp">Pcs/Op</th>
+
               <th data-i18n="wb.contract">Contract (pcs/day)</th>
 
               <th data-i18n="wb.gross">Gross min/day</th>
@@ -828,6 +832,7 @@
       'wb.shifts':'Shifts (ref)',
       'wb.hours':'Hours',
       'wb.machines':'# Machines',
+      'wb.pcsPerOp':'Pcs/Op',
       'wb.contract':'Contract (pcs/day)',
       'wb.gross':'Gross min/day',
       'wb.lunch':'Lunch min/day',
@@ -900,6 +905,7 @@
       'wb.shifts':'Turnos (ref)',
       'wb.hours':'Horas',
       'wb.machines':'# Máquinas',
+      'wb.pcsPerOp':'Pzs/Op',
       'wb.contract':'Contrato (pzs/día)',
       'wb.gross':'Min brutos/día',
       'wb.lunch':'Comida/día',
@@ -930,7 +936,6 @@
       'wb.opsSum':'Operadores total:'
     }
   };
-
   // =========================
   // ✅ AUTOSAVE TOTAL (State Keys)
   // =========================
@@ -1218,6 +1223,10 @@
       hoursAuto: true,
 
       machines: 1,
+
+      // ✅ NEW: pieces per operation/cycle
+      pcsPerOp: 1,
+
       contractPcd: globalContract,
       contractAuto: true,
 
@@ -1274,6 +1283,9 @@
     if(row.hoursAuto) row.hours = gHours;
     if(row.contractAuto) row.contractPcd = gContract;
     if(row.qAuto) row.oeeQ = gQ;
+
+    // ✅ ensure default if old saved rows exist
+    if(!isFinite(row.pcsPerOp) || row.pcsPerOp<=0) row.pcsPerOp = 1;
   }
 
   function ensureWbRowForOperation(opName){
@@ -1354,8 +1366,6 @@
   });
 
   modeSelect.addEventListener('change',()=>{ pendingT1=null; updateSplitClocks(); scheduleSaveAll(); });
-
-  /* ======= CONTINÚA EN PARTE 2 ======= */
   // =========================
   // ✅ Rendering + Logic
   // =========================
@@ -1475,11 +1485,17 @@
     const netMin = netMinPerDay(row);
     const y = yieldFromScrap(row);
 
+    // ✅ NEW: pieces per operation multiplier
+    const ppo = clamp(parseFloat(row.pcsPerOp)||1, 1, 999);
+
     if(!isFinite(cur) || cur<=0) return {cap100:0, capOee:0, ctOee:NaN};
 
     const ctOee = cur / Math.max(oee/100, 0.0001);
-    const cap100 = (netMin*60)/cur * y;
-    const capOee = (netMin*60)/ctOee * y;
+
+    // base cycles/day = (netMin*60)/CT
+    // pieces/day = cycles/day * pcsPerOp
+    const cap100 = ((netMin*60)/cur) * y * ppo;
+    const capOee = ((netMin*60)/ctOee) * y * ppo;
 
     return {cap100, capOee, ctOee};
   }
@@ -1724,6 +1740,10 @@
       inpCell(row.hours,'wb-inp',v=>{ row.hours=clamp(parseFloat(v)||8,1,24); row.hoursAuto=false; saveWB(); renderAll(); scheduleSaveAll(); },'number','.5',1,24);
 
       inpCell(row.machines,'wb-inp',v=>{ row.machines=clamp(parseFloat(v)||1,1,999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',1,999);
+
+      // ✅ NEW: pcs per op (editable, default 1)
+      inpCell(row.pcsPerOp,'wb-inp',v=>{ row.pcsPerOp=clamp(parseFloat(v)||1,1,999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',1,999);
+
       inpCell(row.contractPcd,'wb-inp',v=>{ row.contractPcd=clamp(parseFloat(v)||0,0,99999); row.contractAuto=false; saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,99999);
 
       td(formatUnits(gGross));
@@ -1801,8 +1821,8 @@
     }
 
     wbConstraintNote.textContent = (currentLang==='es'
-      ? 'Restricción = filas activas (On) con contrato > 0, usando Cap@OEE vs Contrato.'
-      : 'Constraint = active rows (On) with contract > 0, using Cap@OEE vs Contract.'
+      ? 'Restricción = filas activas (On) con contrato > 0, usando Cap@OEE vs Contrato. (Pzs/Op sí afecta la salida).'
+      : 'Constraint = active rows (On) with contract > 0, using Cap@OEE vs Contract. (Pcs/Op impacts output).'
     );
   }
 
@@ -1826,7 +1846,7 @@
   btnCopyWB.addEventListener('click',()=>{
     let out=[];
     out.push(`WB Export (${new Date().toISOString()})`);
-    out.push('On\tOperation\tOperators\tShifts(ref)\tHours\tMachines\tContractPcd\tNetMinDay\tOEE%\tYield%\tCTcur\tCap@OEE\t%vsContract');
+    out.push('On\tOperation\tOperators\tShifts(ref)\tHours\tMachines\tPcsPerOp\tContractPcd\tNetMinDay\tOEE%\tYield%\tCTcur\tCap@OEE\t%vsContract');
 
     wbRows.forEach(r=>{
       const net = netMinPerDay(r);
@@ -1836,6 +1856,7 @@
       const {capOee} = capPerDayFromRow(r);
       const contract = clamp(parseFloat(r.contractPcd)||0,0,999999);
       const vs = contract>0 ? (capOee/contract*100) : NaN;
+      const ppo = clamp(parseFloat(r.pcsPerOp)||1, 1, 999);
 
       out.push([
         r.enabled?1:0,
@@ -1844,6 +1865,7 @@
         Math.round(clamp(parseFloat(r.shifts)||1,1,10)),
         clamp(parseFloat(r.hours)||8,1,24),
         clamp(parseFloat(r.machines)||1,1,999),
+        Math.round(ppo),
         Math.round(contract),
         Math.round(net),
         oee.toFixed(1),
@@ -1856,6 +1878,11 @@
 
     copyText(out.join('\n'));
   });
+
+  /* =========================
+     ✅ TODO: el resto de tu código sigue IGUAL
+     (raw data, stats, charts, guide, restore state, renderAll, etc.)
+     ========================= */
 
   function renderRaw(){
     dataBody.innerHTML = '';
@@ -1969,9 +1996,10 @@
     });
   }
 
-  /* ======= TODO lo demás de tu código sigue igual ======= */
-
-  function renderStats(){
+  /* =========================
+     ✅ RESTO DE TU CÓDIGO (SIN CAMBIOS)
+     Pega aquí tal cual tu bloque original desde:
+      function renderStats(){
     focusBody.innerHTML='';
     statsBody.innerHTML='';
 
