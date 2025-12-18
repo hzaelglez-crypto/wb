@@ -532,6 +532,7 @@
       <div class="btn-row-secondary" style="margin-top:8px;">
         <button class="btn-small btn-small-wbadd" id="btnWbAdd" data-i18n="btn.wbAdd">+ Add Operation</button>
         <button class="btn-small btn-small-wbclear" id="btnWbClear" data-i18n="btn.wbClear">Clear WB</button>
+        <button class="btn-small btn-small-copy" id="btnCopyWB" data-i18n="btn.copyWB">Copy WB</button>
       </div>
 
       <div style="max-height:320px;overflow:auto;">
@@ -695,1874 +696,1850 @@
   </div>
 </div>
 
-<!-- ✅ PARTE 2 empieza exactamente en la siguiente línea: <script> -->
 <script>
-/* =========================
-   TaktLab – Part 2 (JS)
-   ========================= */
+(function(){
+  const display = document.getElementById('display');
+  const btnStart = document.getElementById('btnStart');
+  const btnLap = document.getElementById('btnLap');
+  const timerCard = document.getElementById('timerCard');
+  const logoGear = document.getElementById('logoGear');
 
-(() => {
-  "use strict";
+  // ✅ restored split clocks
+  const t1Clock = document.getElementById('t1Clock');
+  const t2Clock = document.getElementById('t2Clock');
 
-  /* ---------- DOM ---------- */
-  const $ = (id) => document.getElementById(id);
+  const sampleInfoTop = document.getElementById('sampleInfoTop');
+  const sampleInfoFocus = document.getElementById('sampleInfoFocus');
+  const stdInfoFocus = document.getElementById('stdInfoFocus');
+  const distInfoFocus = document.getElementById('distInfoFocus');
+  const contractInfoFocus = document.getElementById('contractInfoFocus');
 
-  const el = {
-    logoGear: $("logoGear"),
-    timerCard: $("timerCard"),
-    display: $("display"),
-    t1Clock: $("t1Clock"),
-    t2Clock: $("t2Clock"),
-    btnStart: $("btnStart"),
-    btnLap: $("btnLap"),
+  const contractSumLine1 = document.getElementById('contractSumLine1');
+  const contractSumLine2 = document.getElementById('contractSumLine2');
+  const contractSumLine3 = document.getElementById('contractSumLine3');
+  const contractSumLine4 = document.getElementById('contractSumLine4');
 
-    processName: $("processName"),
-    mode: $("mode"),
-    efficiency: $("efficiency"),
-    contractPcd: $("contractPcd"),
-    hoursPerDay: $("hoursPerDay"),
-    daysPerWeek: $("daysPerWeek"),
-    capView: $("capView"),
+  const processInput = document.getElementById('processName');
+  const modeSelect   = document.getElementById('mode');
+  const effInput     = document.getElementById('efficiency');
+  const pcdInput     = document.getElementById('contractPcd');
+  const hInput       = document.getElementById('hoursPerDay');
+  const dInput       = document.getElementById('daysPerWeek');
+  const capViewSel   = document.getElementById('capView');
 
-    sampleInfoTop: $("sampleInfoTop"),
+  const focusBody     = document.getElementById('focusBody');
+  const statsBody     = document.getElementById('statsBody');
 
-    contractSumLine1: $("contractSumLine1"),
-    contractSumLine2: $("contractSumLine2"),
-    contractSumLine3: $("contractSumLine3"),
-    contractSumLine4: $("contractSumLine4"),
+  const dataBody    = document.getElementById('dataBody');
+  const btnCopyAll  = document.getElementById('btnCopyAll');
+  const btnCopySum  = document.getElementById('btnCopySummary');
+  const btnAddMan   = document.getElementById('btnAddManualLap');
+  const btnReset    = document.getElementById('btnReset');
 
-    sampleInfoFocus: $("sampleInfoFocus"),
-    stdInfoFocus: $("stdInfoFocus"),
-    distInfoFocus: $("distInfoFocus"),
-    contractInfoFocus: $("contractInfoFocus"),
-    focusBody: $("focusBody"),
+  const chartSelect      = document.getElementById('chartProcessSelect');
+  const timeSeriesCanvas = document.getElementById('timeSeriesCanvas');
+  const histCanvas       = document.getElementById('histCanvas');
 
-    btnCopyAll: $("btnCopyAll"),
-    btnCopySummary: $("btnCopySummary"),
-    btnAddManualLap: $("btnAddManualLap"),
-    btnReset: $("btnReset"),
+  const langButtons = document.querySelectorAll('.lang-btn');
 
-    chartProcessSelect: $("chartProcessSelect"),
-    timeSeriesCanvas: $("timeSeriesCanvas"),
-    histCanvas: $("histCanvas"),
+  const wbBody = document.getElementById('wbBody');
+  const btnWbAdd = document.getElementById('btnWbAdd');
+  const btnWbClear = document.getElementById('btnWbClear');
+  const btnCopyWB = document.getElementById('btnCopyWB');
+  const wbConstraint = document.getElementById('wbConstraint');
+  const wbNextConstraint = document.getElementById('wbNextConstraint');
+  const wbConstraintNote = document.getElementById('wbConstraintNote');
+  const wbOperatorsSum = document.getElementById('wbOperatorsSum');
+  const methodGuideText = document.getElementById('methodGuideText');
 
-    dataBody: $("dataBody"),
-    statsBody: $("statsBody"),
+  /* ============================
+     ✅ Formatting (MAX 2 decimals)
+     ============================ */
+  function formatSecs(s){
+    if(!isFinite(s)) return '-';
+    return (Math.round(s*100)/100).toFixed(2);
+  }
+  function formatTime(ms){
+    const total=Math.max(ms,0);
+    const mins=Math.floor(total/60000);
+    const secs=Math.floor((total%60000)/1000);
+    const cent=Math.floor((total%1000)/10);
+    return (mins<10?'0'+mins:mins)+':'+(secs<10?'0'+secs:secs)+'.'+(cent<10?'0'+cent:cent);
+  }
+  function formatUnits(n){
+    if(!isFinite(n)) return '-';
+    const rounded=Math.round(n);
+    return rounded.toLocaleString('en-US',{maximumFractionDigits:0});
+  }
+  function pct(n, digits=0){ if(!isFinite(n)) return '-'; return n.toFixed(digits)+'%'; }
 
-    btnWbAdd: $("btnWbAdd"),
-    btnWbClear: $("btnWbClear"),
-    wbBody: $("wbBody"),
-    wbOperatorsSum: $("wbOperatorsSum"),
-    wbConstraint: $("wbConstraint"),
-    wbNextConstraint: $("wbNextConstraint"),
-    wbConstraintNote: $("wbConstraintNote"),
+  /* ============================
+     ✅ Normalize operation names
+     ============================ */
+  function normOp(s){
+    return (s||'')
+      .toString()
+      .trim()
+      .replace(/\s+/g,' ')
+      .toLowerCase();
+  }
 
-    methodGuideText: $("methodGuideText")
-  };
+  const i18n = {
+    en:{
+      'title.subtitle':'Cycle Time & Capacity Analyzer',
+      'btn.start':'Start','btn.pause':'Pause','btn.lap':'LAP',
+      'btn.copyAll':'Copy All','btn.copySummary':'Copy Summary','btn.addManualLap':'Add Manual Lap','btn.reset':'Reset',
+      'btn.copyWB':'Copy WB',
+      'section.measurementSetup':'Measurement Setup',
+      'section.contractSummary':'Contract vs Capacity Summary',
+      'contract.note':'Uses current process + your laps (Median/P10/P90) with the Measurement Setup assumptions.',
+      'section.statsFocus':'Stat Focus',
+      'section.dataControls':'Data Controls',
+      'section.rawData':'Raw Time Data',
+      'section.charts':'Charts (selected process)',
+      'section.statsDetail':'Statistical Detail (per process)',
+      'section.wbPlanner':'WB – Capacity Planner (by process)',
+      'section.methodGuide':'Method & Guide',
+      'method.open':'Open',
 
-  /* ---------- i18n ---------- */
-  const I18N = {
-    en: {
-      "title.subtitle": "Cycle Time & Capacity Analyzer",
-      "btn.start": "Start",
-      "btn.lap": "LAP",
-      "section.measurementSetup": "Measurement Setup",
-      "label.process": "Process",
-      "label.processPlaceholder": "e.g. Op 30-1",
-      "label.mode": "Mode",
-      "mode.ct": "Cycle Time (CT)",
-      "mode.mld": "Machine & Load/Unload",
-      "label.efficiency": "Efficiency %",
-      "label.contractPcd": "Contract Cap (pcs/day)",
-      "label.hoursPerDay": "Hours / Day",
-      "label.daysPerWeek": "Days / Week",
-      "label.capView": "Capacity View",
-      "capView.hour": "per Hour",
-      "capView.day": "per Day",
-      "capView.week": "per Week",
-      "section.contractSummary": "Contract vs Capacity Summary",
-      "contract.note": "Uses current process + your laps (Median/P10/P90) with the Measurement Setup assumptions.",
-      "section.statsFocus": "Stat Focus",
-      "stats.note": "Simple language on purpose: few / enough samples, low / high variation, capable / not capable.",
-      "col.process": "Process",
-      "col.mode": "Mode",
-      "col.n": "N",
-      "col.sample": "Sample size / Error",
-      "col.capCurrent": "Current @Eff",
-      "col.capPotential": "Potential @Eff",
-      "col.capWorst": "Worst @Eff",
-      "col.contract": "Contract",
-      "col.gap": "Gap",
-      "col.note": "Note",
-      "section.wbPlanner": "WB – Capacity Planner (by process)",
-      "btn.wbAdd": "+ Add Operation",
-      "btn.wbClear": "Clear WB",
-      "wb.enabled": "On",
-      "wb.operation": "Operation",
-      "wb.operators": "Operators",
-      "wb.shifts": "Shifts",
-      "wb.hours": "Hours",
-      "wb.machines": "# Machines",
-      "wb.contract": "Contract (pcs/day)",
-      "wb.gross": "Gross min/day",
-      "wb.lunch": "Lunch min/day",
-      "wb.changeover": "Changeover",
-      "wb.cleaning": "5S/Clean",
-      "wb.maint": "Maintenance",
-      "wb.other": "Other",
-      "wb.shared": "Shared Capacity",
-      "wb.udt": "Unplanned DT",
-      "wb.udtUnit": "Unit",
-      "wb.net": "Net min/day",
-      "wb.scrap": "Scrap %",
-      "wb.yield": "Yield",
-      "wb.oeeA": "A%",
-      "wb.oeeP": "P%",
-      "wb.oeeQ": "Q%",
-      "wb.oee": "OEE%",
-      "wb.ctCur": "CT Current",
-      "wb.ctWst": "CT Worst",
-      "wb.ctPot": "CT Potential",
-      "wb.ctCurOee": "CT@OEE (Cur)",
-      "wb.cap100": "Cap 100% (Cur)",
-      "wb.capOee": "Cap@OEE (Cur)",
-      "wb.vsContract": "% vs contract",
-      "wb.inputReq": "Input req. for Contract",
-      "wb.actions": "Actions",
-      "wb.opsSum": "Operators total:",
-      "wb.constraintTitle": "Constraint / Next:",
-      "section.statsDetail": "Statistical Detail (per process)",
-      "section.dataControls": "Data Controls",
-      "btn.copyAll": "Copy All",
-      "btn.copySummary": "Copy Summary",
-      "btn.addManualLap": "Add Manual Lap",
-      "btn.reset": "Reset",
-      "section.charts": "Charts (selected process)",
-      "label.chartProcessLabel": "Process / Mode:",
-      "chart.timeSeriesTitle": "Time Series with Mean, Median, ±3σ",
-      "chart.histTitle": "Histogram with Median & Percentiles",
-      "section.rawData": "Raw Time Data",
-      "col.index": "#",
-      "col.status": "Status",
-      "col.t1": "T1 (s)",
-      "col.t2": "T2 (s)",
-      "col.total": "Total (s)",
-      "col.edit": "Edit",
-      "col.del": "Del",
-      "section.methodGuide": "Method & Guide",
-      "method.open": "Open",
-      "footer.note": "Created by Roberto González – Contact: hzaelglez@gmail.com",
-      "msg.noSamples": "No samples yet for current process. Start capturing laps.",
-      "msg.needProcess": "Type a process name first (e.g., Op 30-1).",
-      "msg.resetConfirm": "This will delete ALL laps + WB rows. Continue?",
-      "msg.copied": "Copied ✅",
-      "status.ok": "OK",
-      "status.exclude": "EXCLUDE"
+      'label.process':'Process','label.processPlaceholder':'e.g. Op 30-1',
+      'label.mode':'Mode','label.efficiency':'Efficiency %','label.contractPcd':'Contract Cap (pcs/day)',
+      'label.hoursPerDay':'Hours / Day','label.daysPerWeek':'Days / Week','label.capView':'Capacity View',
+      'label.chartProcessLabel':'Process / Mode:',
+
+      'mode.ct':'Cycle Time (CT)','mode.mld':'Machine & Load/Unload',
+      'capView.hour':'per Hour','capView.day':'per Day','capView.week':'per Week',
+
+      'col.index':'#','col.process':'Process','col.mode':'Mode','col.status':'Status','col.note':'Note',
+      'col.t1':'T1 (s)','col.t2':'T2 (s)','col.total':'Total (s)','col.edit':'Edit','col.del':'Del','col.n':'N',
+      'col.sample':'Sample size / Error',
+      'col.capCurrent':'Current @Eff','col.capPotential':'Potential @Eff','col.capWorst':'Worst @Eff',
+      'col.contract':'Contract','col.gap':'Gap','col.vsContract':'% vs',
+      'chart.timeSeriesTitle':'Time Series with Mean, Median, ±3σ',
+      'chart.histTitle':'Histogram with Median & Percentiles',
+      'stats.note':'Simple language on purpose: few / enough samples, low / high variation, capable / not capable.',
+      'footer.note':'Created by Roberto González – Contact: hzaelglez@gmail.com',
+
+      'btn.wbAdd':'+ Add Operation',
+      'btn.wbClear':'Clear WB',
+      'wb.enabled':'On',
+      'wb.operation':'Operation',
+      'wb.operators':'Operators',
+      'wb.shifts':'Shifts (ref)',
+      'wb.hours':'Hours',
+      'wb.machines':'# Machines',
+      'wb.contract':'Contract (pcs/day)',
+      'wb.gross':'Gross min/day',
+      'wb.lunch':'Lunch min/day',
+      'wb.changeover':'Changeover (min/day)',
+      'wb.cleaning':'5S/Clean (min/day)',
+      'wb.maint':'Maintenance (min/day)',
+      'wb.other':'Other (min/day)',
+      'wb.shared':'Shared Capacity (min/day)',
+      'wb.udt':'Unplanned DT',
+      'wb.udtUnit':'Unit',
+      'wb.net':'Net min/day',
+      'wb.scrap':'Scrap %',
+      'wb.yield':'Yield',
+      'wb.oeeA':'A%',
+      'wb.oeeP':'P%',
+      'wb.oeeQ':'Q%',
+      'wb.oee':'OEE%',
+      'wb.ctCur':'CT Current (s)',
+      'wb.ctWst':'CT Worst (s)',
+      'wb.ctPot':'CT Potential (s)',
+      'wb.ctCurOee':'CT@OEE (Cur)',
+      'wb.cap100':'Cap 100% (Cur/day)',
+      'wb.capOee':'Cap@OEE (Cur/day)',
+      'wb.vsContract':'% vs contract',
+      'wb.inputReq':'Input req. for Contract',
+      'wb.actions':'Actions',
+      'wb.constraintTitle':'Constraint / Next:',
+      'wb.opsSum':'Operators total:'
     },
-    es: {
-      "title.subtitle": "Analizador de Tiempo Ciclo y Capacidad",
-      "btn.start": "Iniciar",
-      "btn.lap": "Vuelta",
-      "section.measurementSetup": "Configuración de Medición",
-      "label.process": "Proceso",
-      "label.processPlaceholder": "ej. Op 30-1",
-      "label.mode": "Modo",
-      "mode.ct": "Tiempo Ciclo (CT)",
-      "mode.mld": "Máquina y Carga/Descarga",
-      "label.efficiency": "Eficiencia %",
-      "label.contractPcd": "Contrato (pzas/día)",
-      "label.hoursPerDay": "Horas / Día",
-      "label.daysPerWeek": "Días / Semana",
-      "label.capView": "Vista Capacidad",
-      "capView.hour": "por Hora",
-      "capView.day": "por Día",
-      "capView.week": "por Semana",
-      "section.contractSummary": "Resumen Contrato vs Capacidad",
-      "contract.note": "Usa el proceso actual + tus vueltas (Mediana/P10/P90) con los supuestos de Configuración de Medición.",
-      "section.statsFocus": "Enfoque Estadístico",
-      "stats.note": "Lenguaje simple a propósito: pocas / suficientes muestras, baja / alta variación, capaz / no capaz.",
-      "col.process": "Proceso",
-      "col.mode": "Modo",
-      "col.n": "N",
-      "col.sample": "Muestras / Error",
-      "col.capCurrent": "Actual @Efic",
-      "col.capPotential": "Potencial @Efic",
-      "col.capWorst": "Peor @Efic",
-      "col.contract": "Contrato",
-      "col.gap": "Gap",
-      "col.note": "Nota",
-      "section.wbPlanner": "WB – Planeador de Capacidad (por proceso)",
-      "btn.wbAdd": "+ Agregar Operación",
-      "btn.wbClear": "Limpiar WB",
-      "wb.enabled": "On",
-      "wb.operation": "Operación",
-      "wb.operators": "Operadores",
-      "wb.shifts": "Turnos",
-      "wb.hours": "Horas",
-      "wb.machines": "# Máquinas",
-      "wb.contract": "Contrato (pzas/día)",
-      "wb.gross": "Min brutos/día",
-      "wb.lunch": "Comida min/día",
-      "wb.changeover": "Cambios",
-      "wb.cleaning": "5S/Limpieza",
-      "wb.maint": "Manto",
-      "wb.other": "Otros",
-      "wb.shared": "Capacidad compartida",
-      "wb.udt": "Paro no planeado",
-      "wb.udtUnit": "Unidad",
-      "wb.net": "Min netos/día",
-      "wb.scrap": "Scrap %",
-      "wb.yield": "Yield",
-      "wb.oeeA": "A%",
-      "wb.oeeP": "P%",
-      "wb.oeeQ": "Q%",
-      "wb.oee": "OEE%",
-      "wb.ctCur": "CT Actual",
-      "wb.ctWst": "CT Peor",
-      "wb.ctPot": "CT Potencial",
-      "wb.ctCurOee": "CT@OEE (Actual)",
-      "wb.cap100": "Cap 100% (Actual)",
-      "wb.capOee": "Cap@OEE (Actual)",
-      "wb.vsContract": "% vs contrato",
-      "wb.inputReq": "Input req. para Contrato",
-      "wb.actions": "Acciones",
-      "wb.opsSum": "Operadores total:",
-      "wb.constraintTitle": "Restricción / Siguiente:",
-      "section.statsDetail": "Detalle Estadístico (por proceso)",
-      "section.dataControls": "Controles de Datos",
-      "btn.copyAll": "Copiar Todo",
-      "btn.copySummary": "Copiar Resumen",
-      "btn.addManualLap": "Agregar Vuelta Manual",
-      "btn.reset": "Reset",
-      "section.charts": "Gráficas (proceso seleccionado)",
-      "label.chartProcessLabel": "Proceso / Modo:",
-      "chart.timeSeriesTitle": "Serie con Media, Mediana, ±3σ",
-      "chart.histTitle": "Histograma con Mediana y Percentiles",
-      "section.rawData": "Datos Crudos",
-      "col.index": "#",
-      "col.status": "Estatus",
-      "col.t1": "T1 (s)",
-      "col.t2": "T2 (s)",
-      "col.total": "Total (s)",
-      "col.edit": "Editar",
-      "col.del": "Borrar",
-      "section.methodGuide": "Método y Guía",
-      "method.open": "Abrir",
-      "footer.note": "Creado por Roberto González – Contacto: hzaelglez@gmail.com",
-      "msg.noSamples": "Aún no hay muestras para este proceso. Empieza a capturar vueltas.",
-      "msg.needProcess": "Primero escribe un proceso (ej. Op 30-1).",
-      "msg.resetConfirm": "Esto borrará TODAS las vueltas + filas de WB. ¿Continuar?",
-      "msg.copied": "Copiado ✅",
-      "status.ok": "OK",
-      "status.exclude": "EXCLUIR"
+    es:{
+      'title.subtitle':'Analizador de Tiempo de Ciclo y Capacidad',
+      'btn.start':'Iniciar','btn.pause':'Pausar','btn.lap':'VUELTA',
+      'btn.copyAll':'Copiar todo','btn.copySummary':'Copiar resumen','btn.addManualLap':'Agregar vuelta manual','btn.reset':'Reiniciar',
+      'btn.copyWB':'Copiar WB',
+      'section.measurementSetup':'Configuración de Medición',
+      'section.contractSummary':'Resumen Contrato vs Capacidad',
+      'contract.note':'Usa el proceso actual + tus vueltas (Mediana/P10/P90) con los supuestos de Measurement Setup.',
+      'section.statsFocus':'Enfoque Estadístico',
+      'section.dataControls':'Controles de Datos',
+      'section.rawData':'Datos Crudos de Tiempo',
+      'section.charts':'Gráficas (proceso seleccionado)',
+      'section.statsDetail':'Detalle Estadístico (por proceso)',
+      'section.wbPlanner':'WB – Planeador de Capacidad (por proceso)',
+      'section.methodGuide':'Método & Guía',
+      'method.open':'Abrir',
+
+      'label.process':'Proceso','label.processPlaceholder':'p. ej. Op 30-1',
+      'label.mode':'Modo','label.efficiency':'Eficiencia %','label.contractPcd':'Capacidad contrato (pzs/día)',
+      'label.hoursPerDay':'Horas / día','label.daysPerWeek':'Días / semana','label.capView':'Vista de capacidad',
+      'label.chartProcessLabel':'Proceso / Modo:',
+
+      'mode.ct':'Tiempo de ciclo (CT)','mode.mld':'Máquina y Carga/Descarga',
+      'capView.hour':'por hora','capView.day':'por día','capView.week':'por semana',
+
+      'col.index':'#','col.process':'Proceso','col.mode':'Modo','col.status':'Estatus','col.note':'Nota',
+      'col.t1':'T1 (s)','col.t2':'T2 (s)','col.total':'Total (s)','col.edit':'Editar','col.del':'Borrar','col.n':'N',
+      'col.sample':'Tamaño de muestra / Error',
+      'col.capCurrent':'Actual @Eff','col.capPotential':'Potencial @Eff','col.capWorst':'Peor @Eff',
+      'col.contract':'Contrato','col.gap':'Gap','col.vsContract':'% vs',
+      'chart.timeSeriesTitle':'Serie de tiempo con media, mediana y ±3σ',
+      'chart.histTitle':'Histograma con mediana y percentiles',
+      'stats.note':'Lenguaje simple: pocas / suficientes muestras, baja / alta variación, capaz / no capaz.',
+      'footer.note':'Creado por Roberto González – Contacto: hzaelglez@gmail.com',
+
+      'btn.wbAdd':'+ Agregar operación',
+      'btn.wbClear':'Borrar WB',
+      'wb.enabled':'On',
+      'wb.operation':'Operación',
+      'wb.operators':'Operadores',
+      'wb.shifts':'Turnos (ref)',
+      'wb.hours':'Horas',
+      'wb.machines':'# Máquinas',
+      'wb.contract':'Contrato (pzs/día)',
+      'wb.gross':'Min brutos/día',
+      'wb.lunch':'Comida/día',
+      'wb.changeover':'Changeover (min/día)',
+      'wb.cleaning':'5S/Limpieza (min/día)',
+      'wb.maint':'Mtto (min/día)',
+      'wb.other':'Otros (min/día)',
+      'wb.shared':'Capacidad compartida (min/día)',
+      'wb.udt':'DT no planeado',
+      'wb.udtUnit':'Unidad',
+      'wb.net':'Min netos/día',
+      'wb.scrap':'Scrap %',
+      'wb.yield':'Yield',
+      'wb.oeeA':'Disp%',
+      'wb.oeeP':'Rend%',
+      'wb.oeeQ':'Calidad%',
+      'wb.oee':'OEE%',
+      'wb.ctCur':'CT Actual (s)',
+      'wb.ctWst':'CT Peor (s)',
+      'wb.ctPot':'CT Potencial (s)',
+      'wb.ctCurOee':'CT@OEE (Act)',
+      'wb.cap100':'Cap 100% (Act/día)',
+      'wb.capOee':'Cap@OEE (Act/día)',
+      'wb.vsContract':'% vs contrato',
+      'wb.inputReq':'Entrada req. p/Contrato',
+      'wb.actions':'Acciones',
+      'wb.constraintTitle':'Restricción / Siguiente:',
+      'wb.opsSum':'Operadores total:'
     }
   };
 
-  let lang = localStorage.getItem("taktlab_lang") || "es";
-  function t(key){ return (I18N[lang] && I18N[lang][key]) ? I18N[lang][key] : (I18N.en[key] || key); }
+  // =========================
+  // ✅ AUTOSAVE TOTAL (State Keys)
+  // =========================
+  const TL_STATE_KEY = 'taktlab_state_v3_full';
+  const WB_KEY = 'taktlabWB_v2_sync';
+  const LANG_KEY = 'taktlabLang';
 
-  function applyI18n(){
-    document.querySelectorAll("[data-i18n]").forEach(node => {
-      const key = node.getAttribute("data-i18n");
-      node.textContent = t(key);
+  function safeJsonParse(raw){
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+
+  let _saveTimer = null;
+  function scheduleSaveAll(){
+    if(_saveTimer) clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(()=>{ saveAllNow(); }, 120);
+  }
+
+  function buildStateSnapshot(){
+    return {
+      v: 3,
+      ts: Date.now(),
+      lang: currentLang,
+      settings: {
+        processName: (processInput.value||'').toString(),
+        mode: (modeSelect.value||'CT'),
+        efficiency: (effInput.value||''),
+        contractPcd: (pcdInput.value||''),
+        hoursPerDay: (hInput.value||''),
+        daysPerWeek: (dInput.value||''),
+        capView: (capViewSel.value||'hour')
+      },
+      laps: Array.isArray(laps) ? laps : [],
+      nextId: (isFinite(nextId)?nextId:1),
+      wbRows: Array.isArray(wbRows) ? wbRows : []
+    };
+  }
+
+  function saveAllNow(){
+    const snap = buildStateSnapshot();
+    try{ localStorage.setItem(TL_STATE_KEY, JSON.stringify(snap)); }catch(e){}
+    try{ localStorage.setItem(WB_KEY, JSON.stringify(snap.wbRows || [])); }catch(e){}
+    try{ localStorage.setItem(LANG_KEY, currentLang); }catch(e){}
+  }
+
+  function clearAllSaved(){
+    try{ localStorage.removeItem(TL_STATE_KEY); }catch(e){}
+    try{ localStorage.removeItem(WB_KEY); }catch(e){}
+    try{ localStorage.removeItem(LANG_KEY); }catch(e){}
+  }
+
+  let currentLang = localStorage.getItem(LANG_KEY) || 'en';
+  function t(key){ return (i18n[currentLang] && i18n[currentLang][key]) || i18n.en[key] || key; }
+
+  function applyTranslations(){
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key = el.dataset.i18n;
+      if(el === btnStart) return;
+      el.textContent = t(key);
     });
-    document.querySelectorAll("[data-i18n-placeholder]").forEach(node => {
-      const key = node.getAttribute("data-i18n-placeholder");
-      node.setAttribute("placeholder", t(key));
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+      const key = el.dataset.i18nPlaceholder;
+      el.placeholder = t(key);
     });
-    document.querySelectorAll(".lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+  }
+  function updateLangButtons(){ langButtons.forEach(b=>b.classList.toggle('active', b.dataset.lang === currentLang)); }
+
+  function setLanguage(lang){
+    currentLang = (lang==='es') ? 'es' : 'en';
+    try{ localStorage.setItem(LANG_KEY, currentLang); }catch(e){}
+    document.documentElement.lang = currentLang;
+    updateLangButtons();
+    applyTranslations();
+    btnStart.textContent = running ? t('btn.pause') : t('btn.start');
+    renderAll();
+    scheduleSaveAll();
+  }
+  langButtons.forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)));
+
+  function clamp(n,min,max){ n = isFinite(n)?n:0; return Math.min(Math.max(n,min),max); }
+
+  let running=false, startTime=0, elapsed=0, timerId=null;
+  let laps=[], nextId=1;
+  let pendingT1=null;
+
+  function updateDisplay(){
+    display.textContent = formatTime(elapsed);
   }
 
-  document.querySelectorAll(".lang-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      lang = btn.dataset.lang;
-      localStorage.setItem("taktlab_lang", lang);
-      applyI18n();
-      renderAll();
-    });
-  });
-
-  /* ---------- Utils ---------- */
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const fmt2 = (n) => (isFinite(n) ? (Math.round(n*100)/100).toFixed(2) : "—");
-  const fmt1 = (n) => (isFinite(n) ? (Math.round(n*10)/10).toFixed(1) : "—");
-  const fmt0 = (n) => (isFinite(n) ? Math.round(n).toString() : "—");
-
-  function msToClock(ms){
-    ms = Math.max(0, ms);
-    const totalSec = Math.floor(ms / 1000);
-    const min = Math.floor(totalSec / 60);
-    const sec = totalSec % 60;
-    const cs = Math.floor((ms % 1000) / 10); // centiseconds
-    return `${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}.${String(cs).padStart(2,"0")}`;
+  function updateSplitClocks(){
+    const mode = modeSelect.value || 'CT';
+    if(mode === 'CT'){
+      t1Clock.textContent = formatTime(elapsed);
+      t2Clock.textContent = '00:00.00';
+      return;
+    }
+    if(pendingT1 === null){
+      t1Clock.textContent = formatTime(elapsed);
+      t2Clock.textContent = '00:00.00';
+    }else{
+      t1Clock.textContent = formatTime(pendingT1*1000);
+      t2Clock.textContent = formatTime(elapsed);
+    }
   }
 
-  function flash(node){
-    node.classList.remove("flash");
-    void node.offsetWidth;
-    node.classList.add("flash");
-    setTimeout(()=>node.classList.remove("flash"), 140);
-  }
-
-  function safeText(v){ return (v==null) ? "" : String(v); }
-
-  function percentile(sortedArr, p){
-    if(!sortedArr.length) return NaN;
-    const idx = (sortedArr.length - 1) * p;
-    const lo = Math.floor(idx);
-    const hi = Math.ceil(idx);
-    if(lo === hi) return sortedArr[lo];
-    const w = idx - lo;
-    return sortedArr[lo]*(1-w) + sortedArr[hi]*w;
-  }
-
-  function mean(arr){
-    if(!arr.length) return NaN;
-    let s=0;
-    for(const x of arr) s += x;
-    return s/arr.length;
-  }
-
-  function stddev(arr){
-    if(arr.length < 2) return NaN;
-    const m = mean(arr);
-    let s=0;
-    for(const x of arr) s += (x-m)*(x-m);
-    return Math.sqrt(s/(arr.length-1));
-  }
-
-  function median(sortedArr){
-    if(!sortedArr.length) return NaN;
-    const n=sortedArr.length;
-    if(n%2) return sortedArr[(n-1)/2];
-    return (sortedArr[n/2 - 1] + sortedArr[n/2]) / 2;
-  }
-
-  function groupKey(process, mode){
-    return `${process}__${mode}`;
-  }
-
-  function getCurrentProcess(){
-    const p = (el.processName.value || "").trim();
-    return p;
-  }
-
-  /* ---------- Persistent Data ---------- */
-  let laps = [];
-  let wbRows = [];
-
-  function loadState(){
-    try{
-      const raw = localStorage.getItem("taktlab_state_v3");
-      if(raw){
-        const st = JSON.parse(raw);
-        if(Array.isArray(st.laps)) laps = st.laps;
-        if(Array.isArray(st.wbRows)) wbRows = st.wbRows;
-      }
-    }catch(e){}
-  }
-
-  function saveState(){
-    try{
-      localStorage.setItem("taktlab_state_v3", JSON.stringify({ laps, wbRows }));
-    }catch(e){}
-  }
-
-  /* ---------- Stopwatch Engine ---------- */
-  let running = false;
-  let rafId = null;
-
-  // segment timing for MLD
-  let segStart = 0;         // perfNow baseline
-  let segElapsed = 0;       // ms in current segment
-  let pendingT1 = null;     // ms captured for T1 in MLD
-
-  function setRunningUI(){
-    el.btnStart.textContent = running ? (lang === "es" ? "Pausar" : "Pause") : t("btn.start");
-    el.logoGear.classList.toggle("spinning", running);
+  function refreshRingStates(){
+    if(!running){ logoGear.classList.remove('spinning'); return; }
+    logoGear.classList.add('spinning');
   }
 
   function tick(){
+    const now=performance.now();
+    elapsed=now-startTime;
+    updateDisplay();
+    updateSplitClocks();
+    timerId=requestAnimationFrame(tick);
+  }
+
+  function start(){
+    if(running) return;
+    running=true;
+    startTime=performance.now()-elapsed;
+    timerId=requestAnimationFrame(tick);
+    btnStart.textContent=t('btn.pause');
+    refreshRingStates();
+  }
+  function pause(){
     if(!running) return;
+    running=false;
+    cancelAnimationFrame(timerId);
+    timerId=null;
+    btnStart.textContent=t('btn.start');
+    refreshRingStates();
+  }
+  btnStart.addEventListener('click',()=>{ running?pause():start(); });
 
-    const now = performance.now();
-    segElapsed = now - segStart;
+  function flashCard(){ timerCard.classList.add('flash'); setTimeout(()=>timerCard.classList.remove('flash'),120); }
+  function vibrate(ms=18){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 
-    // display clocks
-    const mode = el.mode.value;
-    if(mode === "CT"){
-      el.display.textContent = msToClock(segElapsed);
-      el.t1Clock.textContent = msToClock(segElapsed);
-      el.t2Clock.textContent = msToClock(0);
+  function ensureDefaults(){
+    let proc=(processInput.value||'').trim();
+    if(!proc){
+      proc = currentLang==='es' ? 'Proceso 1' : 'Process 1';
+      processInput.value=proc;
+    }
+    let mode=modeSelect.value||'CT';
+    modeSelect.value=mode;
+    return {proc,mode};
+  }
+
+  // ✅ statuses that must NOT affect statistics (atypical)
+  function isAtypicalStatus(s){
+    const x=(s||'').toString().trim().toLowerCase();
+    return (x==='blocked' || x==='starved' || x==='bloqueado' || x==='hambriento');
+  }
+
+  function groupByProcess(){
+    const map=new Map();
+    laps.forEach(l=>{
+      if(isAtypicalStatus(l.status)) return; // exclude atypical from stats
+      const key=l.process+'||'+l.mode;
+      if(!map.has(key)) map.set(key,[]);
+      map.get(key).push(l);
+    });
+    return map;
+  }
+
+  function percentile(values,p){
+    const n=values.length;
+    if(n===0) return NaN;
+    if(n===1) return values[0];
+    const idx=(n-1)*p;
+    const lo=Math.floor(idx), hi=Math.ceil(idx);
+    if(lo===hi) return values[lo];
+    return values[lo]+(values[hi]-values[lo])*(idx-lo);
+  }
+
+  function calcStats(arr){
+    if(!arr.length) return null;
+    const values=arr.map(x=>x.total).slice().sort((a,b)=>a-b);
+    const n=values.length;
+    const mean=values.reduce((s,v)=>s+v,0)/n;
+    const median=n%2?values[(n-1)/2]:(values[n/2-1]+values[n/2])/2;
+    const min=values[0], max=values[n-1];
+    const variance=values.reduce((s,v)=>s+Math.pow(v-mean,2),0)/(n-1||1);
+    const std=Math.sqrt(variance);
+    const p10=percentile(values,0.1);
+    const p90=percentile(values,0.9);
+    const cv=mean?std/mean:0;
+    return {n,values,mean,median,min,max,std,p10,p90,cv};
+  }
+
+  function capFromCt(ctSeconds, view, hours, days){
+    if(!ctSeconds || ctSeconds<=0) return 0;
+    const perHour=3600/ctSeconds;
+    if(view==='hour') return perHour;
+    if(view==='day') return perHour*hours;
+    return perHour*hours*days;
+  }
+  function contractUnitsFromPcd(pcd, view, hours, days){
+    if(!pcd || pcd<=0) return 0;
+    if(view==='hour') return (pcd/hours)||0;
+    if(view==='day') return pcd;
+    return pcd*days;
+  }
+
+  function sampleReqN(cv){
+    const Z=1.96, targetError=0.03;
+    if(!isFinite(cv) || cv<=0) return 10;
+    let n = Math.ceil(Math.pow((Z*cv)/targetError,2));
+    if(n<10) n=10;
+    return n;
+  }
+  function estErrorPct(cv,n){
+    const Z=1.96;
+    if(!isFinite(cv) || cv<=0 || n<=0) return 0;
+    return (Z*cv)/Math.sqrt(n)*100;
+  }
+
+  function setInfo(div, cls, text){
+    div.className = 'info-line ' + cls;
+    div.textContent = text;
+  }
+
+  function buildSampleLine(st){
+    if(!st || st.n<3){
+      return {
+        cls:'sample-neutral',
+        text:(currentLang==='es'
+          ? `Tamaño de muestra: ${st?st.n:0} / 3 – se requieren ≥3 vueltas antes de estimar el error.`
+          : `Sample size: ${st?st.n:0} / 3 – need ≥3 laps before estimating error.`
+        )
+      };
+    }
+    const n=st.n;
+    const cv=st.cv||0;
+    const recN = sampleReqN(cv);
+    const errPct = estErrorPct(cv,n);
+    const ratio=n/recN;
+
+    let cls='sample-warn', tail='';
+    if(ratio<0.6){
+      cls='sample-bad';
+      tail = currentLang==='es'
+        ? 'Muestra muy pequeña para ±3% – úsala solo como referencia.'
+        : 'Sample too small for ±3% – use only as reference.';
+    }else if(ratio<0.9){
+      cls='sample-warn';
+      tail = currentLang==='es'
+        ? 'Casi suficiente para ±3% – un par de vueltas más ayudarán.'
+        : 'Almost enough for ±3% – a couple more laps would help.';
     }else{
-      // MLD: show current segment live
-      if(pendingT1 == null){
-        el.t1Clock.textContent = msToClock(segElapsed);
-        el.t2Clock.textContent = msToClock(0);
-        el.display.textContent = msToClock(segElapsed); // temporary until T2 exists
-      }else{
-        el.t1Clock.textContent = msToClock(pendingT1);
-        el.t2Clock.textContent = msToClock(segElapsed);
-        el.display.textContent = msToClock(pendingT1 + segElapsed);
+      cls='sample-good';
+      tail = currentLang==='es'
+        ? 'Tamaño de muestra suficiente para objetivo ±3%.'
+        : 'Sample size is enough for ±3% target.';
+    }
+
+    const head = (currentLang==='es')
+      ? `Tamaño de muestra: ${n} / ${recN} · Error estimado: ±${errPct.toFixed(1)}% (95%) – `
+      : `Sample size: ${n} / ${recN} · Est. error: ±${errPct.toFixed(1)}% (95%) – `;
+
+    return {cls, text: head + tail};
+  }
+
+  /* =======================
+     ✅ WB DATA MODEL
+     ======================= */
+  function defaultWbRow(){
+    const globalHours = clamp(parseFloat(hInput.value)||8, 1, 24);
+    const globalContract = clamp(parseFloat(pcdInput.value)||0, 0, 99999);
+    const globalQ = clamp(parseFloat(effInput.value)||100, 0, 100);
+    const gOp = (processInput.value||'').trim();
+
+    return {
+      id: 'wb_' + Math.random().toString(36).slice(2,9),
+      enabled: true,
+
+      operation: gOp || '',
+      opAuto: true,
+      opAutoKey: normOp(gOp || ''),
+
+      operators: 1,
+      shifts: 1,
+      hours: globalHours,
+      hoursAuto: true,
+
+      machines: 1,
+      contractPcd: globalContract,
+      contractAuto: true,
+
+      lunchMin: 0,
+      changeoverMin: 0,
+      cleanMin: 0,
+      maintMin: 0,
+      otherMin: 0,
+
+      sharedMin: 0,
+
+      udtValue: 0,
+      udtUnit: 'min_day',
+
+      scrapPct: 0,
+
+      oeeA: 100,
+      oeeP: 100,
+      oeeQ: globalQ,
+      qAuto: true,
+
+      ctCurManual: null,
+      ctWstManual: null,
+      ctPotManual: null
+    };
+  }
+
+  let wbRows = [];
+
+  function loadWB(){
+    try{
+      const raw = localStorage.getItem(WB_KEY);
+      if(!raw){ wbRows=[]; return; }
+      const parsed = JSON.parse(raw);
+      wbRows = Array.isArray(parsed) ? parsed : [];
+    }catch(e){ wbRows=[]; }
+  }
+  function saveWB(){
+    try{ localStorage.setItem(WB_KEY, JSON.stringify(wbRows)); }catch(e){}
+    scheduleSaveAll();
+  }
+
+  function applyGlobalToRow(row){
+    const gHours = clamp(parseFloat(hInput.value)||8,1,24);
+    const gContract = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    const gQ = clamp(parseFloat(effInput.value)||100,0,100);
+    const gOp = (processInput.value||'').trim();
+    const gOpKey = normOp(gOp);
+
+    if(row.opAuto && gOp && gOpKey){
+      row.operation = gOp;
+      row.opAutoKey = gOpKey;
+    }
+    if(row.hoursAuto) row.hours = gHours;
+    if(row.contractAuto) row.contractPcd = gContract;
+    if(row.qAuto) row.oeeQ = gQ;
+  }
+
+  function ensureWbRowForOperation(opName){
+    const op = (opName||'').trim();
+    const opKey = normOp(op);
+    if(!op || !opKey) return;
+
+    let row = wbRows.find(r => normOp(r.operation) === opKey);
+    if(!row){
+      row = defaultWbRow();
+      row.operation = op;
+      row.opAuto = true;
+      row.opAutoKey = opKey;
+      wbRows.push(row);
+      saveWB();
+    }
+  }
+
+  function addLap(manualData){
+    const {proc,mode}=ensureDefaults();
+    ensureWbRowForOperation(proc);
+
+    const status='', note='';
+    if(manualData){
+      const {t1,t2,total}=manualData;
+      laps.push({id:nextId++,process:proc,mode,status,note,t1,t2,total});
+      renderAll();
+      scheduleSaveAll();
+      return;
+    }
+    const seconds=Math.max(elapsed/1000,0);
+    if(mode==='CT'){
+      laps.push({id:nextId++,process:proc,mode,status,note,t1:seconds,t2:0,total:seconds});
+      elapsed=0; startTime=performance.now();
+      updateDisplay(); pendingT1=null; updateSplitClocks();
+      renderAll();
+      scheduleSaveAll();
+      return;
+    }
+    if(pendingT1===null){
+      pendingT1=seconds;
+      elapsed=0; startTime=performance.now();
+      updateSplitClocks();
+    }else{
+      const t2=seconds, t1=pendingT1;
+      laps.push({id:nextId++,process:proc,mode,status,note,t1,t2,total:t1+t2});
+      pendingT1=null;
+      elapsed=0; startTime=performance.now();
+      updateDisplay(); updateSplitClocks();
+      renderAll();
+      scheduleSaveAll();
+    }
+  }
+
+  btnLap.addEventListener('click',()=>{ flashCard(); vibrate(18); addLap(); });
+
+  btnAddMan.addEventListener('click',()=>{
+    const t1 = parseFloat(prompt(currentLang==='es'?'T1 (s)':'T1 (s)',''));
+    const t2 = parseFloat(prompt(currentLang==='es'?'T2 (s)':'T2 (s)',''));
+    if(isNaN(t1) && isNaN(t2)) return;
+    const v1=isNaN(t1)?0:t1, v2=isNaN(t2)?0:t2;
+    addLap({t1:v1,t2:v2,total:v1+v2});
+  });
+
+  btnReset.addEventListener('click',()=>{
+    if(!confirm(currentLang==='es'
+      ? '¿Reset TOTAL? Borra laps, WB y configuración guardada.'
+      : 'TOTAL reset? This will delete laps, WB and saved settings.'
+    )) return;
+
+    pause();
+    elapsed=0; updateDisplay();
+    laps=[]; nextId=1; pendingT1=null;
+    wbRows=[];
+    clearAllSaved();
+    updateSplitClocks();
+    renderAll();
+  });
+
+  modeSelect.addEventListener('change',()=>{ pendingT1=null; updateSplitClocks(); scheduleSaveAll(); });
+
+  /* ======= CONTINÚA EN PARTE 2 ======= */
+  // =========================
+  // ✅ Rendering + Logic
+  // =========================
+  function computeOEE(row){
+    const A = clamp(parseFloat(row.oeeA)||0,0,100);
+    const P = clamp(parseFloat(row.oeeP)||0,0,100);
+    const Q = clamp(parseFloat(row.oeeQ)||0,0,100);
+    return (A/100)*(P/100)*(Q/100)*100;
+  }
+
+  function udtToMinPerDay(row){
+    const v = clamp(parseFloat(row.udtValue)||0,0,999999);
+    const u = row.udtUnit || 'min_day';
+    if(u==='min_day') return v;
+
+    // ✅ Shifts = referencia, NO afecta capacidad
+    if(u==='min_shift') return v;
+    if(u==='min_hour') return v * (clamp(parseFloat(row.hours)||8,1,24));
+
+    if(u==='pct') {
+      const gross = grossMinPerDay(row);
+      return gross*(v/100);
+    }
+    return v;
+  }
+
+  function grossMinPerDay(row){
+    const hours = clamp(parseFloat(row.hours)||8,1,24);
+    const machines = clamp(parseFloat(row.machines)||1,1,999);
+
+    // ✅ Shifts NO afecta capacidad: solo referencia
+    return hours*60*machines;
+  }
+
+  function plannedLossMin(row){
+    return (
+      clamp(parseFloat(row.lunchMin)||0,0,999999) +
+      clamp(parseFloat(row.changeoverMin)||0,0,999999) +
+      clamp(parseFloat(row.cleanMin)||0,0,999999) +
+      clamp(parseFloat(row.maintMin)||0,0,999999) +
+      clamp(parseFloat(row.otherMin)||0,0,999999)
+    );
+  }
+
+  function netMinPerDay(row){
+    const gross = grossMinPerDay(row);
+    const lunch = clamp(parseFloat(row.lunchMin)||0,0,999999);
+    const pl = plannedLossMin(row);
+    const shared = clamp(parseFloat(row.sharedMin)||0,0,999999);
+    const udtMin = udtToMinPerDay(row);
+    const used = lunch + (pl - lunch) + shared + udtMin;
+    const net = gross - used;
+    return Math.max(net,0);
+  }
+
+  function yieldFromScrap(row){
+    const scrap = clamp(parseFloat(row.scrapPct)||0,0,99.99);
+    return (100 - scrap)/100;
+  }
+
+  function getProcessStatsForRow(row){
+    const op = (row.operation||'').trim();
+    if(!op) return null;
+
+    const map = groupByProcess();
+    let keyCT = op + '||CT';
+    let keyMLD = op + '||MLD';
+
+    if(map.has(keyCT)){
+      return {mode:'CT', stats: calcStats(map.get(keyCT))};
+    }
+    if(map.has(keyMLD)){
+      return {mode:'MLD', stats: calcStats(map.get(keyMLD))};
+    }
+
+    let found = null;
+    for(const [k,arr] of map.entries()){
+      const [p,m]=k.split('||');
+      if(normOp(p)===normOp(op)){
+        found = {mode:m, stats: calcStats(arr)};
+        break;
       }
     }
-
-    rafId = requestAnimationFrame(tick);
+    return found;
   }
 
-  function startRun(){
-    running = true;
-    segStart = performance.now();
-    segElapsed = 0;
-    setRunningUI();
-    rafId = requestAnimationFrame(tick);
-  }
+  function ctForRow(row){
+    const st = getProcessStatsForRow(row);
+    const manualCur = row.ctCurManual;
+    const manualWst = row.ctWstManual;
+    const manualPot = row.ctPotManual;
 
-  function stopRun(){
-    running = false;
-    if(rafId) cancelAnimationFrame(rafId);
-    rafId = null;
-    setRunningUI();
-  }
+    let cur = null, wst = null, pot = null;
 
-  function toggleStartPause(){
-    if(!getCurrentProcess()){
-      alert(t("msg.needProcess"));
-      return;
+    if(manualCur!==null && isFinite(manualCur)) cur = manualCur;
+    if(manualWst!==null && isFinite(manualWst)) wst = manualWst;
+    if(manualPot!==null && isFinite(manualPot)) pot = manualPot;
+
+    if(!st || !st.stats){
+      cur = cur ?? NaN;
+      wst = wst ?? NaN;
+      pot = pot ?? NaN;
+      return {cur,wst,pot, src:'manual'};
     }
-    if(!running){
-      // resume from zero; simple and clean
-      startRun();
+
+    const S = st.stats;
+    cur = cur ?? S.median;
+    wst = wst ?? S.p90;
+    pot = pot ?? S.p10;
+
+    return {cur,wst,pot, src:st.mode};
+  }
+
+  function capPerDayFromRow(row){
+    const {cur} = ctForRow(row);
+    const oee = computeOEE(row);
+    const netMin = netMinPerDay(row);
+    const y = yieldFromScrap(row);
+
+    if(!isFinite(cur) || cur<=0) return {cap100:0, capOee:0, ctOee:NaN};
+
+    const ctOee = cur / Math.max(oee/100, 0.0001);
+    const cap100 = (netMin*60)/cur * y;
+    const capOee = (netMin*60)/ctOee * y;
+
+    return {cap100, capOee, ctOee};
+  }
+
+  /* ✅ Operation dropdown options (laps + WB + current input) */
+  function getOperationOptions(){
+    const set = new Map();
+
+    const g = (processInput.value||'').trim();
+    if(g) set.set(normOp(g), g);
+
+    laps.forEach(l=>{
+      const p=(l.process||'').trim();
+      if(p) set.set(normOp(p), p);
+    });
+
+    wbRows.forEach(r=>{
+      const p=(r.operation||'').trim();
+      if(p) set.set(normOp(p), p);
+    });
+
+    const arr = [...set.values()].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+    return arr;
+  }
+
+  function renderWB(){
+    wbRows.forEach(r=>applyGlobalToRow(r));
+    saveWB();
+
+    wbBody.innerHTML = '';
+
+    let opSum=0;
+    let constr = null;
+    let second = null;
+
+    const ops = getOperationOptions();
+
+    wbRows.forEach((row)=>{
+      const enabled = !!row.enabled;
+      const tr = document.createElement('tr');
+
+      const gGross = grossMinPerDay(row);
+      const net = netMinPerDay(row);
+
+      const y = yieldFromScrap(row);
+      const oee = computeOEE(row);
+      const {cur,wst,pot} = ctForRow(row);
+      const {cap100, capOee, ctOee} = capPerDayFromRow(row);
+
+      const contract = clamp(parseFloat(row.contractPcd)||0,0,999999);
+      const vs = contract>0 ? (capOee/contract*100) : NaN;
+
+      const inputReq = (contract>0 && isFinite(capOee) && capOee>0)
+        ? (contract / Math.max(y,0.0001))
+        : NaN;
+
+      if(enabled){
+        opSum += clamp(parseFloat(row.operators)||0,0,999);
+      }
+
+      if(enabled && contract>0 && isFinite(vs)){
+        const item = {row, vs};
+        if(!constr || item.vs < constr.vs){
+          second = constr;
+          constr = item;
+        }else if(!second || item.vs < second.vs){
+          second = item;
+        }
+      }
+
+      function td(html){ const c=document.createElement('td'); c.innerHTML=html; tr.appendChild(c); }
+
+      function chkCell(checked, onChange){
+        const c=document.createElement('td');
+        const inp=document.createElement('input');
+        inp.type='checkbox'; inp.className='wb-chk';
+        inp.checked=checked;
+        inp.addEventListener('change',()=>onChange(inp.checked));
+        c.appendChild(inp);
+        tr.appendChild(c);
+      }
+
+      function inpCell(val, cls, onInput, type='number', step='1', min=null, max=null){
+        const c=document.createElement('td');
+        const inp=document.createElement('input');
+        inp.type=type;
+        inp.className=(cls||'wb-inp');
+        inp.value = (val===null || val===undefined) ? '' : val;
+        if(step!==null) inp.step = step;
+        if(min!==null) inp.min = min;
+        if(max!==null) inp.max = max;
+        inp.addEventListener('input',()=>onInput(inp.value));
+        c.appendChild(inp);
+        tr.appendChild(c);
+      }
+
+      function selCell(value, options, onChange){
+        const c=document.createElement('td');
+        const sel=document.createElement('select');
+        sel.className='wb-sel';
+        options.forEach(o=>{
+          const op=document.createElement('option');
+          op.value=o.value; op.textContent=o.label;
+          if(o.value===value) op.selected=true;
+          sel.appendChild(op);
+        });
+        sel.addEventListener('change',()=>onChange(sel.value));
+        c.appendChild(sel); tr.appendChild(c);
+        return sel;
+      }
+
+      function operationCell(){
+        const c=document.createElement('td');
+
+        const wrap=document.createElement('div');
+        wrap.className='wb-opwrap';
+
+        const sel=document.createElement('select');
+        sel.className='wb-opselect';
+
+        const currentOp = (row.operation||'').trim();
+        const list = ops.slice();
+        if(currentOp && !list.some(x=>normOp(x)===normOp(currentOp))) list.unshift(currentOp);
+
+        const ph=document.createElement('option');
+        ph.value='';
+        ph.textContent = (currentLang==='es'?'Selecciona…':'Select…');
+        if(!currentOp) ph.selected=true;
+        sel.appendChild(ph);
+
+        list.forEach(opName=>{
+          const o=document.createElement('option');
+          o.value=opName;
+          o.textContent=opName;
+          if(normOp(opName)===normOp(currentOp)) o.selected=true;
+          sel.appendChild(o);
+        });
+
+        const customOpt=document.createElement('option');
+        customOpt.value='__custom__';
+        customOpt.textContent = (currentLang==='es'?'+ Personalizar…':'+ Custom…');
+        sel.appendChild(customOpt);
+
+        sel.addEventListener('change',()=>{
+          let v = sel.value;
+          if(v==='__custom__'){
+            const newName = prompt(currentLang==='es'?'Nombre de operación:':'Operation name:', currentOp || (processInput.value||'').trim());
+            if(newName===null){ sel.value = currentOp || ''; return; }
+            v = (newName||'').toString().trim();
+            if(!v){ sel.value = currentOp || ''; return; }
+          }
+          row.operation = (v||'').toString().trim();
+          row.opAuto = false;
+          row.opAutoKey = normOp(row.operation);
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+
+        const bEdit=document.createElement('button');
+        bEdit.className='wb-opbtn';
+        bEdit.textContent = '✎';
+        bEdit.title = (currentLang==='es'?'Editar nombre':'Edit name');
+        bEdit.addEventListener('click',()=>{
+          const newName = prompt(currentLang==='es'?'Nombre de operación:':'Operation name:', currentOp || '');
+          if(newName===null) return;
+          const v=(newName||'').toString().trim();
+          if(!v) return;
+          row.operation=v;
+          row.opAuto=false;
+          row.opAutoKey=normOp(v);
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+
+        wrap.appendChild(sel);
+        wrap.appendChild(bEdit);
+        c.appendChild(wrap);
+        tr.appendChild(c);
+      }
+
+      function btnCell(){
+        const c=document.createElement('td');
+        const bEdit=document.createElement('button');
+        bEdit.textContent='Edit';
+        bEdit.className='btn-edit';
+        bEdit.addEventListener('click',()=>{
+          const curIn = prompt(currentLang==='es'?'CT Actual (s) (2 dec)':'CT Current (s) (2 dec)', row.ctCurManual ?? '');
+          const wstIn = prompt(currentLang==='es'?'CT Peor (s) (2 dec)':'CT Worst (s) (2 dec)', row.ctWstManual ?? '');
+          const potIn = prompt(currentLang==='es'?'CT Potencial (s) (2 dec)':'CT Potential (s) (2 dec)', row.ctPotManual ?? '');
+
+          function parse2(x){
+            if(x===null) return null;
+            const s=(''+x).trim();
+            if(s==='') return null;
+            const n=parseFloat(s);
+            if(!isFinite(n)) return null;
+            return Math.round(n*100)/100;
+          }
+          row.ctCurManual = parse2(curIn);
+          row.ctWstManual = parse2(wstIn);
+          row.ctPotManual = parse2(potIn);
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+
+        const bRelink=document.createElement('button');
+        bRelink.textContent='Relink';
+        bRelink.className='btn-relink';
+        bRelink.addEventListener('click',()=>{
+          const gOp = (processInput.value||'').trim();
+          const gKey = normOp(gOp);
+          if(gOp && gKey){
+            row.opAuto = true;
+            row.opAutoKey = gKey;
+            row.operation = gOp;
+            saveWB(); renderAll(); scheduleSaveAll();
+          }
+        });
+
+        const bDel=document.createElement('button');
+        bDel.textContent='Del';
+        bDel.className='btn-del';
+        bDel.addEventListener('click',()=>{
+          wbRows = wbRows.filter(r=>r.id!==row.id);
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+
+        c.appendChild(bEdit);
+        c.appendChild(document.createTextNode(' '));
+        c.appendChild(bRelink);
+        c.appendChild(document.createTextNode(' '));
+        c.appendChild(bDel);
+        tr.appendChild(c);
+      }
+
+      // On
+      chkCell(row.enabled,(v)=>{ row.enabled=!!v; saveWB(); renderAll(); scheduleSaveAll(); });
+
+      // Operation
+      operationCell();
+
+      // rest
+      inpCell(row.operators,'wb-inp',v=>{ row.operators=clamp(parseFloat(v)||0,0,999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999);
+      inpCell(row.shifts,'wb-inp',v=>{ row.shifts=clamp(parseFloat(v)||1,1,10); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',1,10);
+      inpCell(row.hours,'wb-inp',v=>{ row.hours=clamp(parseFloat(v)||8,1,24); row.hoursAuto=false; saveWB(); renderAll(); scheduleSaveAll(); },'number','.5',1,24);
+
+      inpCell(row.machines,'wb-inp',v=>{ row.machines=clamp(parseFloat(v)||1,1,999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',1,999);
+      inpCell(row.contractPcd,'wb-inp',v=>{ row.contractPcd=clamp(parseFloat(v)||0,0,99999); row.contractAuto=false; saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,99999);
+
+      td(formatUnits(gGross));
+      inpCell(row.lunchMin||0,'wb-inp',v=>{ row.lunchMin=clamp(parseFloat(v)||0,0,999999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999999);
+      inpCell(row.changeoverMin||0,'wb-inp',v=>{ row.changeoverMin=clamp(parseFloat(v)||0,0,999999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999999);
+      inpCell(row.cleanMin||0,'wb-inp',v=>{ row.cleanMin=clamp(parseFloat(v)||0,0,999999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999999);
+      inpCell(row.maintMin||0,'wb-inp',v=>{ row.maintMin=clamp(parseFloat(v)||0,0,999999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999999);
+      inpCell(row.otherMin||0,'wb-inp',v=>{ row.otherMin=clamp(parseFloat(v)||0,0,999999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999999);
+
+      inpCell(row.sharedMin||0,'wb-inp',v=>{ row.sharedMin=clamp(parseFloat(v)||0,0,999999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999999);
+
+      inpCell(row.udtValue||0,'wb-inp',v=>{ row.udtValue=clamp(parseFloat(v)||0,0,999999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999999);
+
+      selCell(row.udtUnit||'min_day',[
+        {value:'min_day', label:(currentLang==='es'?'min/día':'min/day')},
+        {value:'min_shift', label:(currentLang==='es'?'min/turno (ref)':'min/shift (ref)')},
+        {value:'min_hour', label:(currentLang==='es'?'min/hora':'min/hour')},
+        {value:'pct', label:(currentLang==='es'?'% de brutos':'% gross')}
+      ],v=>{ row.udtUnit=v; saveWB(); renderAll(); scheduleSaveAll(); });
+
+      td(formatUnits(net));
+
+      inpCell(row.scrapPct||0,'wb-inp',v=>{ row.scrapPct=clamp(parseFloat(v)||0,0,99.99); saveWB(); renderAll(); scheduleSaveAll(); },'number','.1',0,99.99);
+      td(pct(y*100,1));
+
+      inpCell(row.oeeA||100,'wb-inp',v=>{ row.oeeA=clamp(parseFloat(v)||0,0,100); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,100);
+      inpCell(row.oeeP||100,'wb-inp',v=>{ row.oeeP=clamp(parseFloat(v)||0,0,100); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,100);
+      inpCell(row.oeeQ||100,'wb-inp',v=>{ row.oeeQ=clamp(parseFloat(v)||0,0,100); row.qAuto=false; saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,100);
+      td(pct(oee,1));
+
+      td(isFinite(cur)?formatSecs(cur):'-');
+      td(isFinite(wst)?formatSecs(wst):'-');
+      td(isFinite(pot)?formatSecs(pot):'-');
+
+      td(isFinite(ctOee)?formatSecs(ctOee):'-');
+
+      td(isFinite(cap100)?formatUnits(cap100):'-');
+      td(isFinite(capOee)?formatUnits(capOee):'-');
+
+      let badge = 'badge-warn';
+      if(isFinite(vs)){
+        if(vs>=105) badge='badge-good';
+        else if(vs<95) badge='badge-bad';
+      }
+      td(isFinite(vs)?(`<span class="badge ${badge}">${pct(vs,0)}</span>`):'-');
+
+      td(isFinite(inputReq)?formatUnits(inputReq):'-');
+
+      btnCell();
+
+      if(!enabled){
+        tr.style.opacity = '0.55';
+      }
+      wbBody.appendChild(tr);
+    });
+
+    wbOperatorsSum.textContent = String(Math.round(opSum));
+
+    if(constr){
+      const op = (constr.row.operation||'').trim() || '—';
+      wbConstraint.textContent = `${op} · ${pct(constr.vs,0)}`;
+      wbConstraint.className = 'badge badge-bad';
     }else{
-      stopRun();
+      wbConstraint.textContent = '—';
+      wbConstraint.className = 'badge badge-bad';
     }
-    flash(el.timerCard);
+
+    if(second){
+      const op = (second.row.operation||'').trim() || '—';
+      wbNextConstraint.textContent = `${op} · ${pct(second.vs,0)}`;
+      wbNextConstraint.className = 'badge badge-warn';
+    }else{
+      wbNextConstraint.textContent = '—';
+      wbNextConstraint.className = 'badge badge-warn';
+    }
+
+    wbConstraintNote.textContent = (currentLang==='es'
+      ? 'Restricción = filas activas (On) con contrato > 0, usando Cap@OEE vs Contrato.'
+      : 'Constraint = active rows (On) with contract > 0, using Cap@OEE vs Contract.'
+    );
   }
 
-  /* ---------- Lap Capture ---------- */
-  function addLapObj(obj){
-    laps.push(obj);
-    saveState();
+  btnWbAdd.addEventListener('click',()=>{
+    const r = defaultWbRow();
+    wbRows.push(r);
+    saveWB();
     renderAll();
-  }
+    scheduleSaveAll();
+  });
 
-  function captureLap(){
-    const process = getCurrentProcess();
-    if(!process){
-      alert(t("msg.needProcess"));
-      return;
-    }
-    const mode = el.mode.value;
-    if(!running){
-      // allow capturing by treating current display as 0 — not useful; nudge
-      return;
-    }
-
-    const now = performance.now();
-    const segMs = now - segStart;
-
-    if(mode === "CT"){
-      const t1s = segMs / 1000;
-      addLapObj({
-        id: cryptoRandomId(),
-        ts: Date.now(),
-        process,
-        mode,
-        status: t("status.ok"),
-        note: "",
-        t1: t1s,
-        t2: 0,
-        total: t1s
-      });
-
-      // continue running (restart baseline)
-      segStart = performance.now();
-      segElapsed = 0;
-      flash(el.timerCard);
-      return;
-    }
-
-    // MLD
-    if(pendingT1 == null){
-      // capture T1 and move to T2 segment
-      pendingT1 = segMs;
-      segStart = performance.now();
-      segElapsed = 0;
-      flash(el.timerCard);
-      return;
-    }
-
-    // capture T2 and store lap; immediately start next T1 segment
-    const t1ms = pendingT1;
-    const t2ms = segMs;
-    pendingT1 = null;
-
-    const t1s = t1ms/1000;
-    const t2s = t2ms/1000;
-    addLapObj({
-      id: cryptoRandomId(),
-      ts: Date.now(),
-      process,
-      mode,
-      status: t("status.ok"),
-      note: "",
-      t1: t1s,
-      t2: t2s,
-      total: t1s + t2s
-    });
-
-    segStart = performance.now();
-    segElapsed = 0;
-    flash(el.timerCard);
-  }
-
-  /* ---------- Manual Lap ---------- */
-  function addManualLap(){
-    const process = (prompt(lang==="es" ? "Proceso:" : "Process:", getCurrentProcess() || "") || "").trim();
-    if(!process) return;
-
-    const mode = prompt(lang==="es" ? "Modo (CT / MLD):" : "Mode (CT / MLD):", "CT");
-    const m = (mode || "CT").toUpperCase() === "MLD" ? "MLD" : "CT";
-
-    let t1 = parseFloat(prompt(lang==="es" ? "T1 (seg):" : "T1 (sec):", "0") || "0");
-    let t2 = parseFloat(prompt(lang==="es" ? "T2 (seg):" : "T2 (sec):", "0") || "0");
-    if(!isFinite(t1)) t1 = 0;
-    if(!isFinite(t2)) t2 = 0;
-
-    const total = (m === "CT") ? t1 : (t1 + t2);
-
-    addLapObj({
-      id: cryptoRandomId(),
-      ts: Date.now(),
-      process,
-      mode: m,
-      status: t("status.ok"),
-      note: (prompt(lang==="es" ? "Nota (opcional):" : "Note (optional):", "") || ""),
-      t1,
-      t2: (m === "CT") ? 0 : t2,
-      total
-    });
-  }
-
-  /* ---------- Reset ---------- */
-  function resetAll(){
-    if(!confirm(t("msg.resetConfirm"))) return;
-    stopRun();
-    segElapsed = 0;
-    pendingT1 = null;
-    laps = [];
+  btnWbClear.addEventListener('click',()=>{
+    if(!confirm(currentLang==='es'?'¿Borrar WB completo?':'Clear WB entirely?')) return;
     wbRows = [];
-    saveState();
+    saveWB();
     renderAll();
-  }
+    scheduleSaveAll();
+  });
 
-  /* ---------- Stats Engine ---------- */
-  function computeStatsFor(process, mode){
-    const rows = laps.filter(r => r.process === process && r.mode === mode && (r.status || "").toUpperCase() !== t("status.exclude"));
-    const values = rows.map(r => Number(r.total)).filter(v => isFinite(v) && v > 0);
-    const sorted = [...values].sort((a,b)=>a-b);
+  // ✅ Copy WB (Excel-friendly TSV)
+  btnCopyWB.addEventListener('click',()=>{
+    let out=[];
+    out.push(`WB Export (${new Date().toISOString()})`);
+    out.push('On\tOperation\tOperators\tShifts(ref)\tHours\tMachines\tContractPcd\tNetMinDay\tOEE%\tYield%\tCTcur\tCap@OEE\t%vsContract');
 
-    const n = sorted.length;
-    const mn = mean(sorted);
-    const md = median(sorted);
-    const p10 = percentile(sorted, 0.10);
-    const p90 = percentile(sorted, 0.90);
-    const mi = n ? sorted[0] : NaN;
-    const ma = n ? sorted[n-1] : NaN;
-    const sd = stddev(sorted);
-    const cv = (isFinite(sd) && isFinite(mn) && mn>0) ? (sd/mn) : NaN;
+    wbRows.forEach(r=>{
+      const net = netMinPerDay(r);
+      const oee = computeOEE(r);
+      const y = yieldFromScrap(r)*100;
+      const {cur} = ctForRow(r);
+      const {capOee} = capPerDayFromRow(r);
+      const contract = clamp(parseFloat(r.contractPcd)||0,0,999999);
+      const vs = contract>0 ? (capOee/contract*100) : NaN;
 
-    return { n, mean: mn, median: md, p10, p90, min: mi, max: ma, std: sd, cv, values: sorted };
-  }
+      out.push([
+        r.enabled?1:0,
+        (r.operation||'').trim(),
+        Math.round(clamp(parseFloat(r.operators)||0,0,999)),
+        Math.round(clamp(parseFloat(r.shifts)||1,1,10)),
+        clamp(parseFloat(r.hours)||8,1,24),
+        clamp(parseFloat(r.machines)||1,1,999),
+        Math.round(contract),
+        Math.round(net),
+        oee.toFixed(1),
+        y.toFixed(1),
+        (isFinite(cur)?formatSecs(cur):''),
+        (isFinite(capOee)?Math.round(capOee):''),
+        (isFinite(vs)?vs.toFixed(0):'')
+      ].join('\t'));
+    });
 
-  // sample error model (relative error of mean at 95%)
-  function sampleSizing(n, cv){
-    const z = 1.96;
-    if(!isFinite(cv) || cv<=0 || !isFinite(n) || n<=0){
-      return { nReq: NaN, errPct: NaN, status:"neutral" };
-    }
-    const target = 0.03; // ±3%
-    const nReq = Math.ceil(Math.pow((z*cv)/target, 2));
-    const err = (z*cv)/Math.sqrt(n); // relative
-    const errPct = err*100;
+    copyText(out.join('\n'));
+  });
 
-    let status = "bad";
-    if(n >= nReq) status = "good";
-    else if(n >= 0.75*nReq) status = "warn";
+  function renderRaw(){
+    dataBody.innerHTML = '';
+    laps.forEach((l, idx)=>{
+      const tr=document.createElement('tr');
 
-    return { nReq, errPct, status };
-  }
-
-  /* ---------- Capacity Engine ---------- */
-  function getAssumptions(){
-    const eff = clamp(parseFloat(el.efficiency.value || "100")/100, 0, 1);
-    const contractPcd = Math.max(0, parseFloat(el.contractPcd.value || "0"));
-    const hoursPerDay = clamp(parseFloat(el.hoursPerDay.value || "8"), 0.5, 24);
-    const daysPerWeek = clamp(parseInt(el.daysPerWeek.value || "5",10), 1, 7);
-    const capView = el.capView.value; // hour/day/week
-    return { eff, contractPcd, hoursPerDay, daysPerWeek, capView };
-  }
-
-  function availableSecondsPerView(hoursPerDay, daysPerWeek, capView){
-    if(capView === "hour") return 3600;
-    if(capView === "week") return hoursPerDay * daysPerWeek * 3600;
-    return hoursPerDay * 3600;
-  }
-
-  function contractPerView(contractPcd, hoursPerDay, daysPerWeek, capView){
-    if(capView === "hour") return hoursPerDay > 0 ? (contractPcd / hoursPerDay) : 0;
-    if(capView === "week") return contractPcd * daysPerWeek;
-    return contractPcd;
-  }
-
-  function capacityFromCt(ctSeconds, eff, secondsAvail){
-    if(!isFinite(ctSeconds) || ctSeconds <= 0 || !isFinite(secondsAvail) || secondsAvail <= 0) return NaN;
-    const effective = secondsAvail * eff;
-    return effective / ctSeconds;
-  }
-
-  /* ---------- Rendering ---------- */
-  function setSampleInfoTop(text, level){
-    el.sampleInfoTop.textContent = text;
-    el.sampleInfoTop.classList.remove("sample-neutral","sample-good","sample-warn","sample-bad");
-    if(level === "good") el.sampleInfoTop.classList.add("sample-good");
-    else if(level === "warn") el.sampleInfoTop.classList.add("sample-warn");
-    else if(level === "bad") el.sampleInfoTop.classList.add("sample-bad");
-    else el.sampleInfoTop.classList.add("sample-neutral");
-  }
-
-  function buildTopSampleBanner(){
-    const process = getCurrentProcess();
-    const mode = el.mode.value;
-    if(!process){
-      setSampleInfoTop(t("msg.noSamples"), "neutral");
-      return;
-    }
-
-    const st = computeStatsFor(process, mode);
-    if(st.n <= 0 || !isFinite(st.mean) || st.mean<=0){
-      setSampleInfoTop(t("msg.noSamples"), "neutral");
-      return;
-    }
-
-    const sizing = sampleSizing(st.n, st.cv);
-    const nReq = sizing.nReq;
-
-    let msg = "";
-    if(isFinite(nReq) && nReq > 0 && isFinite(sizing.errPct)){
-      if(sizing.status === "good"){
-        msg = (lang==="es")
-          ? `Muestras: ${st.n} / ${nReq} · Error est.: ±${fmt1(sizing.errPct)}% (95%) – OK para ±3%`
-          : `Samples: ${st.n} / ${nReq} · Est. error: ±${fmt1(sizing.errPct)}% (95%) – OK for ±3%`;
-      }else if(sizing.status === "warn"){
-        msg = (lang==="es")
-          ? `Muestras: ${st.n} / ${nReq} · Error est.: ±${fmt1(sizing.errPct)}% (95%) – Casi suficiente, faltan pocas`
-          : `Samples: ${st.n} / ${nReq} · Est. error: ±${fmt1(sizing.errPct)}% (95%) – Almost enough, a few more`;
-      }else{
-        // ✅ this is the exact style you asked to mirror
-        msg = (lang==="es")
-          ? `Muestras: ${st.n} / ${nReq} · Error est.: ±${fmt1(sizing.errPct)}% (95%) – Muestra muy chica para ±3% – úsalo solo como referencia.`
-          : `Samples: ${st.n} / ${nReq} · Est. error: ±${fmt1(sizing.errPct)}% (95%) – Sample too small for ±3% – use only as reference.`;
+      function td(txt, left=false){
+        const c=document.createElement('td');
+        c.textContent = txt;
+        if(left) c.style.textAlign='left';
+        tr.appendChild(c);
       }
-      setSampleInfoTop(msg, sizing.status);
+
+      td(String(idx+1), true);
+      td(l.process, true);
+      td(l.mode, true);
+
+      // ✅ Status selector (Normal / Blocked / Starved) — editable
+      {
+        const c=document.createElement('td');
+        c.style.textAlign='left';
+        const sel=document.createElement('select');
+        sel.className='wb-sel';
+
+        const opts = [
+          {v:'',        en:'',         es:''},
+          {v:'Normal',  en:'Normal',   es:'Normal'},
+          {v:'Blocked', en:'Blocked',  es:'Bloqueado'},
+          {v:'Starved', en:'Starved',  es:'Hambriento'}
+        ];
+        opts.forEach(o=>{
+          const op=document.createElement('option');
+          op.value=o.v;
+          op.textContent = (currentLang==='es'?o.es:o.en);
+          if((l.status||'')===o.v) op.selected=true;
+          sel.appendChild(op);
+        });
+
+        sel.addEventListener('change',()=>{
+          l.status = sel.value;
+          renderAll();          // ✅ stats update (blocked/starved excluded)
+          scheduleSaveAll();
+        });
+
+        c.appendChild(sel);
+        tr.appendChild(c);
+      }
+
+      // ✅ Note input (blank allowed)
+      {
+        const c=document.createElement('td');
+        c.style.textAlign='left';
+        const inp=document.createElement('input');
+        inp.type='text';
+        inp.className='wb-inp wide';
+        inp.value = (l.note||'');
+        inp.placeholder = (currentLang==='es'?'nota…':'note…');
+        inp.addEventListener('input',()=>{
+          l.note = inp.value;
+          scheduleSaveAll();
+        });
+        c.appendChild(inp);
+        tr.appendChild(c);
+      }
+
+      td(formatSecs(l.t1));
+      td(formatSecs(l.t2));
+      td(formatSecs(l.total));
+
+      const tdEdit=document.createElement('td');
+      const bEdit=document.createElement('button');
+      bEdit.className='btn-edit';
+      bEdit.textContent=t('col.edit');
+      bEdit.addEventListener('click',()=>{
+        const newProc = prompt(currentLang==='es'?'Proceso':'Process', l.process) ?? l.process;
+        const newMode = prompt(currentLang==='es'?'Modo (CT/MLD)':'Mode (CT/MLD)', l.mode) ?? l.mode;
+        const newT1 = prompt('T1 (s)', formatSecs(l.t1)) ?? l.t1;
+        const newT2 = prompt('T2 (s)', formatSecs(l.t2)) ?? l.t2;
+
+        const p = (newProc||'').toString().trim();
+        const m = (newMode||'CT').toString().trim().toUpperCase()==='MLD'?'MLD':'CT';
+        const t1v = Math.round((parseFloat(newT1)||0)*100)/100;
+        const t2v = Math.round((parseFloat(newT2)||0)*100)/100;
+
+        l.process = p || l.process;
+        l.mode = m;
+        l.t1 = t1v;
+        l.t2 = t2v;
+        l.total = Math.round((t1v+t2v)*100)/100;
+
+        ensureWbRowForOperation(l.process);
+        renderAll();
+        scheduleSaveAll();
+      });
+      tdEdit.appendChild(bEdit);
+      tr.appendChild(tdEdit);
+
+      const tdDel=document.createElement('td');
+      const bDel=document.createElement('button');
+      bDel.className='btn-del';
+      bDel.textContent=t('col.del');
+      bDel.addEventListener('click',()=>{
+        laps = laps.filter(x=>x.id!==l.id);
+        renderAll();
+        scheduleSaveAll();
+      });
+      tdDel.appendChild(bDel);
+      tr.appendChild(tdDel);
+
+      dataBody.appendChild(tr);
+    });
+  }
+
+  /* ======= TODO lo demás de tu código sigue igual ======= */
+
+  function renderStats(){
+    focusBody.innerHTML='';
+    statsBody.innerHTML='';
+
+    const map=groupByProcess();
+    const view=capViewSel.value;
+    const hours=clamp(parseFloat(hInput.value)||8,1,24);
+    const days=clamp(parseFloat(dInput.value)||5,1,7);
+    const eff=clamp(parseFloat(effInput.value)||100,0,100);
+    const contractPcd=clamp(parseFloat(pcdInput.value)||0,0,99999);
+    const contractUnits = contractUnitsFromPcd(contractPcd, view, hours, days);
+
+    let firstStats = null;
+
+    for(const [key,arr] of map.entries()){
+      const [proc,mode]=key.split('||');
+      const st=calcStats(arr);
+      if(!st) continue;
+      if(!firstStats) firstStats = st;
+
+      const capCur = capFromCt(st.median, view, hours, days) * (eff/100);
+      const capPot = capFromCt(st.p10, view, hours, days) * (eff/100);
+      const capWst = capFromCt(st.p90, view, hours, days) * (eff/100);
+
+      const gap = contractUnits>0 ? (capCur - contractUnits) : NaN;
+      const vs = contractUnits>0 ? (capCur/contractUnits*100) : NaN;
+
+      const cvPct = st.cv*100;
+      const recN = sampleReqN(st.cv);
+      const errPct = estErrorPct(st.cv, st.n);
+
+      let cp=NaN, cpk=NaN;
+      if(contractUnits>0){
+        const contractPerHour = contractUnits / (view==='hour'?1:(view==='day'?hours:(hours*days)));
+        const targetCt = contractPerHour>0 ? 3600/contractPerHour : NaN;
+        if(isFinite(targetCt) && st.std>0){
+          const USL = targetCt*1.10;
+          const LSL = targetCt*0.90;
+          cp = (USL-LSL)/(6*st.std);
+          cpk = Math.min((USL-st.mean)/(3*st.std),(st.mean-LSL)/(3*st.std));
+        }
+      }
+
+      const tr=document.createElement('tr');
+      function td(v, left=false){
+        const c=document.createElement('td');
+        c.textContent=v;
+        if(left) c.style.textAlign='left';
+        tr.appendChild(c);
+      }
+      td(proc,true);
+      td(mode,false);
+      td(String(st.n));
+      td(`${st.n} / ${recN} · ±${errPct.toFixed(1)}%`);
+      td(formatSecs(st.std));
+      td(pct(cvPct,1));
+      td(formatSecs(st.median));
+      td(formatSecs(st.p10));
+      td(formatSecs(st.p90));
+      td(isFinite(capCur)?formatUnits(capCur):'-');
+      td(isFinite(capPot)?formatUnits(capPot):'-');
+      td(isFinite(capWst)?formatUnits(capWst):'-');
+      td(contractUnits>0?formatUnits(contractUnits):'-');
+      td(isFinite(gap)?formatUnits(gap):'-');
+      td(isFinite(vs)?pct(vs,0):'-');
+      td(isFinite(cp)?cp.toFixed(2):'-');
+      td(isFinite(cpk)?cpk.toFixed(2):'-');
+
+      let note='';
+      if(st.n<3) note = currentLang==='es'?'Muy pocas muestras':'Too few samples';
+      else if(st.n<recN*0.6) note = currentLang==='es'?'Muestra chica para ±3%':'Small sample for ±3%';
+      else if(st.n<recN*0.9) note = currentLang==='es'?'Casi suficiente':'Almost enough';
+      else note = currentLang==='es'?'Suficiente':'Enough';
+      td(note,true);
+
+      focusBody.appendChild(tr);
+
+      const tr2=document.createElement('tr');
+      function td2(v,left=false){
+        const c=document.createElement('td'); c.textContent=v;
+        if(left) c.style.textAlign='left';
+        tr2.appendChild(c);
+      }
+      td2(proc,true);
+      td2(mode,false);
+      td2(String(st.n));
+      td2(formatSecs(st.mean));
+      td2(formatSecs(st.median));
+      td2(formatSecs(st.p10));
+      td2(formatSecs(st.p90));
+      td2(formatSecs(st.min));
+      td2(formatSecs(st.max));
+      td2(formatSecs(st.std));
+      td2(pct(cvPct,1));
+      td2(isFinite(cp)?cp.toFixed(2):'-');
+      td2(isFinite(cpk)?cpk.toFixed(2):'-');
+      statsBody.appendChild(tr2);
+    }
+
+    const currentProc = (processInput.value||'').trim();
+    const currentMode = modeSelect.value||'CT';
+    const currentKey = currentProc+'||'+currentMode;
+    const currentStats = map.has(currentKey) ? calcStats(map.get(currentKey)) : firstStats;
+
+    const line = buildSampleLine(currentStats || {n:0,cv:0});
+    setInfo(sampleInfoTop, line.cls, line.text);
+
+    if(currentStats){
+      const cvPct=currentStats.cv*100;
+      const varTxt = `Std: ${formatSecs(currentStats.std)}s · CV: ${cvPct.toFixed(1)}%`;
+      setInfo(stdInfoFocus, 'sample-neutral', varTxt);
+
+      const dist = (Math.abs(currentStats.mean-currentStats.median)/Math.max(currentStats.median,0.0001))*100;
+      const distTxt = (currentLang==='es')
+        ? `Media vs Mediana: ${formatSecs(currentStats.mean)} vs ${formatSecs(currentStats.median)} (Δ ${dist.toFixed(1)}%)`
+        : `Mean vs Median: ${formatSecs(currentStats.mean)} vs ${formatSecs(currentStats.median)} (Δ ${dist.toFixed(1)}%)`;
+      setInfo(distInfoFocus, 'sample-neutral', distTxt);
+
+      const nTxt = (currentLang==='es')
+        ? `Muestras: ${currentStats.n}`
+        : `Samples: ${currentStats.n}`;
+      setInfo(sampleInfoFocus, 'sample-neutral', nTxt);
     }else{
-      setSampleInfoTop(lang==="es" ? `Muestras: ${st.n} · Error: —` : `Samples: ${st.n} · Error: —`, "neutral");
+      setInfo(sampleInfoFocus, 'sample-neutral', (currentLang==='es'?'Muestras: —':'Samples: —'));
+      setInfo(stdInfoFocus, 'sample-neutral', 'Std dev: —');
+      setInfo(distInfoFocus, 'sample-neutral', 'Mean vs Median: —');
+    }
+
+    if(contractUnits>0){
+      setInfo(contractInfoFocus, 'sample-neutral',
+        (currentLang==='es'
+          ? `Contrato: ${formatUnits(contractUnits)} (${capViewSel.options[capViewSel.selectedIndex].text})`
+          : `Contract: ${formatUnits(contractUnits)} (${capViewSel.options[capViewSel.selectedIndex].text})`
+        )
+      );
+    }else{
+      setInfo(contractInfoFocus, 'sample-neutral', (currentLang==='es'?'Sin contrato cargado':'No contract loaded'));
     }
   }
 
   function renderContractSummary(){
-    const process = getCurrentProcess();
-    const mode = el.mode.value;
-    const { eff, contractPcd, hoursPerDay, daysPerWeek, capView } = getAssumptions();
+    const map=groupByProcess();
+    const proc=(processInput.value||'').trim();
+    const mode=(modeSelect.value||'CT');
+    const key=proc+'||'+mode;
 
-    const secondsAvail = availableSecondsPerView(hoursPerDay, daysPerWeek, capView);
-    const contract = contractPerView(contractPcd, hoursPerDay, daysPerWeek, capView);
+    const view=capViewSel.value;
+    const hours=clamp(parseFloat(hInput.value)||8,1,24);
+    const days=clamp(parseFloat(dInput.value)||5,1,7);
+    const eff=clamp(parseFloat(effInput.value)||100,0,100);
 
-    if(!process){
-      el.contractSumLine1.textContent = "—";
-      el.contractSumLine2.textContent = "—";
-      el.contractSumLine3.textContent = "—";
-      el.contractSumLine4.textContent = "—";
-      return;
-    }
+    const contractPcd=clamp(parseFloat(pcdInput.value)||0,0,99999);
+    const contractUnits = contractUnitsFromPcd(contractPcd, view, hours, days);
 
-    const st = computeStatsFor(process, mode);
-    if(st.n <= 0 || !isFinite(st.median)){
-      el.contractSumLine1.textContent = (lang==="es")
-        ? `Proceso: ${process} (${mode}) – sin muestras aún`
-        : `Process: ${process} (${mode}) – no samples yet`;
-      el.contractSumLine2.textContent = "—";
-      el.contractSumLine3.textContent = "—";
-      el.contractSumLine4.textContent = "—";
-      return;
-    }
-
-    const capCur = capacityFromCt(st.median, eff, secondsAvail);
-    const capPot = capacityFromCt(st.p10, eff, secondsAvail);
-    const capWst = capacityFromCt(st.p90, eff, secondsAvail);
-
-    const viewLabel = (capView === "hour") ? (lang==="es" ? "pzas/h" : "pcs/hr")
-                     : (capView === "week") ? (lang==="es" ? "pzas/sem" : "pcs/wk")
-                     : (lang==="es" ? "pzas/día" : "pcs/day");
-
-    const cLabel = (lang==="es") ? "Contrato" : "Contract";
-    const capLabel = (lang==="es") ? "Capacidad" : "Capacity";
-
-    // Gap uses current
-    const gap = (isFinite(capCur) ? (capCur - contract) : NaN);
-    const pct = (contract>0 && isFinite(capCur)) ? (capCur/contract*100) : NaN;
-
-    el.contractSumLine1.textContent = (lang==="es")
-      ? `Proceso: ${process} (${mode}) · Eficiencia: ${fmt0(eff*100)}% · Vista: ${t("label.capView")} = ${t("capView."+capView)}`
-      : `Process: ${process} (${mode}) · Efficiency: ${fmt0(eff*100)}% · View: ${capView}`;
-    el.contractSumLine2.textContent = `${cLabel}: ${fmt0(contract)} ${viewLabel}`;
-    el.contractSumLine3.textContent = `${capLabel}: ${fmt0(capCur)} ${viewLabel} (Mediana CT=${fmt2(st.median)}s) · Pot=${fmt0(capPot)} · Peor=${fmt0(capWst)}`;
-    el.contractSumLine4.textContent = (lang==="es")
-      ? `Gap: ${fmt0(gap)} ${viewLabel} · % vs contrato: ${isFinite(pct)?fmt1(pct):"—"}%`
-      : `Gap: ${fmt0(gap)} ${viewLabel} · % vs contract: ${isFinite(pct)?fmt1(pct):"—"}%`;
-  }
-
-  function capabilityOneSidedCpk(meanCt, stdCt, taktCt){
-    if(!isFinite(meanCt) || !isFinite(stdCt) || stdCt<=0 || !isFinite(taktCt) || taktCt<=0) return NaN;
-    return (taktCt - meanCt) / (3*stdCt);
-  }
-  function capabilityCp(stdCt, taktCt){
-    if(!isFinite(stdCt) || stdCt<=0 || !isFinite(taktCt) || taktCt<=0) return NaN;
-    return (taktCt) / (6*stdCt);
-  }
-
-  function renderFocusAndStats(){
-    // Build list of groups
-    const groups = new Map();
-    for(const r of laps){
-      const key = groupKey(r.process, r.mode);
-      if(!groups.has(key)) groups.set(key, { process:r.process, mode:r.mode });
-    }
-
-    // Current focus
-    const focusP = getCurrentProcess();
-    const focusM = el.mode.value;
-
-    // update focus cards
-    const stFocus = focusP ? computeStatsFor(focusP, focusM) : null;
-
-    if(!focusP || !stFocus || stFocus.n<=0){
-      el.sampleInfoFocus.textContent = (lang==="es") ? "Muestras: —" : "Sample size: —";
-      el.stdInfoFocus.textContent = (lang==="es") ? "Desv. estándar: —" : "Std dev: —";
-      el.distInfoFocus.textContent = (lang==="es") ? "Media vs Mediana: —" : "Mean vs Median: —";
-      el.contractInfoFocus.textContent = (lang==="es") ? "Sin contrato cargado" : "No contract loaded";
-    }else{
-      const sizing = sampleSizing(stFocus.n, stFocus.cv);
-      const sampleLine = (lang==="es")
-        ? `Muestras: ${stFocus.n} / ${isFinite(sizing.nReq)?sizing.nReq:"—"} · Error est.: ${isFinite(sizing.errPct)?("±"+fmt1(sizing.errPct)+"%"):"—"} (95%)`
-        : `Sample size: ${stFocus.n} / ${isFinite(sizing.nReq)?sizing.nReq:"—"} · Est. error: ${isFinite(sizing.errPct)?("±"+fmt1(sizing.errPct)+"%"):"—"} (95%)`;
-      el.sampleInfoFocus.textContent = sampleLine;
-
-      el.stdInfoFocus.textContent = (lang==="es")
-        ? `Desv. estándar: ${fmt2(stFocus.std)}s · CV: ${isFinite(stFocus.cv)?fmt1(stFocus.cv*100):"—"}%`
-        : `Std dev: ${fmt2(stFocus.std)}s · CV: ${isFinite(stFocus.cv)?fmt1(stFocus.cv*100):"—"}%`;
-
-      const delta = (isFinite(stFocus.mean)&&isFinite(stFocus.median)) ? (stFocus.mean - stFocus.median) : NaN;
-      el.distInfoFocus.textContent = (lang==="es")
-        ? `Media=${fmt2(stFocus.mean)}s vs Mediana=${fmt2(stFocus.median)}s · Δ=${isFinite(delta)?fmt2(delta):"—"}s`
-        : `Mean=${fmt2(stFocus.mean)}s vs Median=${fmt2(stFocus.median)}s · Δ=${isFinite(delta)?fmt2(delta):"—"}s`;
-
-      const { contractPcd, hoursPerDay, daysPerWeek, capView } = getAssumptions();
-      const contract = contractPerView(contractPcd, hoursPerDay, daysPerWeek, capView);
-      el.contractInfoFocus.textContent = (lang==="es")
-        ? `Contrato (${t("capView."+capView)}): ${fmt0(contract)}`
-        : `Contract (${capView}): ${fmt0(contract)}`;
-    }
-
-    // Fill focus table (all groups)
-    el.focusBody.innerHTML = "";
-    el.statsBody.innerHTML = "";
-
-    const { eff, contractPcd, hoursPerDay, daysPerWeek, capView } = getAssumptions();
-    const secondsAvail = availableSecondsPerView(hoursPerDay, daysPerWeek, capView);
-    const contract = contractPerView(contractPcd, hoursPerDay, daysPerWeek, capView);
-    const viewLabel = (capView === "hour") ? (lang==="es" ? "pzas/h" : "pcs/hr")
-                     : (capView === "week") ? (lang==="es" ? "pzas/sem" : "pcs/wk")
-                     : (lang==="es" ? "pzas/día" : "pcs/day");
-
-    // sort groups by process
-    const list = Array.from(groups.values()).sort((a,b)=> (a.process||"").localeCompare(b.process||""));
-
-    for(const g of list){
-      const st = computeStatsFor(g.process, g.mode);
-      if(st.n<=0) continue;
-
-      const sizing = sampleSizing(st.n, st.cv);
-      const capCur = capacityFromCt(st.median, eff, secondsAvail);
-      const capPot = capacityFromCt(st.p10, eff, secondsAvail);
-      const capWst = capacityFromCt(st.p90, eff, secondsAvail);
-
-      const gap = (isFinite(capCur) ? (capCur - contract) : NaN);
-      const pct = (contract>0 && isFinite(capCur)) ? (capCur/contract*100) : NaN;
-
-      // takt CT target from contract (per view) -> seconds/piece
-      const takt = (contract>0) ? (secondsAvail/contract) : NaN;
-      const cp = capabilityCp(st.std, takt);
-      const cpk = capabilityOneSidedCpk(st.mean, st.std, takt);
-
-      let note = "";
-      if(sizing.status === "good") note = (lang==="es") ? "Muestra OK ±3%" : "Sample OK ±3%";
-      else if(sizing.status === "warn") note = (lang==="es") ? "Casi suficiente" : "Almost enough";
-      else note = (lang==="es") ? "Muestra chica (ref.)" : "Small sample (ref.)";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${escapeHtml(g.process)}</td>
-        <td>${escapeHtml(g.mode)}</td>
-        <td>${fmt0(st.n)}</td>
-        <td>${(lang==="es" ? "Muestras" : "Samples")}: ${fmt0(st.n)} / ${isFinite(sizing.nReq)?sizing.nReq:"—"} · ±${isFinite(sizing.errPct)?fmt1(sizing.errPct):"—"}%</td>
-        <td>${fmt2(st.std)}</td>
-        <td>${isFinite(st.cv)?fmt1(st.cv*100):"—"}</td>
-        <td>${fmt2(st.median)}</td>
-        <td>${fmt2(st.p10)}</td>
-        <td>${fmt2(st.p90)}</td>
-        <td>${fmt0(capCur)} ${viewLabel}</td>
-        <td>${fmt0(capPot)} ${viewLabel}</td>
-        <td>${fmt0(capWst)} ${viewLabel}</td>
-        <td>${fmt0(contract)} ${viewLabel}</td>
-        <td>${fmt0(gap)} ${viewLabel}</td>
-        <td>${isFinite(pct)?fmt1(pct):"—"}%</td>
-        <td>${isFinite(cp)?fmt2(cp):"—"}</td>
-        <td>${isFinite(cpk)?fmt2(cpk):"—"}</td>
-        <td>${escapeHtml(note)}</td>
-      `;
-      el.focusBody.appendChild(tr);
-
-      const tr2 = document.createElement("tr");
-      tr2.innerHTML = `
-        <td>${escapeHtml(g.process)}</td>
-        <td>${escapeHtml(g.mode)}</td>
-        <td>${fmt0(st.n)}</td>
-        <td>${fmt2(st.mean)}</td>
-        <td>${fmt2(st.median)}</td>
-        <td>${fmt2(st.p10)}</td>
-        <td>${fmt2(st.p90)}</td>
-        <td>${fmt2(st.min)}</td>
-        <td>${fmt2(st.max)}</td>
-        <td>${fmt2(st.std)}</td>
-        <td>${isFinite(st.cv)?fmt1(st.cv*100):"—"}</td>
-        <td>${isFinite(cp)?fmt2(cp):"—"}</td>
-        <td>${isFinite(cpk)?fmt2(cpk):"—"}</td>
-      `;
-      el.statsBody.appendChild(tr2);
-    }
-
-    // Chart selector
-    const prev = el.chartProcessSelect.value;
-    el.chartProcessSelect.innerHTML = "";
-    const optEmpty = document.createElement("option");
-    optEmpty.value = "";
-    optEmpty.textContent = (lang==="es") ? "— Selecciona —" : "— Select —";
-    el.chartProcessSelect.appendChild(optEmpty);
-
-    for(const g of list){
-      const st = computeStatsFor(g.process, g.mode);
-      if(st.n<=0) continue;
-      const o = document.createElement("option");
-      o.value = groupKey(g.process, g.mode);
-      o.textContent = `${g.process} (${g.mode})`;
-      el.chartProcessSelect.appendChild(o);
-    }
-    if(prev && Array.from(el.chartProcessSelect.options).some(o => o.value === prev)){
-      el.chartProcessSelect.value = prev;
-    }else{
-      // default to current focus if exists
-      const focusKey = focusP ? groupKey(focusP, focusM) : "";
-      if(focusKey && Array.from(el.chartProcessSelect.options).some(o=>o.value===focusKey)){
-        el.chartProcessSelect.value = focusKey;
+    let st=null;
+    if(map.has(key)) st=calcStats(map.get(key));
+    else{
+      for(const [k,arr] of map.entries()){
+        const [p,m]=k.split('||');
+        if(normOp(p)===normOp(proc) && m===mode){ st=calcStats(arr); break; }
       }
     }
 
-    renderCharts();
+    const labelView = capViewSel.options[capViewSel.selectedIndex].text;
+
+    if(!st){
+      contractSumLine1.textContent = (currentLang==='es'?'Sin datos del proceso aún.':'No process data yet.');
+      contractSumLine2.textContent = '—';
+      contractSumLine3.textContent = '—';
+      contractSumLine4.textContent = '—';
+      contractSumLine4.className = 'info-line sample-neutral';
+      return;
+    }
+
+    const capCur = capFromCt(st.median, view, hours, days) * (eff/100);
+    const capPot = capFromCt(st.p10, view, hours, days) * (eff/100);
+    const capWst = capFromCt(st.p90, view, hours, days) * (eff/100);
+
+    contractSumLine1.textContent = (currentLang==='es'
+      ? `Proceso: ${proc} (${mode}) · N=${st.n} · Eff=${eff}%`
+      : `Process: ${proc} (${mode}) · N=${st.n} · Eff=${eff}%`
+    );
+
+    contractSumLine2.textContent = (currentLang==='es'
+      ? `Capacidad (Actual/Mediana): ${formatUnits(capCur)} ${labelView}`
+      : `Capacity (Current/Median): ${formatUnits(capCur)} ${labelView}`
+    );
+
+    contractSumLine3.textContent = (currentLang==='es'
+      ? `Capacidad (Potencial/P10): ${formatUnits(capPot)} · Peor/P90: ${formatUnits(capWst)}`
+      : `Capacity (Potential/P10): ${formatUnits(capPot)} · Worst/P90: ${formatUnits(capWst)}`
+    );
+
+    if(contractUnits>0){
+      const vs = capCur/contractUnits*100;
+      const gap = capCur-contractUnits;
+      let badge = 'sample-warn';
+      if(vs>=105) badge='sample-good';
+      else if(vs<95) badge='sample-bad';
+
+      contractSumLine4.className = 'info-line ' + badge;
+      contractSumLine4.textContent = (currentLang==='es'
+        ? `Contrato: ${formatUnits(contractUnits)} · % vs: ${vs.toFixed(0)}% · Gap: ${formatUnits(gap)}`
+        : `Contract: ${formatUnits(contractUnits)} · % vs: ${vs.toFixed(0)}% · Gap: ${formatUnits(gap)}`
+      );
+    }else{
+      contractSumLine4.className = 'info-line sample-neutral';
+      contractSumLine4.textContent = (currentLang==='es'
+        ? 'Carga un contrato para ver Gap y % vs contrato.'
+        : 'Load a contract to see Gap and % vs contract.'
+      );
+    }
   }
 
-  function renderRawData(){
-    el.dataBody.innerHTML = "";
-    const rows = [...laps].sort((a,b)=> (a.ts||0) - (b.ts||0));
-    rows.forEach((r, idx) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${idx+1}</td>
-        <td>${escapeHtml(r.process)}</td>
-        <td>${escapeHtml(r.mode)}</td>
-        <td>${escapeHtml(r.status || t("status.ok"))}</td>
-        <td>${escapeHtml(r.note || "")}</td>
-        <td>${fmt2(r.t1)}</td>
-        <td>${fmt2(r.t2)}</td>
-        <td>${fmt2(r.total)}</td>
-        <td><button class="btn-edit" data-id="${r.id}">${lang==="es" ? "Editar" : "Edit"}</button></td>
-        <td><button class="btn-del" data-id="${r.id}">${lang==="es" ? "Borrar" : "Del"}</button></td>
-      `;
-      el.dataBody.appendChild(tr);
-    });
-
-    // edit/del
-    el.dataBody.querySelectorAll(".btn-edit").forEach(b => {
-      b.addEventListener("click", () => {
-        const id = b.dataset.id;
-        const idx = laps.findIndex(x => x.id === id);
-        if(idx<0) return;
-        const r = laps[idx];
-
-        const status = prompt(lang==="es" ? "Estatus (OK / EXCLUIR):" : "Status (OK / EXCLUDE):", r.status || t("status.ok"));
-        const note = prompt(lang==="es" ? "Nota:" : "Note:", r.note || "");
-
-        let t1 = parseFloat(prompt(lang==="es" ? "T1 (seg):" : "T1 (sec):", String(r.t1)) || String(r.t1));
-        let t2 = parseFloat(prompt(lang==="es" ? "T2 (seg):" : "T2 (sec):", String(r.t2)) || String(r.t2));
-        if(!isFinite(t1)) t1 = 0;
-        if(!isFinite(t2)) t2 = 0;
-
-        const total = (r.mode === "CT") ? t1 : (t1 + t2);
-
-        laps[idx] = { ...r, status: safeText(status), note: safeText(note), t1, t2: (r.mode==="CT"?0:t2), total };
-        saveState();
-        renderAll();
-      });
-    });
-
-    el.dataBody.querySelectorAll(".btn-del").forEach(b => {
-      b.addEventListener("click", () => {
-        const id = b.dataset.id;
-        laps = laps.filter(x => x.id !== id);
-        saveState();
-        renderAll();
-      });
-    });
+  function clearCanvas(canvas){
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  function resizeCanvas(canvas){
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.floor(rect.width));
+    canvas.height = Math.max(1, Math.floor(rect.height));
+  }
+  function drawAxes(ctx, w, h, pad){
+    ctx.strokeStyle='rgba(255,255,255,.22)';
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(pad, pad);
+    ctx.lineTo(pad, h-pad);
+    ctx.lineTo(w-pad, h-pad);
+    ctx.stroke();
   }
 
-  /* ---------- Charts ---------- */
-  function clearCanvas(c){
-    const ctx = c.getContext("2d");
-    ctx.clearRect(0,0,c.width,c.height);
+  function drawTimeSeries(values, stats){
+    resizeCanvas(timeSeriesCanvas);
+    const ctx=timeSeriesCanvas.getContext('2d');
+    const w=timeSeriesCanvas.width, h=timeSeriesCanvas.height;
+    const pad=28;
+    clearCanvas(timeSeriesCanvas);
+    drawAxes(ctx,w,h,pad);
+
+    if(!values.length) return;
+    const minV=Math.min(...values), maxV=Math.max(...values);
+    const range=Math.max(maxV-minV, 0.0001);
+
+    function x(i){ return pad + (i/(values.length-1||1))*(w-2*pad); }
+    function y(v){ return (h-pad) - ((v-minV)/range)*(h-2*pad); }
+
+    ctx.strokeStyle='rgba(57,189,245,.90)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    values.forEach((v,i)=>{
+      const X=x(i), Y=y(v);
+      if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+    });
+    ctx.stroke();
+
+    const mean=stats.mean, median=stats.median, std=stats.std;
+    function hline(v, style){
+      ctx.strokeStyle=style; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(pad,y(v)); ctx.lineTo(w-pad,y(v)); ctx.stroke();
+    }
+    hline(mean,'rgba(24,201,122,.75)');
+    hline(median,'rgba(242,193,78,.80)');
+    hline(mean+3*std,'rgba(255,51,85,.55)');
+    hline(mean-3*std,'rgba(255,51,85,.55)');
+
+    ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.font='12px system-ui';
+    ctx.fillText('mean', pad+4, Math.max(14,y(mean)-4));
+    ctx.fillText('median', pad+4, Math.max(14,y(median)-4));
   }
 
-  function setupCanvasDpi(c){
-    const rect = c.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    c.width = Math.floor(rect.width * dpr);
-    c.height = Math.floor(rect.height * dpr);
-    const ctx = c.getContext("2d");
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+  function drawHistogram(values, stats){
+    resizeCanvas(histCanvas);
+    const ctx=histCanvas.getContext('2d');
+    const w=histCanvas.width, h=histCanvas.height;
+    const pad=28;
+    clearCanvas(histCanvas);
+    drawAxes(ctx,w,h,pad);
+
+    if(!values.length) return;
+    const minV=Math.min(...values), maxV=Math.max(...values);
+    const bins = Math.min(12, Math.max(5, Math.round(Math.sqrt(values.length))));
+    const range=Math.max(maxV-minV, 0.0001);
+    const binW=range/bins;
+
+    const counts=new Array(bins).fill(0);
+    values.forEach(v=>{
+      let b = Math.floor((v-minV)/binW);
+      if(b>=bins) b=bins-1;
+      if(b<0) b=0;
+      counts[b]+=1;
+    });
+
+    const maxC=Math.max(...counts,1);
+    const plotW=w-2*pad, plotH=h-2*pad;
+    const barW=plotW/bins;
+
+    ctx.fillStyle='rgba(57,189,245,.45)';
+    counts.forEach((c,i)=>{
+      const bh=(c/maxC)*plotH;
+      const x=pad+i*barW;
+      const y=h-pad-bh;
+      ctx.fillRect(x+2,y,Math.max(1,barW-4),bh);
+    });
+
+    function xFor(v){ return pad + ((v-minV)/range)*plotW; }
+    function vline(v, style){
+      ctx.strokeStyle=style; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(xFor(v), pad); ctx.lineTo(xFor(v), h-pad); ctx.stroke();
+    }
+    vline(stats.median,'rgba(242,193,78,.85)');
+    vline(stats.p10,'rgba(24,201,122,.75)');
+    vline(stats.p90,'rgba(255,51,85,.70)');
+
+    ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.font='12px system-ui';
+    ctx.fillText('P10', xFor(stats.p10)+4, pad+14);
+    ctx.fillText('Med', xFor(stats.median)+4, pad+28);
+    ctx.fillText('P90', xFor(stats.p90)+4, pad+42);
   }
 
   function renderCharts(){
-    setupCanvasDpi(el.timeSeriesCanvas);
-    setupCanvasDpi(el.histCanvas);
+    const map=groupByProcess();
+    const keys=[...map.keys()].sort();
+    const prev=chartSelect.value;
+    chartSelect.innerHTML='';
+    keys.forEach(k=>{
+      const opt=document.createElement('option');
+      opt.value=k;
+      const [p,m]=k.split('||');
+      opt.textContent = `${p} (${m})`;
+      chartSelect.appendChild(opt);
+    });
+    if(keys.includes(prev)) chartSelect.value=prev;
+    else if(keys.length) chartSelect.value=keys[0];
 
-    const key = el.chartProcessSelect.value;
-    if(!key){
-      clearCanvas(el.timeSeriesCanvas);
-      clearCanvas(el.histCanvas);
+    if(!keys.length){
+      clearCanvas(timeSeriesCanvas);
+      clearCanvas(histCanvas);
       return;
     }
-    const [process, mode] = key.split("__");
-    const st = computeStatsFor(process, mode);
-    if(st.n<=0){
-      clearCanvas(el.timeSeriesCanvas);
-      clearCanvas(el.histCanvas);
-      return;
-    }
 
-    drawTimeSeries(el.timeSeriesCanvas, st);
-    drawHistogram(el.histCanvas, st);
-  }
-
-  function drawTimeSeries(canvas, st){
-    const ctx = canvas.getContext("2d");
-    const w = canvas.getBoundingClientRect().width;
-    const h = canvas.getBoundingClientRect().height;
-    ctx.clearRect(0,0,w,h);
-
-    const pad = 22;
-    const x0 = pad, y0 = pad, x1 = w - pad, y1 = h - pad;
-
-    const data = st.values.slice(0); // sorted, but ok
-    // For time series, use original order for this group
-    const series = laps
-      .filter(r => r.process === currentSeriesProcess() && r.mode === currentSeriesMode() && (r.status||"").toUpperCase() !== t("status.exclude"))
-      .map(r => Number(r.total))
-      .filter(v => isFinite(v) && v > 0);
-
-    const vals = series.length ? series : data;
-    const n = vals.length;
-
-    const mn = st.mean;
-    const md = st.median;
-    const sd = st.std;
-
-    let lo = Math.min(...vals, isFinite(mn-3*sd)?(mn-3*sd):Infinity);
-    let hi = Math.max(...vals, isFinite(mn+3*sd)?(mn+3*sd):-Infinity);
-    if(!isFinite(lo) || !isFinite(hi) || lo===hi){
-      lo = Math.min(...vals);
-      hi = Math.max(...vals);
-      if(lo===hi){ lo = lo*0.9; hi = hi*1.1; }
-    }
-
-    const x = (i) => x0 + (n<=1 ? 0 : (i/(n-1))*(x1-x0));
-    const y = (v) => y1 - ((v - lo)/(hi - lo))*(y1-y0);
-
-    // axes
-    ctx.strokeStyle = "rgba(255,255,255,.12)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(x0,y1); ctx.lineTo(x1,y1);
-    ctx.moveTo(x0,y0); ctx.lineTo(x0,y1);
-    ctx.stroke();
-
-    // series
-    ctx.strokeStyle = "rgba(255,255,255,.70)";
-    ctx.lineWidth = 1.25;
-    ctx.beginPath();
-    vals.forEach((v,i)=>{
-      const px = x(i), py = y(v);
-      if(i===0) ctx.moveTo(px,py);
-      else ctx.lineTo(px,py);
-    });
-    ctx.stroke();
-
-    // mean line
-    if(isFinite(mn)){
-      ctx.strokeStyle = "rgba(57,189,245,.85)";
-      ctx.setLineDash([4,3]);
-      ctx.beginPath();
-      ctx.moveTo(x0, y(mn)); ctx.lineTo(x1, y(mn));
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // median line
-    if(isFinite(md)){
-      ctx.strokeStyle = "rgba(242,193,78,.85)";
-      ctx.setLineDash([3,4]);
-      ctx.beginPath();
-      ctx.moveTo(x0, y(md)); ctx.lineTo(x1, y(md));
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // ±3σ
-    if(isFinite(mn) && isFinite(sd)){
-      const up = mn + 3*sd;
-      const dn = mn - 3*sd;
-      ctx.strokeStyle = "rgba(255,255,255,.22)";
-      ctx.setLineDash([2,6]);
-      ctx.beginPath(); ctx.moveTo(x0, y(up)); ctx.lineTo(x1, y(up)); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x0, y(dn)); ctx.lineTo(x1, y(dn)); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // labels
-    ctx.fillStyle = "rgba(255,255,255,.65)";
-    ctx.font = "12px system-ui, sans-serif";
-    ctx.fillText(`${fmt2(lo)}s`, 4, y1);
-    ctx.fillText(`${fmt2(hi)}s`, 4, y0+6);
-
-    function currentSeriesProcess(){ return (processFromKey(el.chartProcessSelect.value)); }
-    function currentSeriesMode(){ return (modeFromKey(el.chartProcessSelect.value)); }
-    function processFromKey(k){ return (k||"").split("__")[0] || ""; }
-    function modeFromKey(k){ return (k||"").split("__")[1] || ""; }
-  }
-
-  function drawHistogram(canvas, st){
-    const ctx = canvas.getContext("2d");
-    const w = canvas.getBoundingClientRect().width;
-    const h = canvas.getBoundingClientRect().height;
-    ctx.clearRect(0,0,w,h);
-
-    const pad = 22;
-    const x0 = pad, y0 = pad, x1 = w - pad, y1 = h - pad;
-
-    const vals = st.values.slice(0);
-    const n = vals.length;
-    const lo = vals[0], hi = vals[n-1];
-    const bins = clamp(Math.round(Math.sqrt(n)), 5, 18);
-    const bw = (hi - lo) / bins || 1;
-
-    const counts = new Array(bins).fill(0);
-    for(const v of vals){
-      let bi = Math.floor((v - lo)/bw);
-      if(bi>=bins) bi = bins-1;
-      if(bi<0) bi=0;
-      counts[bi]++;
-    }
-    const maxC = Math.max(...counts, 1);
-
-    // axes
-    ctx.strokeStyle = "rgba(255,255,255,.12)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(x0,y1); ctx.lineTo(x1,y1);
-    ctx.moveTo(x0,y0); ctx.lineTo(x0,y1);
-    ctx.stroke();
-
-    // bars
-    const barW = (x1-x0)/bins;
-    ctx.fillStyle = "rgba(255,255,255,.22)";
-    counts.forEach((c,i)=>{
-      const bh = (c/maxC)*(y1-y0);
-      ctx.fillRect(x0 + i*barW + 1, y1 - bh, barW - 2, bh);
-    });
-
-    // median + percentiles
-    const md = st.median, p10 = st.p10, p90 = st.p90;
-
-    const xFromV = (v) => x0 + ((v - lo)/(hi - lo || 1))*(x1-x0);
-
-    if(isFinite(p10)){
-      ctx.strokeStyle = "rgba(24,201,122,.85)";
-      ctx.setLineDash([2,6]);
-      ctx.beginPath(); ctx.moveTo(xFromV(p10), y0); ctx.lineTo(xFromV(p10), y1); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    if(isFinite(md)){
-      ctx.strokeStyle = "rgba(242,193,78,.85)";
-      ctx.setLineDash([3,4]);
-      ctx.beginPath(); ctx.moveTo(xFromV(md), y0); ctx.lineTo(xFromV(md), y1); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    if(isFinite(p90)){
-      ctx.strokeStyle = "rgba(255,51,85,.75)";
-      ctx.setLineDash([2,6]);
-      ctx.beginPath(); ctx.moveTo(xFromV(p90), y0); ctx.lineTo(xFromV(p90), y1); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // labels
-    ctx.fillStyle = "rgba(255,255,255,.65)";
-    ctx.font = "12px system-ui, sans-serif";
-    ctx.fillText(`${fmt2(lo)}s`, x0, h-6);
-    ctx.fillText(`${fmt2(hi)}s`, x1-45, h-6);
-  }
-
-  el.chartProcessSelect.addEventListener("change", renderCharts);
-  window.addEventListener("resize", () => { renderCharts(); });
-
-  /* ---------- WB Planner ---------- */
-  function defaultWbRow(){
-    const { hoursPerDay } = getAssumptions();
-    const grossMin = Math.round(hoursPerDay * 60);
-    return {
-      id: cryptoRandomId(),
-      on: true,
-      operationKey: "",
-      operators: 1,
-      shifts: 1,
-      hours: hoursPerDay,
-      machines: 1,
-      contractPcd: 0,
-
-      grossMin: grossMin,
-      lunchMin: 0,
-      changeoverMin: 0,
-      cleaningMin: 0,
-      maintMin: 0,
-      otherMin: 0,
-
-      sharedPct: 0,
-
-      udtVal: 0,
-      udtUnit: "min", // "min" or "pct"
-
-      scrapPct: 0,
-
-      A: 100,
-      P: 100,
-      Q: 100
-    };
-  }
-
-  function listAvailableOps(){
-    const set = new Set();
-    for(const r of laps){
-      if(r.process && r.mode){
-        set.add(groupKey(r.process, r.mode));
-      }
-    }
-    return Array.from(set).sort();
-  }
-
-  function statsForKey(key){
-    if(!key) return null;
-    const [p,m] = key.split("__");
-    return computeStatsFor(p,m);
-  }
-
-  function calcOee(row){
-    const A = clamp((+row.A||0)/100, 0, 1);
-    const P = clamp((+row.P||0)/100, 0, 1);
-    const Q = clamp((+row.Q||0)/100, 0, 1);
-    return A*P*Q;
-  }
-
-  function calcYield(row){
-    const scrap = clamp((+row.scrapPct||0)/100, 0, 1);
-    return 1 - scrap;
-  }
-
-  function calcNetMinutes(row){
-    const gross = Math.max(0, +row.grossMin || 0);
-
-    const planned = Math.max(0,+row.lunchMin||0)
-                 + Math.max(0,+row.changeoverMin||0)
-                 + Math.max(0,+row.cleaningMin||0)
-                 + Math.max(0,+row.maintMin||0)
-                 + Math.max(0,+row.otherMin||0);
-
-    const shared = gross * clamp((+row.sharedPct||0)/100, 0, 1);
-
-    let udt = 0;
-    if(row.udtUnit === "pct"){
-      udt = gross * clamp((+row.udtVal||0)/100, 0, 1);
+    const arr=map.get(chartSelect.value)||[];
+    const st=calcStats(arr);
+    const values = st ? st.values : [];
+    if(st){
+      drawTimeSeries(values, st);
+      drawHistogram(values, st);
     }else{
-      udt = Math.max(0, +row.udtVal || 0);
-    }
-
-    const net = gross - planned - shared - udt;
-    return Math.max(0, net);
-  }
-
-  function wbCapacity(row){
-    const st = statsForKey(row.operationKey);
-    const netMin = calcNetMinutes(row);
-    const netSec = netMin * 60;
-
-    const machines = Math.max(1, +row.machines || 1);
-    const oee = calcOee(row);
-    const yieldP = calcYield(row);
-
-    let ctCur = st && isFinite(st.median) ? st.median : NaN;
-    let ctWst = st && isFinite(st.p90) ? st.p90 : NaN;
-    let ctPot = st && isFinite(st.p10) ? st.p10 : NaN;
-
-    const ctCurOee = (isFinite(ctCur) && oee>0) ? (ctCur / oee) : NaN;
-
-    const cap100 = (isFinite(ctCur) && ctCur>0) ? ((netSec / ctCur) * machines) : NaN;
-    const capOee = (isFinite(ctCurOee) && ctCurOee>0) ? ((netSec / ctCurOee) * machines) : NaN;
-
-    const goodCap = (isFinite(capOee)) ? (capOee * yieldP) : NaN;
-
-    const contract = Math.max(0, +row.contractPcd || 0);
-    const pctVs = (contract>0 && isFinite(goodCap)) ? (goodCap/contract*100) : NaN;
-
-    const inputReq = (yieldP>0) ? (contract / yieldP) : NaN;
-
-    return {
-      netMin,
-      oee,
-      yieldP,
-      ctCur, ctWst, ctPot,
-      ctCurOee,
-      cap100,
-      capOee: goodCap,
-      pctVs,
-      inputReq
-    };
-  }
-
-  function renderWb(){
-    // ensure rows exist in storage (but don't force)
-    const ops = listAvailableOps();
-    el.wbBody.innerHTML = "";
-
-    wbRows.forEach((row) => {
-      const calc = wbCapacity(row);
-
-      const tr = document.createElement("tr");
-
-      const opLabel = (row.operationKey && ops.includes(row.operationKey))
-        ? row.operationKey
-        : "";
-
-      tr.innerHTML = `
-        <td>
-          <input class="wb-chk" type="checkbox" ${row.on ? "checked":""} data-k="on" data-id="${row.id}">
-        </td>
-
-        <td>
-          <div class="wb-opwrap">
-            <select class="wb-opselect" data-k="operationKey" data-id="${row.id}">
-              <option value="">${lang==="es" ? "— Selecciona —" : "— Select —"}</option>
-              ${ops.map(k => `<option value="${escapeHtml(k)}" ${k===opLabel?"selected":""}>${escapeHtml(k.replace("__"," (") + ")")}</option>`).join("")}
-            </select>
-            <button class="wb-opbtn btn-relink" title="${lang==="es" ? "Cargar del proceso actual" : "Link to current process"}" data-act="relink" data-id="${row.id}">↩</button>
-          </div>
-        </td>
-
-        <td><input class="wb-inp slim" type="number" step="1" min="0" data-k="operators" data-id="${row.id}" value="${fmt0(row.operators)}"></td>
-        <td><input class="wb-inp slim" type="number" step="1" min="1" data-k="shifts" data-id="${row.id}" value="${fmt0(row.shifts)}"></td>
-        <td><input class="wb-inp slim" type="number" step=".5" min="0" data-k="hours" data-id="${row.id}" value="${fmt1(row.hours)}"></td>
-        <td><input class="wb-inp slim" type="number" step="1" min="1" data-k="machines" data-id="${row.id}" value="${fmt0(row.machines)}"></td>
-        <td><input class="wb-inp" type="number" step="1" min="0" data-k="contractPcd" data-id="${row.id}" value="${fmt0(row.contractPcd)}"></td>
-
-        <td><input class="wb-inp" type="number" step="1" min="0" data-k="grossMin" data-id="${row.id}" value="${fmt0(row.grossMin)}"></td>
-        <td><input class="wb-inp" type="number" step="1" min="0" data-k="lunchMin" data-id="${row.id}" value="${fmt0(row.lunchMin)}"></td>
-        <td><input class="wb-inp" type="number" step="1" min="0" data-k="changeoverMin" data-id="${row.id}" value="${fmt0(row.changeoverMin)}"></td>
-        <td><input class="wb-inp" type="number" step="1" min="0" data-k="cleaningMin" data-id="${row.id}" value="${fmt0(row.cleaningMin)}"></td>
-        <td><input class="wb-inp" type="number" step="1" min="0" data-k="maintMin" data-id="${row.id}" value="${fmt0(row.maintMin)}"></td>
-        <td><input class="wb-inp" type="number" step="1" min="0" data-k="otherMin" data-id="${row.id}" value="${fmt0(row.otherMin)}"></td>
-
-        <td><input class="wb-inp slim" type="number" step="1" min="0" max="100" data-k="sharedPct" data-id="${row.id}" value="${fmt0(row.sharedPct)}"></td>
-
-        <td><input class="wb-inp slim" type="number" step="1" min="0" data-k="udtVal" data-id="${row.id}" value="${fmt0(row.udtVal)}"></td>
-        <td>
-          <select class="wb-sel" data-k="udtUnit" data-id="${row.id}">
-            <option value="min" ${row.udtUnit==="min"?"selected":""}>min</option>
-            <option value="pct" ${row.udtUnit==="pct"?"selected":""}>%</option>
-          </select>
-        </td>
-
-        <td><span class="wb-pill">${fmt0(calc.netMin)}</span></td>
-
-        <td><input class="wb-inp slim" type="number" step=".1" min="0" max="100" data-k="scrapPct" data-id="${row.id}" value="${fmt1(row.scrapPct)}"></td>
-        <td><span class="wb-pill">${fmt1(calc.yieldP*100)}%</span></td>
-
-        <td><input class="wb-inp slim" type="number" step="1" min="0" max="100" data-k="A" data-id="${row.id}" value="${fmt0(row.A)}"></td>
-        <td><input class="wb-inp slim" type="number" step="1" min="0" max="100" data-k="P" data-id="${row.id}" value="${fmt0(row.P)}"></td>
-        <td><input class="wb-inp slim" type="number" step="1" min="0" max="100" data-k="Q" data-id="${row.id}" value="${fmt0(row.Q)}"></td>
-        <td><span class="wb-pill">${fmt1(calc.oee*100)}%</span></td>
-
-        <td><span class="wb-pill">${isFinite(calc.ctCur)?fmt2(calc.ctCur):"—"}</span></td>
-        <td><span class="wb-pill">${isFinite(calc.ctWst)?fmt2(calc.ctWst):"—"}</span></td>
-        <td><span class="wb-pill">${isFinite(calc.ctPot)?fmt2(calc.ctPot):"—"}</span></td>
-
-        <td><span class="wb-pill">${isFinite(calc.ctCurOee)?fmt2(calc.ctCurOee):"—"}</span></td>
-
-        <td><span class="wb-pill">${isFinite(calc.cap100)?fmt0(calc.cap100):"—"}</span></td>
-        <td><span class="wb-pill">${isFinite(calc.capOee)?fmt0(calc.capOee):"—"}</span></td>
-
-        <td><span class="wb-pill">${isFinite(calc.pctVs)?fmt1(calc.pctVs):"—"}%</span></td>
-        <td><span class="wb-pill">${isFinite(calc.inputReq)?fmt0(calc.inputReq):"—"}</span></td>
-
-        <td>
-          <button class="wb-opbtn btn-del" data-act="del" data-id="${row.id}">${lang==="es" ? "Borrar" : "Del"}</button>
-        </td>
-      `;
-      el.wbBody.appendChild(tr);
-    });
-
-    // bind inputs
-    el.wbBody.querySelectorAll("input,select").forEach(inp => {
-      inp.addEventListener("change", () => {
-        const id = inp.getAttribute("data-id");
-        const k = inp.getAttribute("data-k");
-        const row = wbRows.find(r => r.id === id);
-        if(!row) return;
-
-        if(inp.type === "checkbox"){
-          row[k] = inp.checked;
-        }else if(k === "operationKey" || k === "udtUnit"){
-          row[k] = inp.value;
-        }else{
-          row[k] = parseFloat(inp.value);
-          if(!isFinite(row[k])) row[k] = 0;
-        }
-        saveState();
-        renderWbSummary();
-        renderWb(); // keep computed fields live
-      });
-    });
-
-    // relink / del actions
-    el.wbBody.querySelectorAll("button[data-act]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-id");
-        const act = btn.getAttribute("data-act");
-        const row = wbRows.find(r => r.id === id);
-        if(!row) return;
-
-        if(act === "del"){
-          wbRows = wbRows.filter(r => r.id !== id);
-          saveState();
-          renderAll();
-        }else if(act === "relink"){
-          const p = getCurrentProcess();
-          const m = el.mode.value;
-          if(p){
-            row.operationKey = groupKey(p,m);
-            saveState();
-            renderAll();
-          }
-        }
-      });
-    });
-
-    renderWbSummary();
-  }
-
-  function renderWbSummary(){
-    // operators sum
-    const totalOps = wbRows
-      .filter(r => r.on)
-      .reduce((s,r)=> s + Math.max(0, +r.operators || 0), 0);
-    el.wbOperatorsSum.textContent = fmt0(totalOps);
-
-    // constraint: lowest %vs contract (among enabled with contract>0)
-    const scored = wbRows
-      .filter(r => r.on)
-      .map(r => {
-        const calc = wbCapacity(r);
-        return { r, calc };
-      })
-      .filter(x => (x.r.contractPcd||0) > 0 && isFinite(x.calc.pctVs));
-
-    scored.sort((a,b)=> a.calc.pctVs - b.calc.pctVs);
-
-    const top = scored[0];
-    const next = scored[1];
-
-    if(top){
-      const label = wbLabel(top.r);
-      el.wbConstraint.textContent = `${label} · ${fmt1(top.calc.pctVs)}%`;
-      el.wbConstraint.className = "badge badge-bad";
-    }else{
-      el.wbConstraint.textContent = "—";
-      el.wbConstraint.className = "badge badge-bad";
-    }
-
-    if(next){
-      const label2 = wbLabel(next.r);
-      el.wbNextConstraint.textContent = `${label2} · ${fmt1(next.calc.pctVs)}%`;
-      el.wbNextConstraint.className = "badge badge-warn";
-    }else{
-      el.wbNextConstraint.textContent = "—";
-      el.wbNextConstraint.className = "badge badge-warn";
-    }
-
-    // note
-    if(top){
-      const c = wbCapacity(top.r);
-      const hint = (lang==="es")
-        ? `Net min/día=${fmt0(c.netMin)} · OEE=${fmt1(c.oee*100)}% · Yield=${fmt1(c.yieldP*100)}% · Cap@OEE=${fmt0(c.capOee)} vs Contrato=${fmt0(top.r.contractPcd)}`
-        : `Net min/day=${fmt0(c.netMin)} · OEE=${fmt1(c.oee*100)}% · Yield=${fmt1(c.yieldP*100)}% · Cap@OEE=${fmt0(c.capOee)} vs Contract=${fmt0(top.r.contractPcd)}`;
-      el.wbConstraintNote.textContent = hint;
-    }else{
-      el.wbConstraintNote.textContent = (lang==="es")
-        ? "Tip: agrega contratos por operación en WB para identificar restricción automáticamente."
-        : "Tip: add per-operation contracts in WB to identify the constraint automatically.";
-    }
-
-    function wbLabel(row){
-      if(!row.operationKey) return (lang==="es" ? "Sin ligar" : "Unlinked");
-      const [p,m] = row.operationKey.split("__");
-      return `${p} (${m})`;
+      clearCanvas(timeSeriesCanvas);
+      clearCanvas(histCanvas);
     }
   }
+  chartSelect.addEventListener('change', renderCharts);
+  window.addEventListener('resize', ()=>{ renderCharts(); });
 
-  function addWbRow(){
-    wbRows.push(defaultWbRow());
-    saveState();
-    renderAll();
+  function copyText(text){
+    navigator.clipboard.writeText(text).catch(()=>{});
   }
 
-  function clearWb(){
-    wbRows = [];
-    saveState();
-    renderAll();
+  /* ======= Copy All / Copy Summary iguales ======= */
+
+  function buildMethodGuide(){
+    const es = (currentLang==='es');
+
+    return es
+? `MÉTODO & GUÍA – TAKTLAB + WB
+
+1) OBJETIVO
+• Medir tiempos reales (CT o MLD), estimar variación y convertirlo en capacidad.
+• Separar “tiempo típico” vs “tiempo atípico” (bloqueado/hambriento).
+
+2) MODOS DE MEDICIÓN
+A) CT (Cycle Time)
+• Cada VUELTA = 1 ciclo completo (total).
+• Úsalo cuando solo te importa salida por ciclo.
+
+B) MLD (Machine + Load/Unload)
+• Primera VUELTA guarda T1.
+• Segunda VUELTA guarda T2.
+• Se registra Total = T1 + T2.
+• Úsalo cuando quieres separar tiempos pero seguir calculando capacidad con el total.
+
+3) ESTATUS DE MUESTRA (CRÍTICO)
+• Normal: cuenta para estadísticas.
+• Bloqueado / Hambriento: NO cuenta para estadísticas (es atípico).
+  Ejemplos:
+  - Bloqueado: esperando material, falla externa, quality hold, etc.
+  - Hambriento: máquina esperando operador / alimentación / secuencia.
+
+4) TAMAÑO DE MUESTRA (±3% como meta)
+• La app estima un “N recomendado” basado en CV y 95% (Z=1.96).
+• Si estás por debajo:
+  - úsalo solo como referencia.
+  - toma más vueltas antes de concluir.
+
+5) QUÉ SIGNIFICA CADA ESTADÍSTICA
+• Mediana (CTmed): tu “típico” robusto.
+• P10: potencial (mejor escenario realista).
+• P90: peor (escenario conservador).
+• Std y CV%: variación (riesgo).
+
+6) CONTRACT vs CAPACITY
+• Contract Cap (pcs/day) = demanda objetivo.
+• La app convierte CT → capacidad según Hours/Day y Efficiency.
+• Gap y % vs contrato:
+  - >105%: holgura
+  - 95–105%: justo
+  - <95%: riesgo / restricción
+
+7) WB – PLANEADOR DE CAPACIDAD
+• “Shifts/Turnos” es SOLO referencia (no cambia cálculos).
+• Net min/day = Gross min/day - pérdidas planificadas - shared - UDT.
+• OEE = A * P * Q.
+• Yield = 1 - Scrap%.
+• Cap@OEE usa CT ajustado por OEE y Yield.
+
+8) RECOMENDACIÓN DE USO (rápida)
+• Primero mide 10–20 muestras “Normal”.
+• Marca atípicos como Bloqueado/Hambriento (para no contaminar).
+• Revisa mediana y P90.
+• Si estás corto vs contrato: ataca restricción (WB Constraint).
+
+9) COPIAR / EXPORTAR
+• Copy Summary: resumen del proceso actual.
+• Copy All: export general.
+• Copy WB: export del WB tabulado (pegar en Excel).
+
+—`
+: `METHOD & GUIDE – TAKTLAB + WB
+
+1) PURPOSE
+• Measure real times (CT or MLD), quantify variation, convert to capacity.
+• Separate “typical” vs “atypical” time (blocked/starved).
+
+2) MEASUREMENT MODES
+A) CT (Cycle Time)
+• Each LAP = one full cycle (total).
+• Use when you only care about output per cycle.
+
+B) MLD (Machine + Load/Unload)
+• First LAP stores T1.
+• Second LAP stores T2.
+• Total = T1 + T2.
+• Use when you want split times but capacity uses total.
+
+3) SAMPLE STATUS (CRITICAL)
+• Normal: included in stats.
+• Blocked / Starved: excluded from stats (atypical).
+  Examples:
+  - Blocked: waiting material, external issue, quality hold.
+  - Starved: machine waiting operator/feeding/sequence.
+
+4) SAMPLE SIZE (±3% target)
+• App estimates a recommended N using CV and 95% (Z=1.96).
+• If below:
+  - use as reference only
+  - capture more laps before conclusions
+
+5) STAT MEANING
+• Median: robust “typical”.
+• P10: potential (best realistic).
+• P90: worst (conservative).
+• Std/CV%: variation (risk).
+
+6) CONTRACT vs CAPACITY
+• Contract Cap (pcs/day) = demand.
+• App converts CT → capacity using Hours/Day and Efficiency.
+• Gap and % vs contract thresholds:
+  - >105% buffer
+  - 95–105% tight
+  - <95% risk/constraint
+
+7) WB – CAPACITY PLANNER
+• “Shifts” is reference only (not used in calculations).
+• Net min/day = Gross - planned losses - shared - UDT.
+• OEE = A * P * Q.
+• Yield = 1 - Scrap%.
+• Cap@OEE uses CT adjusted by OEE and Yield.
+
+8) QUICK RECOMMENDED FLOW
+• Measure 10–20 “Normal” samples first.
+• Mark atypical as Blocked/Starved (avoid contaminating stats).
+• Review median and P90.
+• If short vs contract: attack WB constraint.
+
+9) COPY / EXPORT
+• Copy Summary: current process summary.
+• Copy All: full export.
+• Copy WB: WB export for Excel.
+
+—`;
   }
 
-  /* ---------- Copy ---------- */
-  async function copyText(txt){
-    try{
-      await navigator.clipboard.writeText(txt);
-      toast(t("msg.copied"));
-    }catch(e){
-      // fallback
-      const ta = document.createElement("textarea");
-      ta.value = txt;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      ta.remove();
-      toast(t("msg.copied"));
-    }
-  }
-
-  function buildSummaryText(){
-    const { eff, contractPcd, hoursPerDay, daysPerWeek, capView } = getAssumptions();
-    const process = getCurrentProcess();
-    const mode = el.mode.value;
-
-    const lines = [];
-    lines.push(`TaktLab Summary`);
-    lines.push(`Lang: ${lang}`);
-    lines.push(`Assumptions: Eff=${fmt0(eff*100)}% · Contract/day=${fmt0(contractPcd)} · Hrs/day=${fmt1(hoursPerDay)} · Days/week=${fmt0(daysPerWeek)} · View=${capView}`);
-    lines.push(`Focus: ${process || "—"} (${mode})`);
-    lines.push("");
-
-    // Focus stats
-    if(process){
-      const st = computeStatsFor(process, mode);
-      if(st.n>0){
-        const sizing = sampleSizing(st.n, st.cv);
-        lines.push(`Stats: N=${st.n} · Mean=${fmt2(st.mean)}s · Median=${fmt2(st.median)}s · P10=${fmt2(st.p10)}s · P90=${fmt2(st.p90)}s · Std=${fmt2(st.std)}s · CV=${isFinite(st.cv)?fmt1(st.cv*100):"—"}%`);
-        lines.push(`Samples: ${st.n}/${isFinite(sizing.nReq)?sizing.nReq:"—"} · Est error: ${isFinite(sizing.errPct)?("±"+fmt1(sizing.errPct)+"%"):"—"} (95%)`);
-      }else{
-        lines.push(`Stats: —`);
-      }
-    }
-
-    lines.push("");
-    lines.push(`WB rows: ${wbRows.length}`);
-    wbRows.forEach((r,i)=>{
-      const c = wbCapacity(r);
-      lines.push(`WB#${i+1} ${r.on?"[ON]":"[OFF]"} ${r.operationKey||"—"} · Contract=${fmt0(r.contractPcd)} · Cap@OEE=${fmt0(c.capOee)} · %vs=${isFinite(c.pctVs)?fmt1(c.pctVs):"—"}% · NetMin=${fmt0(c.netMin)} · OEE=${fmt1(c.oee*100)}% · Yield=${fmt1(c.yieldP*100)}%`);
-    });
-
-    return lines.join("\n");
-  }
-
-  function buildAllText(){
-    const dump = {
-      lang,
-      assumptions: getAssumptions(),
-      focus: { process: getCurrentProcess(), mode: el.mode.value },
-      laps,
-      wbRows
-    };
-    return JSON.stringify(dump, null, 2);
-  }
-
-  /* ---------- Toast ---------- */
-  let toastTimer = null;
-  function toast(msg){
-    let box = document.getElementById("toastBox");
-    if(!box){
-      box = document.createElement("div");
-      box.id = "toastBox";
-      box.style.position = "fixed";
-      box.style.left = "50%";
-      box.style.bottom = "16px";
-      box.style.transform = "translateX(-50%)";
-      box.style.padding = "10px 14px";
-      box.style.borderRadius = "999px";
-      box.style.border = "1px solid rgba(255,255,255,.18)";
-      box.style.background = "rgba(2,11,26,.85)";
-      box.style.color = "white";
-      box.style.font = "600 13px system-ui, sans-serif";
-      box.style.zIndex = 9999;
-      box.style.boxShadow = "0 10px 22px rgba(0,0,0,.45)";
-      document.body.appendChild(box);
-    }
-    box.textContent = msg;
-    box.style.opacity = "1";
-    if(toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>{ box.style.opacity="0"; }, 1200);
-  }
-
-  /* ---------- Method Guide ---------- */
-  function renderMethodGuide(){
-    el.methodGuideText.textContent = (lang==="es")
-      ? [
-        "✅ Flujo recomendado:",
-        "1) Escribe Proceso (ej. Op 30-1).",
-        "2) Selecciona Modo: CT o MLD.",
-        "3) Iniciar. Luego usa Vuelta:",
-        "   - CT: cada Vuelta guarda un ciclo (Total).",
-        "   - MLD: Vuelta #1 guarda T1, Vuelta #2 guarda T2 y cierra el ciclo (T1+T2).",
-        "4) Ajusta Eficiencia / Horas / Días / Contrato.",
-        "5) Revisa Resumen Contrato vs Capacidad y la calidad de tu muestra (±3%).",
-        "6) WB: liga operaciones a procesos medidos para simular capacidad real con Net min, OEE y Yield.",
-        "",
-        "💡 Tip: si la Media se aleja de la Mediana, tu distribución está sesgada (colas). Usa Mediana/P90 para decisiones operativas."
-      ].join("\n")
-      : [
-        "✅ Recommended flow:",
-        "1) Type Process (e.g., Op 30-1).",
-        "2) Select Mode: CT or MLD.",
-        "3) Start. Then use LAP:",
-        "   - CT: each LAP stores one cycle (Total).",
-        "   - MLD: LAP #1 captures T1, LAP #2 captures T2 and closes the cycle (T1+T2).",
-        "4) Set Efficiency / Hours / Days / Contract.",
-        "5) Check Contract vs Capacity and your sample quality (±3%).",
-        "6) WB: link operations to measured processes to simulate real capacity with Net min, OEE and Yield.",
-        "",
-        "💡 Tip: if Mean drifts from Median, your distribution is skewed (tails). Use Median/P90 for operational decisions."
-      ].join("\n");
-  }
-
-  /* ---------- Events ---------- */
-  el.btnStart.addEventListener("click", toggleStartPause);
-  el.btnLap.addEventListener("click", captureLap);
-
-  el.mode.addEventListener("change", () => {
-    // reset MLD pending segment when switching mode
-    pendingT1 = null;
-    segElapsed = 0;
-    if(!running){
-      el.display.textContent = "00:00.00";
-      el.t1Clock.textContent = "00:00.00";
-      el.t2Clock.textContent = "00:00.00";
-    }
-    renderAll();
-  });
-
-  ["input","change"].forEach(evt => {
-    el.processName.addEventListener(evt, () => { renderAll(); });
-    el.efficiency.addEventListener(evt, () => { renderAll(); });
-    el.contractPcd.addEventListener(evt, () => { renderAll(); });
-    el.hoursPerDay.addEventListener(evt, () => { renderAll(); });
-    el.daysPerWeek.addEventListener(evt, () => { renderAll(); });
-    el.capView.addEventListener(evt, () => { renderAll(); });
-  });
-
-  el.btnCopyAll.addEventListener("click", () => copyText(buildAllText()));
-  el.btnCopySummary.addEventListener("click", () => copyText(buildSummaryText()));
-  el.btnAddManualLap.addEventListener("click", addManualLap);
-  el.btnReset.addEventListener("click", resetAll);
-
-  el.btnWbAdd.addEventListener("click", addWbRow);
-  el.btnWbClear.addEventListener("click", clearWb);
-
-  // Keyboard shortcuts: Space start/pause, Enter lap
-  window.addEventListener("keydown", (e) => {
-    if(e.target && (e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA" || e.target.tagName==="SELECT")) return;
-    if(e.code === "Space"){
-      e.preventDefault();
-      toggleStartPause();
-    }
-    if(e.code === "Enter"){
-      e.preventDefault();
-      captureLap();
-    }
-  });
-
-  /* ---------- Render All ---------- */
   function renderAll(){
-    applyI18n();
-    buildTopSampleBanner();
     renderContractSummary();
-    renderFocusAndStats();
-    renderRawData();
-    renderWb();
-    renderMethodGuide();
+    renderStats();
+    renderRaw();
+    renderWB();
+    renderCharts();
+    methodGuideText.textContent = buildMethodGuide();
+    scheduleSaveAll();
   }
 
-  /* ---------- Helpers ---------- */
-  function escapeHtml(s){
-    return String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
+  processInput.addEventListener('input', ()=>{ scheduleSaveAll(); });
+  processInput.addEventListener('blur', ()=>{
+    const op = (processInput.value||'').trim();
+    ensureWbRowForOperation(op);
+    renderAll();
+  });
+  processInput.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){
+      const op=(processInput.value||'').trim();
+      ensureWbRowForOperation(op);
+      renderAll();
+    }
+  });
+
+  [effInput, pcdInput, hInput, dInput, capViewSel, modeSelect].forEach(el=>{
+    el.addEventListener('input', ()=>{ renderAll(); });
+    el.addEventListener('change', ()=>{ renderAll(); });
+  });
+
+  function restoreStateIfAny(){
+    const raw = localStorage.getItem(TL_STATE_KEY);
+    const st = raw ? safeJsonParse(raw) : null;
+    if(!st || typeof st !== 'object') return false;
+
+    if(st.lang){ currentLang = (st.lang==='es')?'es':'en'; }
+
+    const s = st.settings || {};
+    if(typeof s.processName === 'string') processInput.value = s.processName;
+    if(typeof s.mode === 'string') modeSelect.value = (s.mode==='MLD')?'MLD':'CT';
+    if(s.efficiency !== undefined) effInput.value = s.efficiency;
+    if(s.contractPcd !== undefined) pcdInput.value = s.contractPcd;
+    if(s.hoursPerDay !== undefined) hInput.value = s.hoursPerDay;
+    if(s.daysPerWeek !== undefined) dInput.value = s.daysPerWeek;
+    if(typeof s.capView === 'string') capViewSel.value = s.capView;
+
+    if(Array.isArray(st.laps)) laps = st.laps;
+    if(isFinite(st.nextId)) nextId = st.nextId;
+
+    if(Array.isArray(st.wbRows)) wbRows = st.wbRows;
+
+    running=false; elapsed=0; pendingT1=null;
+    return true;
   }
 
-  function cryptoRandomId(){
-    // simple, collision-resistant enough for local app
-    return (crypto && crypto.getRandomValues)
-      ? Array.from(crypto.getRandomValues(new Uint32Array(2))).map(n=>n.toString(16)).join("-")
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const restored = restoreStateIfAny();
+  if(!restored){
+    loadWB();
   }
 
-  /* ---------- Init ---------- */
-  loadState();
-  applyI18n();
-  setRunningUI();
+  updateLangButtons();
+  applyTranslations();
+  btnStart.textContent = running ? t('btn.pause') : t('btn.start');
+  document.documentElement.lang = currentLang;
+
+  const firstOp = (processInput.value||'').trim();
+  if(firstOp) ensureWbRowForOperation(firstOp);
+
+  updateDisplay();
+  updateSplitClocks();
   renderAll();
+  saveAllNow();
 
 })();
 </script>
-
 </body>
 </html>
-<!-- =========================
-     TaktLab – Part 3 (CSS for WB + small UI fixes)
-     PÉGALO justo DESPUÉS del </style> de la Parte 1
-     (o al final del <style> existente)
-     ========================= -->
-
-<style>
-  /* ---- Small fixes: make Contract Summary BEFORE Stats Focus feel stronger ---- */
-  .section-title{
-    letter-spacing:.2px;
-  }
-  #contractSummaryCard{
-    border:1px solid rgba(57,189,245,.22);
-    box-shadow: 0 18px 40px rgba(0,0,0,.24);
-  }
-
-  /* ---- Data Controls bigger + colorful buttons (Reset red) ---- */
-  #dataControls .btn{
-    padding:12px 14px;
-    font-weight:800;
-    border-radius:14px;
-  }
-  #btnCopyAll{ background: linear-gradient(180deg, rgba(57,189,245,.95), rgba(57,189,245,.70)); border:1px solid rgba(255,255,255,.18); }
-  #btnCopySummary{ background: linear-gradient(180deg, rgba(242,193,78,.95), rgba(242,193,78,.70)); border:1px solid rgba(255,255,255,.18); }
-  #btnAddManualLap{ background: linear-gradient(180deg, rgba(24,201,122,.95), rgba(24,201,122,.70)); border:1px solid rgba(255,255,255,.18); }
-  #btnReset{ background: linear-gradient(180deg, rgba(255,51,85,.95), rgba(255,51,85,.70)); border:1px solid rgba(255,255,255,.18); }
-  #dataControls .btn:hover{ transform: translateY(-1px); }
-  #dataControls .btn:active{ transform: translateY(0px); }
-
-  /* =========================
-     WB – table layout
-     ========================= */
-  #wbCard{
-    border:1px solid rgba(242,193,78,.20);
-    box-shadow: 0 18px 40px rgba(0,0,0,.22);
-  }
-
-  .wb-table-wrap{
-    width:100%;
-    overflow:auto;
-    border:1px solid rgba(255,255,255,.12);
-    border-radius: 16px;
-    background: rgba(3,14,32,.35);
-  }
-
-  table.wb{
-    width: max(1400px, 100%);
-    border-collapse: collapse;
-    font-size: 12.5px;
-  }
-
-  table.wb thead th{
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: rgba(9,26,49,.95);
-    color: rgba(255,255,255,.85);
-    text-align: left;
-    padding: 10px 8px;
-    border-bottom: 1px solid rgba(255,255,255,.12);
-    white-space: nowrap;
-  }
-
-  table.wb tbody td{
-    padding: 8px 8px;
-    border-bottom: 1px solid rgba(255,255,255,.08);
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-
-  table.wb tbody tr:hover{
-    background: rgba(255,255,255,.04);
-  }
-
-  /* Inputs */
-  .wb-inp, .wb-sel{
-    width: 120px;
-    padding: 7px 8px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,.12);
-    background: rgba(5,18,38,.55);
-    color: rgba(255,255,255,.92);
-    outline: none;
-  }
-  .wb-inp:focus, .wb-sel:focus{
-    border-color: rgba(57,189,245,.55);
-    box-shadow: 0 0 0 3px rgba(57,189,245,.18);
-  }
-  .wb-inp.slim{ width: 86px; }
-
-  .wb-chk{
-    transform: scale(1.15);
-    accent-color: var(--accent-green);
-  }
-
-  /* Operation select + relink */
-  .wb-opwrap{
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
-  .wb-opselect{
-    min-width: 260px;
-    width: 320px;
-    padding: 7px 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,.12);
-    background: rgba(5,18,38,.55);
-    color: rgba(255,255,255,.92);
-    outline: none;
-  }
-  .wb-opselect:focus{
-    border-color: rgba(57,189,245,.55);
-    box-shadow: 0 0 0 3px rgba(57,189,245,.18);
-  }
-
-  .wb-opbtn{
-    padding: 7px 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,.14);
-    background: rgba(255,255,255,.06);
-    color: rgba(255,255,255,.92);
-    cursor: pointer;
-    transition: transform .12s ease, background .12s ease;
-    font-weight: 800;
-  }
-  .wb-opbtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.10); }
-  .wb-opbtn:active{ transform: translateY(0px); }
-
-  .wb-opbtn.btn-del{
-    background: rgba(255,51,85,.14);
-    border-color: rgba(255,51,85,.28);
-  }
-
-  .wb-pill{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.12);
-    background: rgba(255,255,255,.06);
-    color: rgba(255,255,255,.92);
-    min-width: 76px;
-    font-weight: 800;
-  }
-
-  /* WB header badges area */
-  .wb-topbar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    flex-wrap: wrap;
-    margin: 10px 0 12px;
-  }
-  .wb-topbar .left,
-  .wb-topbar .right{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex-wrap: wrap;
-  }
-
-  /* Make "Add Operation" and "Clear WB" pop */
-  #btnWbAdd{
-    background: linear-gradient(180deg, rgba(24,201,122,.95), rgba(24,201,122,.70));
-    border: 1px solid rgba(255,255,255,.18);
-    font-weight: 900;
-    padding: 10px 12px;
-    border-radius: 14px;
-  }
-  #btnWbClear{
-    background: rgba(255,51,85,.14);
-    border: 1px solid rgba(255,51,85,.28);
-    font-weight: 900;
-    padding: 10px 12px;
-    border-radius: 14px;
-  }
-
-  /* Slightly larger "Contract vs Capacity Summary" compared to Stats Focus */
-  #contractSummaryCard .subtle{
-    font-size: 13.5px;
-  }
-
-  /* Make Stats Focus card a bit calmer */
-  #statsFocusCard{
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(11,31,58,.75);
-  }
-
-  /* Utility if you use these IDs in Part 1 */
-  #wbOperatorsSum, #wbConstraint, #wbNextConstraint{
-    font-weight: 900;
-  }
-</style>
