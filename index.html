@@ -839,7 +839,7 @@
       }
       setTimeout(tick, 1000);
     };
-    setTimeout(()=>{ // primer update para que se note inmediato
+    setTimeout(()=>{
       if(btn.disabled) tick();
     }, 0);
 
@@ -1315,9 +1315,9 @@
       contractAuto: true,
 
       lunchMin: 0,        // 0-1440
-      changeoverMin: 0,   // 1-1440
+      changeoverMin: 1,   // 1-1440
       cleanMin: 0,        // 0-1440
-      maintMin: 0,        // 1-1440
+      maintMin: 1,        // 1-1440
       otherMin: 0,        // 0-1440
 
       sharedMin: 0,       // 0-1440
@@ -1570,6 +1570,7 @@
     lockBtn(btn,6000);
     copyText(txt);
   }
+
   function renderWB(){
     wbRows.forEach(r=>applyGlobalToRow(r));
     saveWB();
@@ -1834,9 +1835,8 @@
       }
 
       ddMinutes(row.lunchMin ?? 0, 0, 1440, 5, v=>{ row.lunchMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
-      ddMinutes(row.changeoverMin ?? 0, 0, 1440, 5, v=>{ row.changeoverMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
-      ddMinutes(row.maintMin ?? 0, 0, 1440, 5, v=>{ row.maintMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
-
+      ddMinutes(row.changeoverMin ?? 1, 1, 1440, 5, v=>{ row.changeoverMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
+      ddMinutes(row.cleanMin ?? 0, 0, 1440, 5, v=>{ row.cleanMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
       ddMinutes(row.maintMin ?? 1, 1, 1440, 5, v=>{ row.maintMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
       ddMinutes(row.otherMin ?? 0, 0, 1440, 5, v=>{ row.otherMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
 
@@ -2738,9 +2738,8 @@ View: ${capViewSel.value||''}`;
     wbRows.forEach(r=>{
       r.pcsPerOp = clamp(parseFloat(r.pcsPerOp)||1,1,99);
       r.udtMinDay = clamp(parseFloat(r.udtMinDay)||0,0,1440);
-      if(!isFinite(r.changeoverMin) || r.changeoverMin<0) r.changeoverMin = 0;
-      if(!isFinite(r.maintMin) || r.maintMin<0) r.maintMin = 0;
-
+      if(!isFinite(r.changeoverMin) || r.changeoverMin<1) r.changeoverMin = 1;
+      if(!isFinite(r.maintMin) || r.maintMin<1) r.maintMin = 1;
     });
   }
 
@@ -2779,3 +2778,4 @@ View: ${capViewSel.value||''}`;
 })();
 </script>
 </body>
+</html>
