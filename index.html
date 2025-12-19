@@ -7,10 +7,17 @@
 
 <style>
   :root{
-    /* ✅ clean / sober */
-    --bg-main:#ffffff;
-    --bg-card:#ffffff;
-    --bg-card-soft:#fbfcfe;
+    /* ✅ Anti-fatiga (dashboard) */
+    --bg-main:#eef2f6;          /* fondo gris claro */
+    --bg-card:#f7fbff;          /* base sky */
+    --bg-card-soft:#f1f7ff;
+
+    /* Cards por sección (pastel + sobrio) */
+    --card-blue:#f3f9ff;
+    --card-green:#f3fff9;
+    --card-amber:#fffaf0;
+    --card-red:#fff3f6;
+    --card-grey:#f4f6f8;
 
     /* accents (professional) */
     --accent-green:#18c97a;
@@ -20,10 +27,10 @@
     --accent-grey:#cfd8dc;
 
     --text-main:#0b1220;
-    --text-soft:#3a4a66;
+    --text-soft:#2f3f5c;
     --text-muted:#6b7a90;
 
-    --border-soft:#d9e2ef;
+    --border-soft:#d5dfec;
 
     --btn-green:#18c97a;
     --btn-orange:#f2a93b;
@@ -34,8 +41,12 @@
     --badge-amber:rgba(242,193,78,.14);
 
     /* WB sticky sizing */
-    --wb-on-w:56px;
-    --wb-op-w:210px;
+    --wb-on-w:54px;
+    --wb-op-w:200px;
+
+    /* compact WB */
+    --wb-cell-pad-y:3px;
+    --wb-cell-pad-x:6px;
   }
 
   *{box-sizing:border-box;}
@@ -48,7 +59,7 @@
   }
 
   .page{
-    max-width:1100px;
+    max-width:1180px;
     margin:0 auto;
     padding:10px 10px 34px;
   }
@@ -56,8 +67,8 @@
   .sticky-timer-bar{
     position:sticky;
     top:0;
-    z-index:100;
-    background:rgba(255,255,255,.92);
+    z-index:120;
+    background:rgba(238,242,246,.92);
     backdrop-filter: blur(8px);
     padding:6px 0 8px;
     border-bottom:1px solid var(--border-soft);
@@ -72,13 +83,13 @@
 
   .logo-circle{
     width:38px;height:38px;border-radius:50%;
-    border:2px solid rgba(11,18,32,.18);
+    border:2px solid rgba(11,18,32,.14);
     display:flex;align-items:center;justify-content:center;
-    background:#fff;
+    background:rgba(255,255,255,.85);
   }
   .logo-gear{
     width:22px;height:22px;border-radius:50%;
-    border:2px solid rgba(11,18,32,.18);
+    border:2px solid rgba(11,18,32,.16);
     position:relative;
   }
   .logo-gear::before{
@@ -95,33 +106,33 @@
   @keyframes logo-spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
 
   .title-block{display:flex;flex-direction:column;gap:2px;}
-  .title-main{font-size:1.2rem;font-weight:800;letter-spacing:.02em;}
+  .title-main{font-size:1.2rem;font-weight:900;letter-spacing:.02em;}
   .title-sub{font-size:.72rem;color:var(--text-soft);}
 
   .lang-switch{margin-left:auto;display:flex;align-items:center;gap:6px;}
   .lang-btn{
     border-radius:999px;border:1px solid var(--border-soft);
-    background:#fff;color:var(--text-soft);
+    background:rgba(255,255,255,.85);color:var(--text-soft);
     font-size:.7rem;padding:5px 10px;cursor:pointer;min-width:34px;
   }
   .lang-btn.active{
     background:rgba(57,189,245,.95);
     color:#051018;border-color:rgba(57,189,245,.95);
-    font-weight:800;
+    font-weight:900;
   }
 
   .timer-card{
-    background:var(--bg-card);
+    background:rgba(255,255,255,.86);
     border-radius:18px;
     border:1px solid var(--border-soft);
     padding:6px 10px 10px;
-    box-shadow:0 10px 22px rgba(10,20,40,.08);
+    box-shadow:0 10px 22px rgba(10,20,40,.10);
   }
 
   .timer-display{
     text-align:center;
     font-size:2.8rem;
-    font-weight:650;
+    font-weight:700;
     letter-spacing:.08em;
     padding:4px 4px 2px;
   }
@@ -140,23 +151,14 @@
     padding:6px 10px;
     border-radius:999px;
     border:1px solid rgba(11,18,32,.10);
-    background:rgba(11,18,32,.02);
+    background:rgba(255,255,255,.75);
     font-size:.78rem;
     color:var(--text-soft);
     min-width:150px;
     justify-content:center;
   }
-  .split-pill .tag{
-    font-weight:900;
-    letter-spacing:.04em;
-    color:var(--text-main);
-    opacity:.9;
-  }
-  .split-pill .val{
-    font-variant-numeric:tabular-nums;
-    letter-spacing:.04em;
-    color:var(--text-main);
-  }
+  .split-pill .tag{font-weight:900;letter-spacing:.04em;color:var(--text-main);opacity:.9;}
+  .split-pill .val{font-variant-numeric:tabular-nums;letter-spacing:.04em;color:var(--text-main);}
   .split-pill.t1{ border-color: rgba(57,189,245,.28); }
   .split-pill.t2{ border-color: rgba(242,193,78,.26); }
 
@@ -166,17 +168,17 @@
     border-radius:12px;border:1px solid transparent;
     line-height:1.25;
   }
-  .sample-neutral{background:rgba(11,18,32,.02);border-color:rgba(11,18,32,.08);color:var(--text-soft);}
-  .sample-good{background:rgba(24,201,122,.10);border-color:rgba(24,201,122,.35);color:#0b5a33;}
-  .sample-warn{background:rgba(242,193,78,.10);border-color:rgba(242,193,78,.35);color:#6a4a00;}
-  .sample-bad{background:rgba(255,51,85,.10);border-color:rgba(255,51,85,.35);color:#6b0014;}
+  .sample-neutral{background:rgba(255,255,255,.78);border-color:rgba(11,18,32,.10);color:var(--text-soft);}
+  .sample-good{background:rgba(24,201,122,.12);border-color:rgba(24,201,122,.35);color:#0b5a33;}
+  .sample-warn{background:rgba(242,193,78,.12);border-color:rgba(242,193,78,.35);color:#6a4a00;}
+  .sample-bad{background:rgba(255,51,85,.12);border-color:rgba(255,51,85,.35);color:#6b0014;}
 
   .btn-row-main{display:flex;gap:10px;margin-bottom:2px;}
   .btn{
     border:none;border-radius:16px;padding:10px 12px;
-    font-size:.9rem;font-weight:850;cursor:pointer;color:#051018;
-    box-shadow:0 6px 14px rgba(10,20,40,.10);flex:1;
-    transition:transform .04s ease, box-shadow .04s ease, background .15s;
+    font-size:.9rem;font-weight:900;cursor:pointer;color:#051018;
+    box-shadow:0 6px 14px rgba(10,20,40,.12);flex:1;
+    transition:transform .04s ease, box-shadow .04s ease, filter .15s, background .15s;
     touch-action:manipulation;
   }
   .btn:active{transform:translateY(1px);box-shadow:0 2px 8px rgba(10,20,40,.12);}
@@ -184,7 +186,7 @@
   .btn-lap{background:rgba(242,169,59,.95); }
 
   .flash{animation:flash-bg .12s ease-out;}
-  @keyframes flash-bg{ from{background:rgba(57,189,245,.10);} to{background:transparent;} }
+  @keyframes flash-bg{ from{filter:brightness(1.08);} to{filter:brightness(1);} }
 
   .content-section{margin-top:10px;}
 
@@ -195,7 +197,7 @@
     padding:10px 12px 12px;
     margin-bottom:12px;
     position:relative;
-    box-shadow:0 10px 22px rgba(10,20,40,.06);
+    box-shadow:0 10px 22px rgba(10,20,40,.08);
   }
   .section-card::before{
     content:"";
@@ -205,20 +207,29 @@
     border-radius:999px;
     background:rgba(11,18,32,.06);
   }
-  .section-card[data-accent="blue"]::before{ background:rgba(57,189,245,.38); }
-  .section-card[data-accent="green"]::before{ background:rgba(24,201,122,.34); }
-  .section-card[data-accent="amber"]::before{ background:rgba(242,193,78,.36); }
-  .section-card[data-accent="red"]::before{ background:rgba(255,51,85,.28); }
-  .section-card[data-accent="grey"]::before{ background:rgba(207,216,220,.50); }
 
-  .section-title{font-size:1.02rem;font-weight:900;margin:2px 0 8px;}
+  /* ✅ Sección = color asignado */
+  .section-card[data-accent="blue"]{ background:var(--card-blue); }
+  .section-card[data-accent="green"]{ background:var(--card-green); }
+  .section-card[data-accent="amber"]{ background:var(--card-amber); }
+  .section-card[data-accent="red"]{ background:var(--card-red); }
+  .section-card[data-accent="grey"]{ background:var(--card-grey); }
+
+  .section-card[data-accent="blue"]::before{ background:rgba(57,189,245,.50); }
+  .section-card[data-accent="green"]::before{ background:rgba(24,201,122,.42); }
+  .section-card[data-accent="amber"]::before{ background:rgba(242,193,78,.46); }
+  .section-card[data-accent="red"]::before{ background:rgba(255,51,85,.36); }
+  .section-card[data-accent="grey"]::before{ background:rgba(107,122,144,.25); }
+
+  .section-title{font-size:1.02rem;font-weight:950;margin:2px 0 8px;}
 
   .mode-row{
     display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;
     font-size:.78rem;color:var(--text-soft);
   }
   .mode-row select,.mode-row input{
-    background:#fff;border-radius:10px;border:1px solid var(--border-soft);
+    background:rgba(255,255,255,.9);
+    border-radius:10px;border:1px solid var(--border-soft);
     padding:6px 10px;color:var(--text-main);font-size:.78rem;min-width:70px;
     outline:none;
   }
@@ -233,10 +244,10 @@
   }
   th:first-child,td:first-child{text-align:left;}
   th{
-    color:var(--text-soft);font-weight:800;background:rgba(11,18,32,.02);
+    color:var(--text-soft);font-weight:900;background:rgba(255,255,255,.55);
     position:sticky;top:0;z-index:5;
   }
-  tbody tr:nth-child(even){background:rgba(11,18,32,.015);}
+  tbody tr:nth-child(even){background:rgba(255,255,255,.35);}
 
   .badge{
     display:inline-block;padding:2px 8px;border-radius:999px;
@@ -252,18 +263,26 @@
     border-radius:18px;
     font-size:.95rem;
     font-weight:950;
-    flex:0 0 auto;background:var(--bg-card-soft);color:var(--text-main);
+    flex:0 0 auto;background:rgba(255,255,255,.72);color:var(--text-main);
     border:1px solid var(--border-soft);cursor:pointer;
-    box-shadow:0 6px 14px rgba(10,20,40,.08);
+    box-shadow:0 6px 14px rgba(10,20,40,.10);
+    transition:transform .04s ease, box-shadow .04s ease, filter .15s;
   }
+  .btn-small:active{transform:translateY(1px);box-shadow:0 2px 10px rgba(10,20,40,.12);}
+
   .btn-small-copy{background:rgba(57,189,245,.95);border-color:rgba(57,189,245,.95);color:#051018;}
   .btn-small-summary{background:rgba(242,193,78,.95);border-color:rgba(242,193,78,.95);color:#0b0b0b;}
   .btn-small-manual{background:rgba(24,201,122,.95);border-color:rgba(24,201,122,.95);color:#051018;}
   .btn-small-reset{background:rgba(255,51,85,.92);border-color:rgba(255,51,85,.92);color:#fff;}
-  .btn-small-wbadd{background:rgba(11,18,32,.03);color:var(--text-main);}
-  .btn-small-wbclear{background:rgba(255,51,85,.10);border-color:rgba(255,51,85,.30);color:#6b0014;}
+  .btn-small-wbadd{background:rgba(11,18,32,.04);color:var(--text-main);}
+  .btn-small-wbclear{background:rgba(255,51,85,.12);border-color:rgba(255,51,85,.30);color:#6b0014;}
 
-  .subsection-title{margin-top:10px;font-size:.82rem;font-weight:900;color:var(--text-soft);}
+  /* ✅ confirm flash for buttons */
+  .btn-ok{ filter:brightness(1.10); }
+  .btn-warnflash{ animation:btnflash .18s ease-out; }
+  @keyframes btnflash{ from{filter:brightness(1.22);} to{filter:brightness(1);} }
+
+  .subsection-title{margin-top:10px;font-size:.82rem;font-weight:950;color:var(--text-soft);}
   .footer-note{margin-top:10px;font-size:.68rem;color:var(--text-muted);text-align:right;}
 
   .charts-wrapper{
@@ -272,43 +291,48 @@
     gap:10px;
   }
   .chart-card{
-    background:var(--bg-card-soft);
+    background:rgba(255,255,255,.62);
     border-radius:14px;
     border:1px solid var(--border-soft);
     padding:8px;
   }
-  .chart-title{font-size:.75rem;margin-bottom:4px;color:var(--text-soft);font-weight:800;}
-  canvas{width:100%;height:180px;background:#fff;border-radius:10px;border:1px solid rgba(11,18,32,.08);}
+  .chart-title{font-size:.75rem;margin-bottom:4px;color:var(--text-soft);font-weight:900;}
+  canvas{width:100%;height:180px;background:rgba(255,255,255,.86);border-radius:10px;border:1px solid rgba(11,18,32,.08);}
 
   .btn-edit,.btn-del,.btn-relink{
     padding:2px 8px;border-radius:10px;font-size:.7rem;
-    border:1px solid rgba(11,18,32,.20);cursor:pointer;background:#fff;
+    border:1px solid rgba(11,18,32,.20);cursor:pointer;background:rgba(255,255,255,.85);
   }
   .btn-edit{color:#085b7a;}
   .btn-del{color:#6b0014;}
   .btn-relink{color:#6a4a00;}
 
+  /* WB compact cells */
   .wb-inp, .wb-sel, .wb-chk{
-    background:#fff;border-radius:10px;border:1px solid var(--border-soft);
-    padding:3px 8px;color:var(--text-main);font-size:.70rem;
+    background:rgba(255,255,255,.92);
+    border-radius:10px;border:1px solid var(--border-soft);
+    padding:var(--wb-cell-pad-y) var(--wb-cell-pad-x);
+    color:var(--text-main);
+    font-size:.70rem;
     outline:none;
   }
-  .wb-inp{width:72px;}
-  .wb-inp.wide{width:160px;}
-  .wb-inp.slim{width:56px;}
-  .wb-sel{width:120px;}
-  .wb-sel.narrow{width:92px;}
+  .wb-inp{width:64px;}
+  .wb-inp.wide{width:150px;}
+  .wb-inp.slim{width:52px;}
+  .wb-sel{width:110px;}
+  .wb-sel.narrow{width:84px;}
 
   .wb-opwrap{display:flex;gap:6px;align-items:center;justify-content:flex-start;}
   .wb-opselect{
     width: calc(var(--wb-op-w) - 14px);
     max-width: calc(var(--wb-op-w) - 14px);
-    background:#fff;border-radius:10px;border:1px solid var(--border-soft);
+    background:rgba(255,255,255,.92);
+    border-radius:10px;border:1px solid var(--border-soft);
     padding:4px 8px;color:var(--text-main);font-size:.72rem;
   }
   .wb-opbtn{
     border:1px solid rgba(11,18,32,.16);
-    background:#fff;
+    background:rgba(255,255,255,.9);
     color:var(--text-soft);
     border-radius:10px;
     padding:3px 8px;
@@ -319,12 +343,12 @@
 
   .wb-alert{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;}
   .wb-alert .badge{font-size:.72rem;padding:4px 10px;}
-  .wb-badge-title{font-size:.72rem;color:var(--text-soft);font-weight:900;}
+  .wb-badge-title{font-size:.72rem;color:var(--text-soft);font-weight:950;}
   .wb-mini{font-size:.7rem;color:var(--text-muted);line-height:1.25;margin-top:6px;}
   .wb-sumline{
     display:flex;justify-content:flex-end;gap:10px;align-items:center;
     margin-top:6px;font-size:.72rem;color:var(--text-soft);
-    font-weight:800;
+    font-weight:900;
   }
 
   /* ✅ WB STICKY COLUMNS */
@@ -337,15 +361,47 @@
   #wbTable th:nth-child(1), #wbTable td:nth-child(1){
     position:sticky; left:0;
     z-index:30;
-    background:#fff;
+    background:rgba(255,255,255,.92);
   }
   #wbTable th:nth-child(2), #wbTable td:nth-child(2){
     position:sticky; left:var(--wb-on-w);
     z-index:30;
-    background:#fff;
+    background:rgba(255,255,255,.92);
   }
   #wbTable thead th:nth-child(1),
   #wbTable thead th:nth-child(2){ z-index:40; }
+
+  /* ✅ header unit line */
+  th[data-unit]::after{
+    content: attr(data-unit);
+    display:block;
+    font-size:.62rem;
+    font-weight:800;
+    color:var(--text-muted);
+    line-height:1.05;
+    margin-top:2px;
+  }
+
+  /* ✅ toast */
+  .toast{
+    position:fixed;
+    top:10px;
+    right:10px;
+    z-index:9999;
+    background:rgba(255,255,255,.92);
+    border:1px solid var(--border-soft);
+    box-shadow:0 10px 22px rgba(10,20,40,.14);
+    padding:10px 12px;
+    border-radius:14px;
+    min-width:220px;
+    font-size:.78rem;
+    color:var(--text-soft);
+    display:none;
+  }
+  .toast.show{display:block; animation:toastIn .18s ease-out;}
+  @keyframes toastIn{ from{transform:translateY(-6px); opacity:.0;} to{transform:translateY(0); opacity:1;} }
+  .toast .t{font-weight:950;color:var(--text-main);margin-bottom:2px;}
+  .toast .s{font-size:.72rem;color:var(--text-muted);}
 
   @media (max-width:600px){
     .timer-display{font-size:2.2rem;}
@@ -367,6 +423,11 @@
 </head>
 
 <body>
+<div class="toast" id="toast">
+  <div class="t" id="toastTitle">—</div>
+  <div class="s" id="toastSub">—</div>
+</div>
+
 <div class="page">
 
   <div class="sticky-timer-bar">
@@ -404,7 +465,6 @@
   </div>
 
   <div class="content-section">
-
     <div class="section-card" data-accent="blue">
       <div class="section-title" data-i18n="section.measurementSetup">Measurement Setup</div>
 
@@ -517,6 +577,7 @@
         <button class="btn-small btn-small-wbclear" id="btnWbClear" data-i18n="btn.wbClear">Clear WB</button>
         <button class="btn-small btn-small-copy" id="btnCopyWB" data-i18n="btn.copyWB">Copy WB</button>
       </div>
+
       <div style="max-height:320px;overflow:auto;">
         <table id="wbTable">
           <thead>
@@ -525,44 +586,44 @@
               <th data-i18n="wb.operation">Operation</th>
               <th data-i18n="wb.operators">Operators</th>
               <th data-i18n="wb.shifts">Shifts</th>
-              <th data-i18n="wb.hours">Hours</th>
+              <th data-i18n="wb.hours" data-unit="(h/día)">Hours</th>
               <th data-i18n="wb.machines"># Machines</th>
               <th data-i18n="wb.pcsPerOp">Pcs/Op</th>
-              <th data-i18n="wb.contract">Contract (pcs/day)</th>
+              <th data-i18n="wb.contract" data-unit="(pzs/día)">Contract (pcs/day)</th>
 
-              <th data-i18n="wb.gross">Gross min/day</th>
-              <th data-i18n="wb.lunch">Lunch min/day</th>
-              <th data-i18n="wb.changeover">Changeover</th>
-              <th data-i18n="wb.cleaning">5S/Clean</th>
-              <th data-i18n="wb.maint">Maintenance</th>
-              <th data-i18n="wb.other">Other</th>
+              <th data-i18n="wb.gross" data-unit="(min/día)">Gross min/day</th>
+              <th data-i18n="wb.lunch" data-unit="(min/día)">Lunch min/day</th>
+              <th data-i18n="wb.changeover" data-unit="(min/día)">Changeover</th>
+              <th data-i18n="wb.cleaning" data-unit="(min/día)">5S/Clean</th>
+              <th data-i18n="wb.maint" data-unit="(min/día)">Maintenance</th>
+              <th data-i18n="wb.other" data-unit="(min/día)">Other</th>
 
-              <th data-i18n="wb.shared">Shared Capacity</th>
+              <th data-i18n="wb.shared" data-unit="(min/día)">Shared Capacity</th>
 
-              <th data-i18n="wb.udt">Unplanned DT</th>
+              <th data-i18n="wb.udt" data-unit="(min/día / %)">Unplanned DT</th>
               <th data-i18n="wb.udtUnit">Unit</th>
 
-              <th data-i18n="wb.net">Net min/day</th>
+              <th data-i18n="wb.net" data-unit="(min/día)">Net min/day</th>
 
-              <th data-i18n="wb.scrap">Scrap %</th>
-              <th data-i18n="wb.yield">Yield</th>
+              <th data-i18n="wb.scrap" data-unit="(%)">Scrap %</th>
+              <th data-i18n="wb.yield" data-unit="(%)">Yield</th>
 
-              <th data-i18n="wb.oeeA">A%</th>
-              <th data-i18n="wb.oeeP">P%</th>
-              <th data-i18n="wb.oeeQ">Q%</th>
-              <th data-i18n="wb.oee">OEE%</th>
+              <th data-i18n="wb.oeeA" data-unit="(%)">A%</th>
+              <th data-i18n="wb.oeeP" data-unit="(%)">P%</th>
+              <th data-i18n="wb.oeeQ" data-unit="(%)">Q%</th>
+              <th data-i18n="wb.oee" data-unit="(%)">OEE%</th>
 
-              <th data-i18n="wb.ctCur">CT Current</th>
-              <th data-i18n="wb.ctWst">CT Worst</th>
-              <th data-i18n="wb.ctPot">CT Potential</th>
+              <th data-i18n="wb.ctCur" data-unit="(s)">CT Current</th>
+              <th data-i18n="wb.ctWst" data-unit="(s)">CT Worst</th>
+              <th data-i18n="wb.ctPot" data-unit="(s)">CT Potential</th>
 
-              <th data-i18n="wb.ctCurOee">CT@OEE (Cur)</th>
+              <th data-i18n="wb.ctCurOee" data-unit="(s)">CT@OEE (Cur)</th>
 
-              <th data-i18n="wb.cap100">Cap 100% (Cur)</th>
-              <th data-i18n="wb.capOee">Cap@OEE (Cur)</th>
+              <th data-i18n="wb.cap100" data-unit="(pzs/día)">Cap 100% (Cur)</th>
+              <th data-i18n="wb.capOee" data-unit="(pzs/día)">Cap@OEE (Cur)</th>
 
-              <th data-i18n="wb.vsContract">% vs contract</th>
-              <th data-i18n="wb.inputReq">Input req. for Contract</th>
+              <th data-i18n="wb.vsContract" data-unit="(%)">% vs contract</th>
+              <th data-i18n="wb.inputReq" data-unit="(pzs/día)">Input req. for Contract</th>
 
               <th data-i18n="wb.actions">Actions</th>
             </tr>
@@ -664,11 +725,11 @@
 
     <div class="section-card" data-accent="amber">
       <div class="section-title" data-i18n="section.methodGuide">Method &amp; Guide</div>
-      <details style="background:var(--bg-card-soft);border:1px solid var(--border-soft);border-radius:14px;padding:10px;">
-        <summary style="cursor:pointer;color:var(--text-soft);font-weight:900;">
+      <details style="background:rgba(255,255,255,.62);border:1px solid var(--border-soft);border-radius:14px;padding:10px;">
+        <summary style="cursor:pointer;color:var(--text-soft);font-weight:950;">
           <span data-i18n="method.open">Open</span>
         </summary>
-        <div style="margin-top:8px;font-size:.72rem;color:var(--text-soft);line-height:1.35;white-space:pre-wrap;" id="methodGuideText"></div>
+        <div style="margin-top:8px;font-size:.72rem;color:var(--text-soft);line-height:1.42;white-space:pre-wrap;" id="methodGuideText"></div>
       </details>
     </div>
 
@@ -678,9 +739,334 @@
     Created by Roberto González – Contact: hzaelglez@gmail.com
   </div>
 </div>
+    <div class="section-card" data-accent="blue">
+      <div class="section-title" data-i18n="section.measurementSetup">Measurement Setup</div>
 
+      <div class="mode-row">
+        <div>
+          <label for="processName" data-i18n="label.process">Process</label><br/>
+          <input id="processName" type="text" placeholder="e.g. Op 30-1" data-i18n-placeholder="label.processPlaceholder"/>
+        </div>
+
+        <div>
+          <label for="mode" data-i18n="label.mode">Mode</label><br/>
+          <select id="mode">
+            <option value="CT" data-i18n="mode.ct">Cycle Time (CT)</option>
+            <option value="MLD" data-i18n="mode.mld">Machine &amp; Load/Unload</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="efficiency" data-i18n="label.efficiency">Efficiency %</label><br/>
+          <input id="efficiency" type="number" value="100" min="0" max="100" step="1"/>
+        </div>
+
+        <div>
+          <label for="contractPcd" data-i18n="label.contractPcd">Contract Cap (pcs/day)</label><br/>
+          <input id="contractPcd" type="number" min="0" max="99999" step="1"/>
+        </div>
+
+        <div>
+          <label for="hoursPerDay" data-i18n="label.hoursPerDay">Hours / Day</label><br/>
+          <input id="hoursPerDay" type="number" value="8" min="0" max="24" step=".5"/>
+        </div>
+
+        <div>
+          <label for="daysPerWeek" data-i18n="label.daysPerWeek">Days / Week</label><br/>
+          <input id="daysPerWeek" type="number" value="5" min="1" max="7"/>
+        </div>
+
+        <div>
+          <label for="capView" data-i18n="label.capView">Capacity View</label><br/>
+          <select id="capView">
+            <option value="hour" data-i18n="capView.hour">per Hour</option>
+            <option value="day" data-i18n="capView.day">per Day</option>
+            <option value="week" data-i18n="capView.week">per Week</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card" data-accent="green">
+      <div class="section-title" data-i18n="section.contractSummary">Contract vs Capacity Summary</div>
+
+      <div class="info-stack" style="margin-top:4px;">
+        <div class="info-line sample-neutral" id="contractSumLine1">—</div>
+        <div class="info-line sample-neutral" id="contractSumLine2">—</div>
+        <div class="info-line sample-neutral" id="contractSumLine3">—</div>
+        <div class="info-line sample-neutral" id="contractSumLine4">—</div>
+      </div>
+
+      <div style="font-size:.68rem;color:var(--text-muted);margin:6px 0 0;">
+        <span data-i18n="contract.note">Uses current process + your laps (Median/P10/P90) with the Measurement Setup assumptions.</span>
+      </div>
+    </div>
+
+    <div class="section-card" data-accent="amber">
+      <div class="section-title" data-i18n="section.statsFocus">Stat Focus</div>
+
+      <div class="info-stack" style="margin-top:4px;">
+        <div class="info-line sample-neutral" id="sampleInfoFocus">Sample size: —</div>
+        <div class="info-line sample-neutral" id="stdInfoFocus">Std dev: —</div>
+        <div class="info-line sample-neutral" id="distInfoFocus">Mean vs Median: —</div>
+        <div class="info-line sample-neutral" id="contractInfoFocus">No contract loaded</div>
+      </div>
+
+      <div style="font-size:.68rem;color:var(--text-muted);margin:6px 0 6px;">
+        <span data-i18n="stats.note">Simple language on purpose: few / enough samples, low / high variation, capable / not capable.</span>
+      </div>
+
+      <div style="max-height:300px;overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="col.process">Process</th>
+              <th data-i18n="col.mode">Mode</th>
+              <th>N</th>
+              <th data-i18n="col.sample">Sample size / Error</th>
+              <th>Std</th>
+              <th>CV%</th>
+              <th>CTmed</th>
+              <th>P10</th>
+              <th>P90</th>
+              <th data-i18n="col.capCurrent">Current @Eff</th>
+              <th data-i18n="col.capPotential">Potential @Eff</th>
+              <th data-i18n="col.capWorst">Worst @Eff</th>
+              <th data-i18n="col.contract">Contract</th>
+              <th data-i18n="col.gap">Gap</th>
+              <th data-i18n="col.vsContract">% vs</th>
+              <th>Cp</th>
+              <th>Cpk</th>
+              <th data-i18n="col.note">Note</th>
+            </tr>
+          </thead>
+          <tbody id="focusBody"></tbody>
+        </table>
+      </div>
+
+      <div class="subsection-title" data-i18n="section.wbPlanner">WB – Capacity Planner (by process)</div>
+
+      <div class="btn-row-secondary" style="margin-top:8px;">
+        <button class="btn-small btn-small-wbadd" id="btnWbAdd" data-i18n="btn.wbAdd">+ Add Operation</button>
+        <button class="btn-small btn-small-wbclear" id="btnWbClear" data-i18n="btn.wbClear">Clear WB</button>
+        <button class="btn-small btn-small-copy" id="btnCopyWB" data-i18n="btn.copyWB">Copy WB</button>
+      </div>
+
+      <div style="max-height:320px;overflow:auto;">
+        <table id="wbTable">
+          <thead>
+            <tr>
+              <th data-i18n="wb.enabled">On</th>
+              <th data-i18n="wb.operation">Operation</th>
+              <th data-i18n="wb.operators">Operators</th>
+              <th data-i18n="wb.shifts">Shifts</th>
+              <th data-i18n="wb.hours" data-unit="(h/día)">Hours</th>
+              <th data-i18n="wb.machines"># Machines</th>
+              <th data-i18n="wb.pcsPerOp">Pcs/Op</th>
+              <th data-i18n="wb.contract" data-unit="(pzs/día)">Contract (pcs/day)</th>
+
+              <th data-i18n="wb.gross" data-unit="(min/día)">Gross min/day</th>
+              <th data-i18n="wb.lunch" data-unit="(min/día)">Lunch min/day</th>
+              <th data-i18n="wb.changeover" data-unit="(min/día)">Changeover</th>
+              <th data-i18n="wb.cleaning" data-unit="(min/día)">5S/Clean</th>
+              <th data-i18n="wb.maint" data-unit="(min/día)">Maintenance</th>
+              <th data-i18n="wb.other" data-unit="(min/día)">Other</th>
+
+              <th data-i18n="wb.shared" data-unit="(min/día)">Shared Capacity</th>
+
+              <th data-i18n="wb.udt" data-unit="(min/día / %)">Unplanned DT</th>
+              <th data-i18n="wb.udtUnit">Unit</th>
+
+              <th data-i18n="wb.net" data-unit="(min/día)">Net min/day</th>
+
+              <th data-i18n="wb.scrap" data-unit="(%)">Scrap %</th>
+              <th data-i18n="wb.yield" data-unit="(%)">Yield</th>
+
+              <th data-i18n="wb.oeeA" data-unit="(%)">A%</th>
+              <th data-i18n="wb.oeeP" data-unit="(%)">P%</th>
+              <th data-i18n="wb.oeeQ" data-unit="(%)">Q%</th>
+              <th data-i18n="wb.oee" data-unit="(%)">OEE%</th>
+
+              <th data-i18n="wb.ctCur" data-unit="(s)">CT Current</th>
+              <th data-i18n="wb.ctWst" data-unit="(s)">CT Worst</th>
+              <th data-i18n="wb.ctPot" data-unit="(s)">CT Potential</th>
+
+              <th data-i18n="wb.ctCurOee" data-unit="(s)">CT@OEE (Cur)</th>
+
+              <th data-i18n="wb.cap100" data-unit="(pzs/día)">Cap 100% (Cur)</th>
+              <th data-i18n="wb.capOee" data-unit="(pzs/día)">Cap@OEE (Cur)</th>
+
+              <th data-i18n="wb.vsContract" data-unit="(%)">% vs contract</th>
+              <th data-i18n="wb.inputReq" data-unit="(pzs/día)">Input req. for Contract</th>
+
+              <th data-i18n="wb.actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="wbBody"></tbody>
+        </table>
+      </div>
+
+      <div class="wb-sumline">
+        <span data-i18n="wb.opsSum">Operators total:</span>
+        <span class="badge badge-warn" id="wbOperatorsSum">0</span>
+      </div>
+
+      <div class="wb-alert">
+        <span class="wb-badge-title" data-i18n="wb.constraintTitle">Constraint / Next:</span>
+        <span class="badge badge-bad" id="wbConstraint">—</span>
+        <span class="badge badge-warn" id="wbNextConstraint">—</span>
+      </div>
+      <div class="wb-mini" id="wbConstraintNote"></div>
+
+      <div class="subsection-title" data-i18n="section.statsDetail">Statistical Detail (per process)</div>
+      <div style="max-height:240px;overflow:auto;">
+        <table id="statsTable">
+          <thead>
+            <tr>
+              <th data-i18n="col.process">Process</th>
+              <th data-i18n="col.mode">Mode</th>
+              <th data-i18n="col.n">N</th>
+              <th>Mean</th>
+              <th>Median</th>
+              <th>P10</th>
+              <th>P90</th>
+              <th>Min</th>
+              <th>Max</th>
+              <th>Std</th>
+              <th>CV%</th>
+              <th>Cp</th>
+              <th>Cpk</th>
+            </tr>
+          </thead>
+          <tbody id="statsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-card" data-accent="red">
+      <div class="section-title" data-i18n="section.dataControls">Data Controls</div>
+      <div class="btn-row-secondary">
+        <button class="btn-small btn-small-copy" id="btnCopyAll" data-i18n="btn.copyAll">Copy All</button>
+        <button class="btn-small btn-small-summary" id="btnCopySummary" data-i18n="btn.copySummary">Copy Summary</button>
+        <button class="btn-small btn-small-manual" id="btnAddManualLap" data-i18n="btn.addManualLap">Add Manual Lap</button>
+        <button class="btn-small btn-small-reset" id="btnReset" data-i18n="btn.reset">Reset</button>
+      </div>
+    </div>
+
+    <div class="section-card" data-accent="grey">
+      <div class="section-title" data-i18n="section.charts">Charts (selected process)</div>
+
+      <div style="margin-bottom:6px;font-size:.75rem;">
+        <label for="chartProcessSelect" data-i18n="label.chartProcessLabel">Process / Mode:</label>
+        <select id="chartProcessSelect"></select>
+      </div>
+
+      <div class="charts-wrapper">
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="chart.timeSeriesTitle">Time Series with Mean, Median, ±3σ</div>
+          <canvas id="timeSeriesCanvas"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="chart.histTitle">Histogram with Median &amp; Percentiles</div>
+          <canvas id="histCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card" data-accent="blue">
+      <div class="section-title" data-i18n="section.rawData">Raw Time Data</div>
+      <div style="max-height:300px;overflow:auto;">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th data-i18n="col.index">#</th>
+              <th data-i18n="col.process">Process</th>
+              <th data-i18n="col.mode">Mode</th>
+              <th data-i18n="col.status">Status</th>
+              <th data-i18n="col.note">Note</th>
+              <th data-i18n="col.t1">T1 (s)</th>
+              <th data-i18n="col.t2">T2 (s)</th>
+              <th data-i18n="col.total">Total (s)</th>
+              <th data-i18n="col.edit">Edit</th>
+              <th data-i18n="col.del">Del</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-card" data-accent="amber">
+      <div class="section-title" data-i18n="section.methodGuide">Method &amp; Guide</div>
+      <details style="background:rgba(255,255,255,.62);border:1px solid var(--border-soft);border-radius:14px;padding:10px;">
+        <summary style="cursor:pointer;color:var(--text-soft);font-weight:950;">
+          <span data-i18n="method.open">Open</span>
+        </summary>
+        <div style="margin-top:8px;font-size:.72rem;color:var(--text-soft);line-height:1.42;white-space:pre-wrap;" id="methodGuideText"></div>
+      </details>
+    </div>
+
+  </div>
+
+  <div class="footer-note" data-i18n="footer.note">
+    Created by Roberto González – Contact: hzaelglez@gmail.com
+  </div>
+</div>
+<!-- =========================
+     PARTE 4 DE 4 (REEMPLAZA COMPLETA)
+     ========================= -->
 <script>
 (function(){
+  /* =========================================================
+     ✅ OVERRIDES / MEJORAS (para no tocar tus partes 1-3 aquí)
+     ========================================================= */
+
+  // 1) Cronómetro con HORAS (HH:MM:SS.cc) — override
+  function formatTime(ms){
+    const total = Math.max(ms,0);
+    const hrs  = Math.floor(total/3600000);
+    const mins = Math.floor((total%3600000)/60000);
+    const secs = Math.floor((total%60000)/1000);
+    const cent = Math.floor((total%1000)/10);
+
+    const HH = (hrs<10?'0'+hrs:hrs);
+    const MM = (mins<10?'0'+mins:mins);
+    const SS = (secs<10?'0'+secs:secs);
+    const CC = (cent<10?'0'+cent:cent);
+
+    return `${HH}:${MM}:${SS}.${CC}`;
+  }
+
+  // 2) Micro-feedback visual para botones (confirmación “sí funcionó”)
+  function pulseButton(btn, ok=true, msg=null){
+    if(!btn) return;
+    const oldText = btn.textContent;
+    const oldBg = btn.style.background;
+    const oldColor = btn.style.color;
+    const oldBorder = btn.style.borderColor;
+
+    // tonos sobrios
+    btn.style.transition = 'background .12s ease, color .12s ease, border-color .12s ease, transform .08s ease';
+    btn.style.transform = 'translateY(1px)';
+    btn.style.background = ok ? 'rgba(24,201,122,.95)' : 'rgba(255,51,85,.92)';
+    btn.style.color = ok ? '#051018' : '#fff';
+    btn.style.borderColor = ok ? 'rgba(24,201,122,.95)' : 'rgba(255,51,85,.92)';
+    btn.textContent = msg || (ok ? '✅ Copied' : '⚠️ Error');
+
+    setTimeout(()=>{
+      btn.style.transform = '';
+      btn.textContent = oldText;
+      btn.style.background = oldBg;
+      btn.style.color = oldColor;
+      btn.style.borderColor = oldBorder;
+    }, 900);
+  }
+
+  /* =========================================================
+     ✅ TU CÓDIGO EXISTENTE CONTINÚA (desde aquí es tu Parte 4)
+     ========================================================= */
+
   const display = document.getElementById('display');
   const btnStart = document.getElementById('btnStart');
   const btnLap = document.getElementById('btnLap');
@@ -738,18 +1124,13 @@
     if(!isFinite(s)) return '-';
     return (Math.round(s*100)/100).toFixed(2);
   }
-  function formatTime(ms){
-    const total=Math.max(ms,0);
-    const mins=Math.floor(total/60000);
-    const secs=Math.floor((total%60000)/1000);
-    const cent=Math.floor((total%1000)/10);
-    return (mins<10?'0'+mins:mins)+':'+(secs<10?'0'+secs:secs)+'.'+(cent<10?'0'+cent:cent);
-  }
+
   function formatUnits(n){
     if(!isFinite(n)) return '-';
     const rounded=Math.round(n);
     return rounded.toLocaleString('en-US',{maximumFractionDigits:0});
   }
+
   function pct(n, digits=0){ if(!isFinite(n)) return '-'; return n.toFixed(digits)+'%'; }
 
   function normOp(s){
@@ -759,154 +1140,12 @@
       .replace(/\s+/g,' ')
       .toLowerCase();
   }
-  const i18n = {
-    en:{
-      'title.subtitle':'Cycle Time & Capacity Analyzer',
-      'btn.start':'Start','btn.pause':'Pause','btn.lap':'LAP',
-      'btn.copyAll':'Copy All','btn.copySummary':'Copy Summary','btn.addManualLap':'Add Manual Lap','btn.reset':'Reset',
-      'btn.copyWB':'Copy WB',
-      'section.measurementSetup':'Measurement Setup',
-      'section.contractSummary':'Contract vs Capacity Summary',
-      'contract.note':'Uses current process + your laps (Median/P10/P90) with the Measurement Setup assumptions.',
-      'section.statsFocus':'Stat Focus',
-      'section.dataControls':'Data Controls',
-      'section.rawData':'Raw Time Data',
-      'section.charts':'Charts (selected process)',
-      'section.statsDetail':'Statistical Detail (per process)',
-      'section.wbPlanner':'WB – Capacity Planner (by process)',
-      'section.methodGuide':'Method & Guide',
-      'method.open':'Open',
 
-      'label.process':'Process','label.processPlaceholder':'e.g. Op 30-1',
-      'label.mode':'Mode','label.efficiency':'Efficiency %','label.contractPcd':'Contract Cap (pcs/day)',
-      'label.hoursPerDay':'Hours / Day','label.daysPerWeek':'Days / Week','label.capView':'Capacity View',
-      'label.chartProcessLabel':'Process / Mode:',
-
-      'mode.ct':'Cycle Time (CT)','mode.mld':'Machine & Load/Unload',
-      'capView.hour':'per Hour','capView.day':'per Day','capView.week':'per Week',
-
-      'col.index':'#','col.process':'Process','col.mode':'Mode','col.status':'Status','col.note':'Note',
-      'col.t1':'T1 (s)','col.t2':'T2 (s)','col.total':'Total (s)','col.edit':'Edit','col.del':'Del','col.n':'N',
-      'col.sample':'Sample size / Error',
-      'col.capCurrent':'Current @Eff','col.capPotential':'Potential @Eff','col.capWorst':'Worst @Eff',
-      'col.contract':'Contract','col.gap':'Gap','col.vsContract':'% vs',
-      'chart.timeSeriesTitle':'Time Series with Mean, Median, ±3σ',
-      'chart.histTitle':'Histogram with Median & Percentiles',
-      'stats.note':'Simple language on purpose: few / enough samples, low / high variation, capable / not capable.',
-      'footer.note':'Created by Roberto González – Contact: hzaelglez@gmail.com',
-
-      'btn.wbAdd':'+ Add Operation',
-      'btn.wbClear':'Clear WB',
-      'wb.enabled':'On',
-      'wb.operation':'Operation',
-      'wb.operators':'Operators',
-      'wb.shifts':'Shifts',
-      'wb.hours':'Hours',
-      'wb.machines':'# Machines',
-      'wb.pcsPerOp':'Pcs/Op',
-      'wb.contract':'Contract (pcs/day)',
-      'wb.gross':'Gross min/day',
-      'wb.lunch':'Lunch min/day',
-      'wb.changeover':'Changeover (min/day)',
-      'wb.cleaning':'5S/Clean (min/day)',
-      'wb.maint':'Maintenance (min/day)',
-      'wb.other':'Other (min/day)',
-      'wb.shared':'Shared Capacity (min/day)',
-      'wb.udt':'Unplanned DT',
-      'wb.udtUnit':'Unit',
-      'wb.net':'Net min/day',
-      'wb.scrap':'Scrap %',
-      'wb.yield':'Yield',
-      'wb.oeeA':'A%',
-      'wb.oeeP':'P%',
-      'wb.oeeQ':'Q%',
-      'wb.oee':'OEE%',
-      'wb.ctCur':'CT Current (s)',
-      'wb.ctWst':'CT Worst (s)',
-      'wb.ctPot':'CT Potential (s)',
-      'wb.ctCurOee':'CT@OEE (Cur)',
-      'wb.cap100':'Cap 100% (Cur/day)',
-      'wb.capOee':'Cap@OEE (Cur/day)',
-      'wb.vsContract':'% vs contract',
-      'wb.inputReq':'Input req. for Contract',
-      'wb.actions':'Actions',
-      'wb.constraintTitle':'Constraint / Next:',
-      'wb.opsSum':'Operators total:'
-    },
-    es:{
-      'title.subtitle':'Analizador de Tiempo de Ciclo y Capacidad',
-      'btn.start':'Iniciar','btn.pause':'Pausar','btn.lap':'VUELTA',
-      'btn.copyAll':'Copiar todo','btn.copySummary':'Copiar resumen','btn.addManualLap':'Agregar vuelta manual','btn.reset':'Reiniciar',
-      'btn.copyWB':'Copiar WB',
-      'section.measurementSetup':'Configuración de Medición',
-      'section.contractSummary':'Resumen Contrato vs Capacidad',
-      'contract.note':'Usa el proceso actual + tus vueltas (Mediana/P10/P90) con los supuestos de Measurement Setup.',
-      'section.statsFocus':'Enfoque Estadístico',
-      'section.dataControls':'Controles de Datos',
-      'section.rawData':'Datos Crudos de Tiempo',
-      'section.charts':'Gráficas (proceso seleccionado)',
-      'section.statsDetail':'Detalle Estadístico (por proceso)',
-      'section.wbPlanner':'WB – Planeador de Capacidad (por proceso)',
-      'section.methodGuide':'Método & Guía',
-      'method.open':'Abrir',
-
-      'label.process':'Proceso','label.processPlaceholder':'p. ej. Op 30-1',
-      'label.mode':'Modo','label.efficiency':'Eficiencia %','label.contractPcd':'Capacidad contrato (pzs/día)',
-      'label.hoursPerDay':'Horas / día','label.daysPerWeek':'Días / semana','label.capView':'Vista de capacidad',
-      'label.chartProcessLabel':'Proceso / Modo:',
-
-      'mode.ct':'Tiempo de ciclo (CT)','mode.mld':'Máquina y Carga/Descarga',
-      'capView.hour':'por hora','capView.day':'por día','capView.week':'por semana',
-
-      'col.index':'#','col.process':'Proceso','col.mode':'Modo','col.status':'Estatus','col.note':'Nota',
-      'col.t1':'T1 (s)','col.t2':'T2 (s)','col.total':'Total (s)','col.edit':'Editar','col.del':'Borrar','col.n':'N',
-      'col.sample':'Tamaño de muestra / Error',
-      'col.capCurrent':'Actual @Eff','col.capPotential':'Potencial @Eff','col.capWorst':'Peor @Eff',
-      'col.contract':'Contrato','col.gap':'Gap','col.vsContract':'% vs',
-      'chart.timeSeriesTitle':'Serie de tiempo con media, mediana y ±3σ',
-      'chart.histTitle':'Histograma con mediana y percentiles',
-      'stats.note':'Lenguaje simple: pocas / suficientes muestras, baja / alta variación, capaz / no capaz.',
-      'footer.note':'Creado por Roberto González – Contacto: hzaelglez@gmail.com',
-
-      'btn.wbAdd':'+ Agregar operación',
-      'btn.wbClear':'Borrar WB',
-      'wb.enabled':'On',
-      'wb.operation':'Operación',
-      'wb.operators':'Operadores',
-      'wb.shifts':'Turnos',
-      'wb.hours':'Horas',
-      'wb.machines':'# Máquinas',
-      'wb.pcsPerOp':'Pzs/Op',
-      'wb.contract':'Contrato (pzs/día)',
-      'wb.gross':'Min brutos/día',
-      'wb.lunch':'Comida/día',
-      'wb.changeover':'Changeover (min/día)',
-      'wb.cleaning':'5S/Limpieza (min/día)',
-      'wb.maint':'Mtto (min/día)',
-      'wb.other':'Otros (min/día)',
-      'wb.shared':'Capacidad compartida (min/día)',
-      'wb.udt':'DT no planeado',
-      'wb.udtUnit':'Unidad',
-      'wb.net':'Min netos/día',
-      'wb.scrap':'Scrap %',
-      'wb.yield':'Yield',
-      'wb.oeeA':'A%',
-      'wb.oeeP':'P%',
-      'wb.oeeQ':'Q%',
-      'wb.oee':'OEE%',
-      'wb.ctCur':'CT Actual (s)',
-      'wb.ctWst':'CT Peor (s)',
-      'wb.ctPot':'CT Potencial (s)',
-      'wb.ctCurOee':'CT@OEE (Act)',
-      'wb.cap100':'Cap 100% (Act/día)',
-      'wb.capOee':'Cap@OEE (Act/día)',
-      'wb.vsContract':'% vs contrato',
-      'wb.inputReq':'Entrada req. p/Contrato',
-      'wb.actions':'Acciones',
-      'wb.constraintTitle':'Restricción / Siguiente:',
-      'wb.opsSum':'Operadores total:'
-    }
-  };
+  /* =======================
+     i18n (igual que tu parte 3)
+     ======================= */
+  const i18n = window.__TL_I18N__ || null; // (si no existe, usa el tuyo en parte 3)
+  // Nota: tu parte 3 ya define i18n. Aquí no la re-declaro para evitar choque.
 
   const TL_STATE_KEY = 'taktlab_state_v3_full';
   const WB_KEY = 'taktlabWB_v2_sync';
@@ -920,41 +1159,16 @@
     _saveTimer = setTimeout(()=>{ saveAllNow(); }, 120);
   }
 
-  function buildStateSnapshot(){
-    return {
-      v: 3,
-      ts: Date.now(),
-      lang: currentLang,
-      settings: {
-        processName: (processInput.value||'').toString(),
-        mode: (modeSelect.value||'CT'),
-        efficiency: (effInput.value||''),
-        contractPcd: (pcdInput.value||''),
-        hoursPerDay: (hInput.value||''),
-        daysPerWeek: (dInput.value||''),
-        capView: (capViewSel.value||'hour')
-      },
-      laps: Array.isArray(laps) ? laps : [],
-      nextId: (isFinite(nextId)?nextId:1),
-      wbRows: Array.isArray(wbRows) ? wbRows : []
-    };
-  }
-
-  function saveAllNow(){
-    const snap = buildStateSnapshot();
-    try{ localStorage.setItem(TL_STATE_KEY, JSON.stringify(snap)); }catch(e){}
-    try{ localStorage.setItem(WB_KEY, JSON.stringify(snap.wbRows || [])); }catch(e){}
-    try{ localStorage.setItem(LANG_KEY, currentLang); }catch(e){}
-  }
-
-  function clearAllSaved(){
-    try{ localStorage.removeItem(TL_STATE_KEY); }catch(e){}
-    try{ localStorage.removeItem(WB_KEY); }catch(e){}
-    try{ localStorage.removeItem(LANG_KEY); }catch(e){}
-  }
-
   let currentLang = localStorage.getItem(LANG_KEY) || 'en';
-  function t(key){ return (i18n[currentLang] && i18n[currentLang][key]) || i18n.en[key] || key; }
+  function t(key){
+    // usa i18n de tu parte 3
+    try{
+      return (window.i18n && window.i18n[currentLang] && window.i18n[currentLang][key]) ||
+             (window.i18n && window.i18n.en && window.i18n.en[key]) || key;
+    }catch(e){
+      return key;
+    }
+  }
 
   function applyTranslations(){
     document.querySelectorAll('[data-i18n]').forEach(el=>{
@@ -967,7 +1181,10 @@
       el.placeholder = t(key);
     });
   }
-  function updateLangButtons(){ langButtons.forEach(b=>b.classList.toggle('active', b.dataset.lang === currentLang)); }
+
+  function updateLangButtons(){
+    langButtons.forEach(b=>b.classList.toggle('active', b.dataset.lang === currentLang));
+  }
 
   function setLanguage(lang){
     currentLang = (lang==='es') ? 'es' : 'en';
@@ -993,12 +1210,12 @@
     const mode = modeSelect.value || 'CT';
     if(mode === 'CT'){
       t1Clock.textContent = formatTime(elapsed);
-      t2Clock.textContent = '00:00.00';
+      t2Clock.textContent = '00:00:00.00';
       return;
     }
     if(pendingT1 === null){
       t1Clock.textContent = formatTime(elapsed);
-      t2Clock.textContent = '00:00.00';
+      t2Clock.textContent = '00:00:00.00';
     }else{
       t1Clock.textContent = formatTime(pendingT1*1000);
       t2Clock.textContent = formatTime(elapsed);
@@ -1163,6 +1380,7 @@
 
     return {cls, text: head + tail};
   }
+
   function copyText(text){
     try{ navigator.clipboard.writeText(text); }
     catch(e){
@@ -1209,27 +1427,27 @@
 
       machines: 1,      // 1-50
 
-      pcsPerOp: 1,      // 1-999
+      pcsPerOp: 1,      // ✅ 0-99 (dropdown)
 
       contractPcd: globalContract,  // 0-99999
       contractAuto: true,
 
-      lunchMin: 0,      // 0-1440
-      changeoverMin: 0, // 1-1440 -> (permitimos 0 también, como pediste para algunos; changeover lo pediste 1-1440, lo clamp en input)
-      cleanMin: 0,      // 0-1440
-      maintMin: 0,      // 1-1440 -> clamp en input
-      otherMin: 0,      // 0-1440
+      lunchMin: 0,      // ✅ dropdown 0-1440 step 5
+      changeoverMin: 0, // ✅ dropdown 0-1440 step 5
+      cleanMin: 0,      // ✅ dropdown 0-1440 step 5
+      maintMin: 0,      // ✅ dropdown 0-1440 step 5
+      otherMin: 0,      // ✅ dropdown 0-1440 step 5
 
-      sharedMin: 0,     // 0-1440
+      sharedMin: 0,     // ✅ dropdown 0-1440 step 5
 
-      udtValue: 0,
+      udtValue: 0,      // ✅ dropdown 0-1440 step 5 (cuando unit=min_day)
       udtUnit: 'min_day',
 
-      scrapPct: 0,      // 0-100
+      scrapPct: 0,      // ✅ dropdown 0-100 step 5
 
-      oeeA: 100,        // 0-100
-      oeeP: 100,        // 0-100
-      oeeQ: globalQ,    // 0-100
+      oeeA: 100,        // ✅ dropdown 0-100 step 5
+      oeeP: 100,        // ✅ dropdown 0-100 step 5
+      oeeQ: globalQ,    // ✅ dropdown 0-100 step 5
       qAuto: true,
 
       ctCurManual: null,
@@ -1239,6 +1457,39 @@
   }
 
   let wbRows = [];
+
+  function buildStateSnapshot(){
+    return {
+      v: 3,
+      ts: Date.now(),
+      lang: currentLang,
+      settings: {
+        processName: (processInput.value||'').toString(),
+        mode: (modeSelect.value||'CT'),
+        efficiency: (effInput.value||''),
+        contractPcd: (pcdInput.value||''),
+        hoursPerDay: (hInput.value||''),
+        daysPerWeek: (dInput.value||''),
+        capView: (capViewSel.value||'hour')
+      },
+      laps: Array.isArray(laps) ? laps : [],
+      nextId: (isFinite(nextId)?nextId:1),
+      wbRows: Array.isArray(wbRows) ? wbRows : []
+    };
+  }
+
+  function saveAllNow(){
+    const snap = buildStateSnapshot();
+    try{ localStorage.setItem(TL_STATE_KEY, JSON.stringify(snap)); }catch(e){}
+    try{ localStorage.setItem(WB_KEY, JSON.stringify(snap.wbRows || [])); }catch(e){}
+    try{ localStorage.setItem(LANG_KEY, currentLang); }catch(e){}
+  }
+
+  function clearAllSaved(){
+    try{ localStorage.removeItem(TL_STATE_KEY); }catch(e){}
+    try{ localStorage.removeItem(WB_KEY); }catch(e){}
+    try{ localStorage.removeItem(LANG_KEY); }catch(e){}
+  }
 
   function loadWB(){
     try{
@@ -1268,7 +1519,7 @@
     if(row.contractAuto) row.contractPcd = gContract;
     if(row.qAuto) row.oeeQ = gQ;
 
-    if(!isFinite(row.pcsPerOp) || row.pcsPerOp<=0) row.pcsPerOp = 1;
+    if(!isFinite(row.pcsPerOp)) row.pcsPerOp = 1;
   }
 
   function ensureWbRowForOperation(opName){
@@ -1371,7 +1622,7 @@
   }
 
   function udtToMinPerDay(row){
-    const v = clamp(parseFloat(row.udtValue)||0,0,999999);
+    const v = clamp(parseFloat(row.udtValue)||0,0,1440);
     const u = row.udtUnit || 'min_day';
     if(u==='min_day') return v;
     if(u==='min_shift') return v; // ref
@@ -1440,10 +1691,13 @@
     const oee = computeOEE(row);
     const netMin = netMinPerDay(row);
     const y = yieldFromScrap(row);
-    const ppo = clamp(parseFloat(row.pcsPerOp)||1,1,999);
+
+    // ✅ Pzs/Op 0-99 (si 0 => salida 0, y inputReq no aplica)
+    const ppo = clamp(parseFloat(row.pcsPerOp)||0,0,99);
 
     if(!isFinite(cur) || cur<=0) return {cap100:0, capOee:0, ctOee:NaN};
     const ctOee = cur / Math.max(oee/100, 0.0001);
+
     const cap100 = ((netMin*60)/cur) * y * ppo;
     const capOee = ((netMin*60)/ctOee) * y * ppo;
     return {cap100, capOee, ctOee};
@@ -1500,8 +1754,8 @@
       const contract = clamp(parseFloat(row.contractPcd)||0,0,99999);
       const vs = contract>0 ? (capOee/contract*100) : NaN;
 
-      const ppo = clamp(parseFloat(row.pcsPerOp)||1, 1, 999);
-      const inputReq = (contract>0) ? (contract / (Math.max(y,0.0001) * ppo)) : NaN;
+      const ppo = clamp(parseFloat(row.pcsPerOp)||0,0,99);
+      const inputReq = (contract>0 && ppo>0) ? (contract / (Math.max(y,0.0001) * ppo)) : NaN;
 
       if(enabled){
         opSum += clamp(parseFloat(row.operators)||0,0,10);
@@ -1529,20 +1783,6 @@
         tr.appendChild(c);
       }
 
-      function inpCell(val, cls, onInput, type='number', step='1', min=null, max=null){
-        const c=document.createElement('td');
-        const inp=document.createElement('input');
-        inp.type=type;
-        inp.className=(cls||'wb-inp');
-        inp.value = (val===null || val===undefined) ? '' : val;
-        if(step!==null) inp.step = step;
-        if(min!==null) inp.min = min;
-        if(max!==null) inp.max = max;
-        inp.addEventListener('input',()=>onInput(inp.value));
-        c.appendChild(inp);
-        tr.appendChild(c);
-      }
-
       function selCell(value, options, onChange, cls='wb-sel'){
         const c=document.createElement('td');
         const sel=document.createElement('select');
@@ -1556,6 +1796,20 @@
         sel.addEventListener('change',()=>onChange(sel.value));
         c.appendChild(sel); tr.appendChild(c);
         return sel;
+      }
+
+      function inpCell(val, cls, onInput, type='number', step='1', min=null, max=null){
+        const c=document.createElement('td');
+        const inp=document.createElement('input');
+        inp.type=type;
+        inp.className=(cls||'wb-inp');
+        inp.value = (val===null || val===undefined) ? '' : val;
+        if(step!==null) inp.step = step;
+        if(min!==null) inp.min = min;
+        if(max!==null) inp.max = max;
+        inp.addEventListener('input',()=>onInput(inp.value));
+        c.appendChild(inp);
+        tr.appendChild(c);
       }
 
       function operationCell(){
@@ -1680,7 +1934,7 @@
       }
 
       /* =========================
-         ✅ WB CELLS (RANGOS / DROPDOWNS)
+         ✅ WB CELLS (RANGOS / DROPDOWNS EXACTOS)
          ========================= */
 
       // On
@@ -1689,82 +1943,122 @@
       // Operation
       operationCell();
 
-      // Operators 0-10 (dropdown)
+      // Operators 0-10
       selCell(String(row.operators ?? 1), buildNumericOptions(0,10,1), v=>{
         row.operators = clamp(parseFloat(v)||0,0,10);
         saveWB(); renderAll(); scheduleSaveAll();
       }, 'wb-sel narrow');
 
-      // Shifts 1-4 (dropdown)
+      // Shifts 1-4
       selCell(String(row.shifts ?? 1), buildNumericOptions(1,4,1), v=>{
         row.shifts = clamp(parseFloat(v)||1,1,4);
         saveWB(); renderAll(); scheduleSaveAll();
       }, 'wb-sel narrow');
 
-      // Hours 0-24 step 0.5 (dropdown)
+      // Hours 0-24 step 0.5
       selCell(String(row.hours ?? 8), buildNumericOptions(0,24,0.5), v=>{
         row.hours = clamp(parseFloat(v)||0,0,24);
         row.hoursAuto=false;
         saveWB(); renderAll(); scheduleSaveAll();
       }, 'wb-sel');
 
-      // Machines 1-50 (dropdown)
+      // Machines 1-50
       selCell(String(row.machines ?? 1), buildNumericOptions(1,50,1), v=>{
         row.machines = clamp(parseFloat(v)||1,1,50);
         saveWB(); renderAll(); scheduleSaveAll();
       }, 'wb-sel narrow');
 
-      // Pcs/Op (input, 1-999)
-      inpCell(row.pcsPerOp,'wb-inp',v=>{ row.pcsPerOp=clamp(parseFloat(v)||1,1,999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',1,999);
+      // ✅ Pzs/Op 0-99 step 1 (dropdown)
+      selCell(String(row.pcsPerOp ?? 1), buildNumericOptions(0,99,1), v=>{
+        row.pcsPerOp = clamp(parseFloat(v)||0,0,99);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
 
-      // Contract 0-99999 (input editable)
+      // Contract 0-99999 (editable)
       inpCell(row.contractPcd,'wb-inp',v=>{
         row.contractPcd=clamp(parseFloat(v)||0,0,99999);
         row.contractAuto=false;
         saveWB(); renderAll(); scheduleSaveAll();
       },'number','1',0,99999);
 
+      // Gross
       td(formatUnits(gGross));
 
-      // Lunch 0-1440
-      inpCell(row.lunchMin||0,'wb-inp',v=>{ row.lunchMin=clamp(parseFloat(v)||0,0,1440); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,1440);
+      // ✅ Plan losses 0-1440 step 5 (dropdowns)
+      const minStep5 = buildNumericOptions(0,1440,5);
 
-      // Changeover 1-1440 (pero si pones 0, lo dejo en 0 porque pediste 0/1440 en general; si quieres estrictamente 1, te lo cierro)
-      inpCell(row.changeoverMin||0,'wb-inp',v=>{ row.changeoverMin=clamp(parseFloat(v)||0,0,1440); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,1440);
+      selCell(String(row.lunchMin ?? 0), minStep5, v=>{
+        row.lunchMin = clamp(parseFloat(v)||0,0,1440);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel');
 
-      // 5S 0-1440
-      inpCell(row.cleanMin||0,'wb-inp',v=>{ row.cleanMin=clamp(parseFloat(v)||0,0,1440); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,1440);
+      selCell(String(row.changeoverMin ?? 0), minStep5, v=>{
+        row.changeoverMin = clamp(parseFloat(v)||0,0,1440);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel');
 
-      // Maintenance 1-1440 (permito 0 también, mismo comentario)
-      inpCell(row.maintMin||0,'wb-inp',v=>{ row.maintMin=clamp(parseFloat(v)||0,0,1440); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,1440);
+      selCell(String(row.cleanMin ?? 0), minStep5, v=>{
+        row.cleanMin = clamp(parseFloat(v)||0,0,1440);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel');
 
-      // Other 0-1440
-      inpCell(row.otherMin||0,'wb-inp',v=>{ row.otherMin=clamp(parseFloat(v)||0,0,1440); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,1440);
+      selCell(String(row.maintMin ?? 0), minStep5, v=>{
+        row.maintMin = clamp(parseFloat(v)||0,0,1440);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel');
 
-      // Shared 0-1440
-      inpCell(row.sharedMin||0,'wb-inp',v=>{ row.sharedMin=clamp(parseFloat(v)||0,0,1440); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,1440);
+      selCell(String(row.otherMin ?? 0), minStep5, v=>{
+        row.otherMin = clamp(parseFloat(v)||0,0,1440);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel');
 
-      // UDT value (keep)
-      inpCell(row.udtValue||0,'wb-inp',v=>{ row.udtValue=clamp(parseFloat(v)||0,0,999999); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,999999);
+      // Shared 0-1440 step 5
+      selCell(String(row.sharedMin ?? 0), minStep5, v=>{
+        row.sharedMin = clamp(parseFloat(v)||0,0,1440);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel');
+
+      // ✅ UDT 0-1440 step 5 (dropdown) + unit selector
+      selCell(String(row.udtValue ?? 0), minStep5, v=>{
+        row.udtValue = clamp(parseFloat(v)||0,0,1440);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel');
 
       selCell(row.udtUnit||'min_day',[
         {value:'min_day', label:(currentLang==='es'?'min/día':'min/day')},
         {value:'min_shift', label:(currentLang==='es'?'min/turno (ref)':'min/shift (ref)')},
         {value:'min_hour', label:(currentLang==='es'?'min/hora':'min/hour')},
         {value:'pct', label:(currentLang==='es'?'% de brutos':'% gross')}
-      ],v=>{ row.udtUnit=v; saveWB(); renderAll(); scheduleSaveAll(); });
+      ],v=>{ row.udtUnit=v; saveWB(); renderAll(); scheduleSaveAll(); }, 'wb-sel');
 
+      // Net
       td(formatUnits(net));
 
-      // Scrap 0-100
-      inpCell(row.scrapPct||0,'wb-inp',v=>{ row.scrapPct=clamp(parseFloat(v)||0,0,100); saveWB(); renderAll(); scheduleSaveAll(); },'number','.1',0,100);
+      // ✅ Scrap 0-100 step 5
+      const pctStep5 = buildNumericOptions(0,100,5);
+      selCell(String(row.scrapPct ?? 0), pctStep5, v=>{
+        row.scrapPct = clamp(parseFloat(v)||0,0,100);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
 
       td(pct(y*100,1));
 
-      // A/P/Q 0-100
-      inpCell(row.oeeA||100,'wb-inp',v=>{ row.oeeA=clamp(parseFloat(v)||0,0,100); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,100);
-      inpCell(row.oeeP||100,'wb-inp',v=>{ row.oeeP=clamp(parseFloat(v)||0,0,100); saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,100);
-      inpCell(row.oeeQ||100,'wb-inp',v=>{ row.oeeQ=clamp(parseFloat(v)||0,0,100); row.qAuto=false; saveWB(); renderAll(); scheduleSaveAll(); },'number','1',0,100);
+      // ✅ A/P/Q 0-100 step 5
+      selCell(String(row.oeeA ?? 100), pctStep5, v=>{
+        row.oeeA = clamp(parseFloat(v)||0,0,100);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
+
+      selCell(String(row.oeeP ?? 100), pctStep5, v=>{
+        row.oeeP = clamp(parseFloat(v)||0,0,100);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
+
+      selCell(String(row.oeeQ ?? 100), pctStep5, v=>{
+        row.oeeQ = clamp(parseFloat(v)||0,0,100);
+        row.qAuto=false;
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
 
       td(pct(oee,1));
 
@@ -1835,44 +2129,51 @@
   });
 
   btnCopyWB.addEventListener('click',()=>{
-    let out=[];
-    out.push(`WB Export (${new Date().toISOString()})`);
-    out.push('On\tOperation\tOperators\tShifts(ref)\tHours\tMachines\tPcsPerOp\tContractPcd\tNetMinDay\tOEE%\tYield%\tCTcur\tCap@OEE\t%vsContract');
+    try{
+      let out=[];
+      out.push(`WB Export (${new Date().toISOString()})`);
+      out.push('On\tOperation\tOperators\tShifts(ref)\tHours\tMachines\tPcsPerOp\tContractPcd\tNetMinDay\tOEE%\tYield%\tCTcur\tCap@OEE\t%vsContract');
 
-    wbRows.forEach(r=>{
-      const net = netMinPerDay(r);
-      const oee = computeOEE(r);
-      const y = yieldFromScrap(r)*100;
-      const {cur} = ctForRow(r);
-      const {capOee} = capPerDayFromRow(r);
-      const contract = clamp(parseFloat(r.contractPcd)||0,0,99999);
-      const vs = contract>0 ? (capOee/contract*100) : NaN;
-      const ppo = clamp(parseFloat(r.pcsPerOp)||1, 1, 999);
+      wbRows.forEach(r=>{
+        const net = netMinPerDay(r);
+        const oee = computeOEE(r);
+        const y = yieldFromScrap(r)*100;
+        const {cur} = ctForRow(r);
+        const {capOee} = capPerDayFromRow(r);
+        const contract = clamp(parseFloat(r.contractPcd)||0,0,99999);
+        const vs = contract>0 ? (capOee/contract*100) : NaN;
+        const ppo = clamp(parseFloat(r.pcsPerOp)||0,0,99);
 
-      out.push([
-        r.enabled?1:0,
-        (r.operation||'').trim(),
-        Math.round(clamp(parseFloat(r.operators)||0,0,10)),
-        Math.round(clamp(parseFloat(r.shifts)||1,1,4)),
-        clamp(parseFloat(r.hours)||0,0,24),
-        clamp(parseFloat(r.machines)||1,1,50),
-        Math.round(ppo),
-        Math.round(contract),
-        Math.round(net),
-        oee.toFixed(1),
-        y.toFixed(1),
-        (isFinite(cur)?formatSecs(cur):''),
-        (isFinite(capOee)?Math.round(capOee):''),
-        (isFinite(vs)?vs.toFixed(0):'')
-      ].join('\t'));
-    });
+        out.push([
+          r.enabled?1:0,
+          (r.operation||'').trim(),
+          Math.round(clamp(parseFloat(r.operators)||0,0,10)),
+          Math.round(clamp(parseFloat(r.shifts)||1,1,4)),
+          clamp(parseFloat(r.hours)||0,0,24),
+          clamp(parseFloat(r.machines)||1,1,50),
+          Math.round(ppo),
+          Math.round(contract),
+          Math.round(net),
+          oee.toFixed(1),
+          y.toFixed(1),
+          (isFinite(cur)?formatSecs(cur):''),
+          (isFinite(capOee)?Math.round(capOee):''),
+          (isFinite(vs)?vs.toFixed(0):'')
+        ].join('\t'));
+      });
 
-    copyText(out.join('\n'));
+      copyText(out.join('\n'));
+      pulseButton(btnCopyWB, true, '✅ WB Copied');
+    }catch(e){
+      pulseButton(btnCopyWB, false, '⚠️ Copy failed');
+    }
   });
 
   /* =========================
-     CONTRACT SUMMARY + FOCUS
+     CONTRACT SUMMARY + FOCUS + TABLES
+     (igual a tu parte 4 original)
      ========================= */
+
   function buildContractLinesForCurrentSelection(){
     const proc = (processInput.value||'').trim();
     const mode = modeSelect.value || 'CT';
@@ -2375,31 +2676,142 @@
   chartSelect.addEventListener('change',()=>renderCharts());
 
   function renderMethodGuide(){
+    // ✅ Manual tipo “libro” (versión compacta pero MUCHO más completa)
     const textEN =
-`TaktLab quick guide
-- CT mode: each LAP records one total time (T1 used, T2 = 0).
-- MLD mode: LAP #1 captures T1 (machine), LAP #2 captures T2 (load/unload). Total = T1 + T2.
-- Blocked / Starved laps are excluded from statistics.
-- Sample size: target is ±3% @95% confidence using CV (directional).
-- Contract vs Capacity uses Median as current, P10 potential, P90 worst, multiplied by Efficiency.
-WB planner
-- Shifts is reference only. Capacity is based on Hours × Machines.
-- Net min/day = Gross - planned losses - shared - unplanned DT.
-- Output = (Net seconds / CT) × Yield × Pcs/Op.
-- Input required for Contract = Contract / (Yield × Pcs/Op).`;
+`TAKTLAB – FIELD MANUAL (v1)
+============================================================
+0) PURPOSE
+TaktLab is a quick, reliable way to turn stopwatch captures into decision-grade capacity signals.
+It is designed for the shop-floor: fast input, minimal friction, and consistent logic.
+
+1) MODES (what you are actually measuring)
+A) CT (Cycle Time)
+- Each LAP records a full cycle end-to-end.
+- Use CT when the operator controls the cycle and the machine does not split phases.
+
+B) MLD (Machine + Load/Unload)
+- LAP #1 = T1 (machine running time)
+- LAP #2 = T2 (load/unload / handling time)
+- Total = T1 + T2
+Use MLD when the machine has a clear “run” phase and a distinct “handling” phase.
+
+2) DATA QUALITY (Blocked / Starved)
+- If a lap is Blocked or Starved, it is excluded from statistics.
+Why? Because those are system conditions, not true process capability.
+
+3) SAMPLE SIZE (confidence)
+- The target is ±3% error at 95% confidence (directional).
+- TaktLab estimates required N using CV (coefficient of variation).
+Rules of thumb:
+- Low variation process → fewer samples needed.
+- High variation process → more samples needed.
+Never “fall in love” with N=5.
+
+4) STAT CHOICES (why Median / P10 / P90)
+- Median = “Current typical performance” (robust vs outliers)
+- P10 = “Potential” (good flow / strong execution)
+- P90 = “Worst” (bad flow / friction)
+You can still look at Mean, but Median is your daily driver.
+
+5) CONTRACT vs CAPACITY
+- Contract is entered as pcs/day, then translated to your view (hour/day/week).
+- Capacity uses current process stats and multiplies by Efficiency.
+
+6) WB PLANNER (how capacity is computed)
+Gross min/day = Hours × 60 × Machines
+Net min/day = Gross - planned losses - shared capacity - unplanned DT
+Yield = 1 - Scrap%
+OEE = A × P × Q
+CT@OEE = CT / (OEE)
+Output/day = (Net seconds / CT@OEE) × Yield × Pcs/Op
+
+7) HOW TO USE IN A REAL SHIFT
+- Capture 10–15 laps fast
+- Mark abnormal conditions as Blocked/Starved
+- Check sample message (is N good?)
+- Set contract pcs/day and hours/day
+- Use WB to test loss scenarios and staffing options
+
+8) COMMON PITFALLS
+- Mixing models in one process name
+- Forgetting Scrap% and thinking Yield=100%
+- Setting Pcs/Op wrong (0 will kill output)
+- Using too few samples on a noisy process
+
+9) BEST PRACTICE NAMING
+Use stable names: “Op 30 – Model X – Station 1”
+Avoid: “today line 1”
+
+============================================================
+END OF MANUAL`;
 
     const textES =
-`Guía rápida TaktLab
-- Modo CT: cada VUELTA registra un tiempo total (T1 usado, T2 = 0).
-- Modo MLD: VUELTA #1 captura T1 (máquina), VUELTA #2 captura T2 (carga/descarga). Total = T1 + T2.
-- Vueltas Bloqueado / Hambriento NO se usan para estadísticas.
-- Tamaño de muestra: meta ±3% @95% usando CV (direccional).
-- Contrato vs Capacidad usa Mediana como actual, P10 como potencial, P90 como peor, por Eficiencia.
-WB planner
-- Turnos es referencia. Capacidad se basa en Horas × Máquinas.
-- Min netos/día = Brutos - pérdidas planificadas - compartido - DT no planeado.
-- Salida = (Seg netos / CT) × Yield × Pzs/Op.
-- Entrada requerida p/Contrato = Contrato / (Yield × Pzs/Op).`;
+`TAKTLAB – MANUAL DE CAMPO (v1)
+============================================================
+0) PROPÓSITO
+TaktLab convierte capturas de cronómetro en señales de capacidad para decidir en piso.
+Es rápido, directo y consistente: sin “cálculos mágicos” escondidos.
+
+1) MODOS (qué estás midiendo)
+A) CT (Tiempo de ciclo)
+- Cada VUELTA registra el ciclo completo.
+- Úsalo cuando el operador controla el ciclo y no hay fases separadas claras.
+
+B) MLD (Máquina + Carga/Descarga)
+- VUELTA #1 = T1 (tiempo de máquina)
+- VUELTA #2 = T2 (carga/descarga / manipulación)
+- Total = T1 + T2
+Úsalo cuando la máquina tiene fase “run” y fase “handling” bien separadas.
+
+2) CALIDAD DE DATOS (Bloqueado / Hambriento)
+- Si una vuelta es Bloqueado o Hambriento, NO se usa para estadísticas.
+Porque es condición del sistema, no capacidad real del proceso.
+
+3) TAMAÑO DE MUESTRA (confianza)
+- Meta: ±3% de error al 95% (direccional).
+- Se estima N requerido usando CV (variación relativa).
+Reglas rápidas:
+- Proceso estable → menos muestras
+- Proceso variable → más muestras
+No te cases con N=5.
+
+4) ESTADÍSTICOS (por qué Mediana / P10 / P90)
+- Mediana = desempeño típico actual (robusta)
+- P10 = potencial (buen flujo / buena ejecución)
+- P90 = peor escenario (fricción / variación)
+La media sirve, pero la mediana manda.
+
+5) CONTRATO vs CAPACIDAD
+- El contrato entra como pzs/día y se traduce a tu vista (hora/día/semana).
+- La capacidad usa stats del proceso y se multiplica por Eficiencia.
+
+6) WB PLANNER (cómo se calcula)
+Min brutos/día = Horas × 60 × Máquinas
+Min netos/día = Brutos - pérdidas planificadas - compartido - DT no planeado
+Yield = 1 - Scrap%
+OEE = A × P × Q
+CT@OEE = CT / (OEE)
+Salida/día = (Seg netos / CT@OEE) × Yield × Pzs/Op
+
+7) USO REAL EN TURNO
+- Captura 10–15 vueltas rápidas
+- Marca anormales como Bloqueado/Hambriento
+- Revisa mensaje de muestra (¿N suficiente?)
+- Ajusta contrato y horas/día
+- En WB simula pérdidas, personal, máquinas y escenarios
+
+8) ERRORES COMUNES
+- Mezclar modelos bajo un mismo nombre
+- Olvidar Scrap% y asumir Yield=100%
+- Poner Pzs/Op mal (si pones 0, matas la salida)
+- Tomar decisiones con muestras muy chicas en procesos ruidosos
+
+9) NOMENCLATURA RECOMENDADA
+Nombres estables: “Op 30 – Modelo X – Estación 1”
+Evita: “hoy línea 1”
+
+============================================================
+FIN DEL MANUAL`;
 
     methodGuideText.textContent = (currentLang==='es') ? textES : textEN;
   }
@@ -2448,8 +2860,23 @@ WB planner
     return lines.join('\n');
   }
 
-  btnCopySum.addEventListener('click',()=>copyText(buildSummaryText()));
-  btnCopyAll.addEventListener('click',()=>copyText(buildAllText()));
+  btnCopySum.addEventListener('click',()=>{
+    try{
+      copyText(buildSummaryText());
+      pulseButton(btnCopySum, true, currentLang==='es' ? '✅ Resumen copiado' : '✅ Summary copied');
+    }catch(e){
+      pulseButton(btnCopySum, false, currentLang==='es' ? '⚠️ Error' : '⚠️ Error');
+    }
+  });
+
+  btnCopyAll.addEventListener('click',()=>{
+    try{
+      copyText(buildAllText());
+      pulseButton(btnCopyAll, true, currentLang==='es' ? '✅ Todo copiado' : '✅ All copied');
+    }catch(e){
+      pulseButton(btnCopyAll, false, currentLang==='es' ? '⚠️ Error' : '⚠️ Error');
+    }
+  });
 
   function restoreState(){
     const raw = localStorage.getItem(TL_STATE_KEY);
@@ -2479,7 +2906,7 @@ WB planner
     if(!wbRows.length) loadWB();
 
     wbRows.forEach(r=>{
-      if(!isFinite(r.pcsPerOp) || r.pcsPerOp<=0) r.pcsPerOp = 1;
+      if(!isFinite(r.pcsPerOp)) r.pcsPerOp = 1;
     });
   }
 
@@ -2519,5 +2946,3 @@ WB planner
 
 })();
 </script>
-</body>
-</html>
