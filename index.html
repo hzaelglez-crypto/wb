@@ -250,8 +250,7 @@
 
   table{width:100%;border-collapse:collapse;font-size:.72rem;}
   th,td{
-    padding:3px 5px; /* ✅ más compacto */
-    text-align:right;
+    padding:4px 6px;text-align:right;
     border-bottom:1px solid rgba(11,18,32,.06);
     white-space:nowrap;
     vertical-align:middle;
@@ -300,11 +299,10 @@
 
   .wb-inp, .wb-sel, .wb-chk{
     background:#fff;border-radius:10px;border:1px solid var(--border-soft);
-    padding:2px 7px; /* ✅ más compacto */
-    color:var(--text-main);font-size:.70rem;
+    padding:3px 8px;color:var(--text-main);font-size:.70rem;
     outline:none;
   }
-  .wb-inp{width:66px;} /* ✅ más compacto */
+  .wb-inp{width:72px;}
   .wb-inp.wide{width:160px;}
   .wb-inp.slim{width:56px;}
   .wb-sel{width:120px;}
@@ -357,12 +355,6 @@
   }
   #wbTable thead th:nth-child(1),
   #wbTable thead th:nth-child(2){ z-index:40; }
-
-  /* ✅ wrap SOLO en headers del WB (para "Capacidad\ncompartida") */
-  #wbTable thead th{
-    white-space:pre-line !important;
-    line-height:1.05;
-  }
 
   @media (max-width:600px){
     .timer-display{font-size:2.2rem;}
@@ -847,7 +839,9 @@
       }
       setTimeout(tick, 1000);
     };
-    setTimeout(()=>{ if(btn.disabled) tick(); }, 0);
+    setTimeout(()=>{
+      if(btn.disabled) tick();
+    }, 0);
 
     setTimeout(()=>{
       if(btn){
@@ -912,7 +906,7 @@
       'wb.cleaning':'5S/Clean',
       'wb.maint':'Maintenance',
       'wb.other':'Other',
-      'wb.shared':'Shared\nCapacity',           /* ✅ 2 renglones */
+      'wb.shared':'Shared Capacity',
       'wb.udt':'Unplanned DT (min/day)',
       'wb.net':'Net min/day',
       'wb.scrap':'Scrap %',
@@ -987,7 +981,7 @@
       'wb.cleaning':'5S/Limpieza',
       'wb.maint':'Mtto',
       'wb.other':'Otros',
-      'wb.shared':'Capacidad\ncompartida',      /* ✅ 2 renglones */
+      'wb.shared':'Capacidad compartida',
       'wb.udt':'DT no planeado (min/día)',
       'wb.net':'Min netos/día',
       'wb.scrap':'Scrap %',
@@ -1308,31 +1302,33 @@
       opAuto: true,
       opAutoKey: normOp(gOp || ''),
 
-      operators: 1,
-      shifts: 1,
-      hours: globalHours,
+      operators: 1,     // 0-10 dropdown
+      shifts: 1,        // 1-4 dropdown reference
+      hours: globalHours, // 0-24 step .5
       hoursAuto: true,
 
-      machines: 1,
-      pcsPerOp: 1,
+      machines: 1,      // 1-50 dropdown
 
-      contractPcd: globalContract,
+      pcsPerOp: 1,      // ✅ dropdown 1-99
+
+      contractPcd: globalContract,  // editable
       contractAuto: true,
 
-      lunchMin: 0,
-      changeoverMin: 0, /* ✅ FIX */
-      cleanMin: 0,
-      maintMin: 0,      /* ✅ FIX */
-      otherMin: 0,
+      lunchMin: 0,        // 0-1440
+      changeoverMin: 1,   // 1-1440
+      cleanMin: 0,        // 0-1440
+      maintMin: 1,        // 1-1440
+      otherMin: 0,        // 0-1440
 
-      sharedMin: 0,
-      udtMinDay: 0,
+      sharedMin: 0,       // 0-1440
 
-      scrapPct: 0,
+      udtMinDay: 0,       // ✅ dropdown 0-1440 step 5
 
-      oeeA: 100,
-      oeeP: 100,
-      oeeQ: globalQ,
+      scrapPct: 0,      // 0-100
+
+      oeeA: 100,        // 0-100
+      oeeP: 100,        // 0-100
+      oeeQ: globalQ,    // 0-100
       qAuto: true,
 
       ctCurManual: null,
@@ -1373,9 +1369,6 @@
 
     row.pcsPerOp = clamp(parseFloat(row.pcsPerOp)||1,1,99);
     row.udtMinDay = clamp(parseFloat(row.udtMinDay)||0,0,1440);
-
-    if(!isFinite(row.changeoverMin) || row.changeoverMin<0) row.changeoverMin = 0; /* ✅ FIX */
-    if(!isFinite(row.maintMin) || row.maintMin<0) row.maintMin = 0;             /* ✅ FIX */
   }
 
   function ensureWbRowForOperation(opName){
@@ -1476,9 +1469,9 @@
   function plannedLossMin(row){
     return (
       clamp(parseFloat(row.lunchMin)||0,0,1440) +
-      clamp(parseFloat(row.changeoverMin)||0,0,1440) + /* ✅ FIX */
+      clamp(parseFloat(row.changeoverMin)||1,1,1440) +
       clamp(parseFloat(row.cleanMin)||0,0,1440) +
-      clamp(parseFloat(row.maintMin)||0,0,1440) +      /* ✅ FIX */
+      clamp(parseFloat(row.maintMin)||1,1,1440) +
       clamp(parseFloat(row.otherMin)||0,0,1440)
     );
   }
@@ -1768,7 +1761,11 @@
         tr.appendChild(c);
       }
 
+      /* =========================
+         ✅ WB CELLS (RANGOS / DROPDOWNS)
+         ========================= */
       chkCell(row.enabled,(v)=>{ row.enabled=!!v; saveWB(); renderAll(); scheduleSaveAll(); });
+
       operationCell();
 
       // Operators 0-10
@@ -1796,7 +1793,7 @@
         saveWB(); renderAll(); scheduleSaveAll();
       }, 'wb-sel narrow');
 
-      // Pzs/Op 1-99
+      // ✅ Pzs/Op dropdown 1-99
       selCell(String(row.pcsPerOp ?? 1), buildNumericOptions(1,99,1), v=>{
         row.pcsPerOp = clamp(parseFloat(v)||1,1,99);
         saveWB(); renderAll(); scheduleSaveAll();
@@ -1838,13 +1835,14 @@
       }
 
       ddMinutes(row.lunchMin ?? 0, 0, 1440, 5, v=>{ row.lunchMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
-      ddMinutes(row.changeoverMin ?? 0, 0, 1440, 5, v=>{ row.changeoverMin=v; saveWB(); renderAll(); scheduleSaveAll(); }); /* ✅ FIX */
+      ddMinutes(row.changeoverMin ?? 1, 1, 1440, 5, v=>{ row.changeoverMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
       ddMinutes(row.cleanMin ?? 0, 0, 1440, 5, v=>{ row.cleanMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
-      ddMinutes(row.maintMin ?? 0, 0, 1440, 5, v=>{ row.maintMin=v; saveWB(); renderAll(); scheduleSaveAll(); });       /* ✅ FIX */
+      ddMinutes(row.maintMin ?? 1, 1, 1440, 5, v=>{ row.maintMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
       ddMinutes(row.otherMin ?? 0, 0, 1440, 5, v=>{ row.otherMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
 
       ddMinutes(row.sharedMin ?? 0, 0, 1440, 5, v=>{ row.sharedMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
 
+      // ✅ DT no planeado dropdown 0-1440 step 5
       ddMinutes(row.udtMinDay ?? 0, 0, 1440, 5, v=>{ row.udtMinDay=v; saveWB(); renderAll(); scheduleSaveAll(); });
 
       td(formatUnits(net));
@@ -1925,10 +1923,857 @@
     scheduleSaveAll();
   });
 
-  /* ==== (resto del código igual que el tuyo; no lo toqué) ==== */
-  /* Por límite de mensaje, pegué todo lo que cambia + lo crítico.
-     Si quieres que te lo entregue 100% completo de inicio a fin en 1 sola pieza,
-     dímelo y lo suelto íntegro (sin recortes) en el siguiente mensaje. */
+  function buildContractLinesForCurrentSelection(){
+    const proc = (processInput.value||'').trim();
+    const mode = modeSelect.value || 'CT';
+
+    const hours = clamp(parseFloat(hInput.value)||8,0,24);
+    const days  = clamp(parseFloat(dInput.value)||5,1,7);
+    const eff   = clamp(parseFloat(effInput.value)||100,0,100)/100;
+
+    const view  = capViewSel.value || 'hour';
+    const contractPcd = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    const contractUnits = contractUnitsFromPcd(contractPcd, view, Math.max(hours,0.0001), days);
+
+    const map = groupByProcess();
+    const key = proc + '||' + mode;
+    const arr = map.get(key) || [];
+
+    if(!proc){
+      return { l1: currentLang==='es' ? 'Proceso: (vacío)' : 'Process: (empty)', l2:'—', l3:'—', l4:'—' };
+    }
+
+    if(arr.length<1){
+      return {
+        l1: (currentLang==='es' ? `Proceso: ${proc} · Modo: ${mode}` : `Process: ${proc} · Mode: ${mode}`),
+        l2: (currentLang==='es' ? `Contrato (${view}): ${formatUnits(contractUnits)} (ref)` : `Contract (${view}): ${formatUnits(contractUnits)} (ref)`),
+        l3: (currentLang==='es' ? 'Sin vueltas todavía: captura laps para calcular capacidad.' : 'No laps yet: capture laps to compute capacity.'),
+        l4: '—'
+      };
+    }
+
+    const st = calcStats(arr);
+    const med = st.median;
+    const p10 = st.p10;
+    const p90 = st.p90;
+
+    const curCap = capFromCt(med, view, Math.max(hours,0.0001), days) * eff;
+    const potCap = capFromCt(p10, view, Math.max(hours,0.0001), days) * eff;
+    const wstCap = capFromCt(p90, view, Math.max(hours,0.0001), days) * eff;
+
+    const gapCur = (contractUnits>0) ? (curCap - contractUnits) : NaN;
+    const vsCur  = (contractUnits>0) ? (curCap/contractUnits*100) : NaN;
+
+    const l1 = (currentLang==='es'
+      ? `Proceso: ${proc} · Modo: ${mode} · Eff: ${Math.round(eff*100)}%`
+      : `Process: ${proc} · Mode: ${mode} · Eff: ${Math.round(eff*100)}%`
+    );
+
+    const l2 = (currentLang==='es'
+      ? `Contrato (${view}): ${formatUnits(contractUnits)}  (Base: ${formatUnits(contractPcd)} pzs/día)`
+      : `Contract (${view}): ${formatUnits(contractUnits)}  (Base: ${formatUnits(contractPcd)} pcs/day)`
+    );
+
+    const l3 = (currentLang==='es'
+      ? `Capacidad @Eff (${view}): Actual ${formatUnits(curCap)} · Potencial ${formatUnits(potCap)} · Peor ${formatUnits(wstCap)}`
+      : `Capacity @Eff (${view}): Current ${formatUnits(curCap)} · Potential ${formatUnits(potCap)} · Worst ${formatUnits(wstCap)}`
+    );
+
+    const l4 = (contractUnits>0 && isFinite(vsCur))
+      ? (currentLang==='es'
+          ? `Gap (Actual - Contrato): ${formatUnits(gapCur)} · % vs: ${pct(vsCur,0)}`
+          : `Gap (Current - Contract): ${formatUnits(gapCur)} · % vs: ${pct(vsCur,0)}`
+        )
+      : (currentLang==='es' ? 'Contrato no cargado (pon Capacidad contrato).' : 'Contract not loaded (set Contract Cap).');
+
+    return {l1,l2,l3,l4, st};
+  }
+
+  function renderContractSummaryAndFocus(){
+    const bundle = buildContractLinesForCurrentSelection();
+    contractSumLine1.textContent = bundle.l1;
+    contractSumLine2.textContent = bundle.l2;
+    contractSumLine3.textContent = bundle.l3;
+    contractSumLine4.textContent = bundle.l4;
+
+    const st = bundle.st;
+    if(!st){
+      sampleInfoFocus.textContent = (currentLang==='es' ? 'Tamaño de muestra: —' : 'Sample size: —');
+      stdInfoFocus.textContent    = (currentLang==='es' ? 'Desv est: —' : 'Std dev: —');
+      distInfoFocus.textContent   = (currentLang==='es' ? 'Media vs Mediana: —' : 'Mean vs Median: —');
+      contractInfoFocus.textContent = (currentLang==='es' ? 'Sin contrato cargado' : 'No contract loaded');
+      return;
+    }
+
+    const sampleLine = buildSampleLine(st);
+    sampleInfoFocus.textContent = sampleLine.text;
+    sampleInfoFocus.className = 'info-line ' + sampleLine.cls;
+
+    stdInfoFocus.textContent = (currentLang==='es'
+      ? `Desv est: ${formatSecs(st.std)} s · CV: ${(st.cv*100).toFixed(1)}%`
+      : `Std dev: ${formatSecs(st.std)} s · CV: ${(st.cv*100).toFixed(1)}%`
+    );
+
+    const skew = (st.mean - st.median);
+    distInfoFocus.textContent = (currentLang==='es'
+      ? `Media vs Mediana: Δ ${formatSecs(skew)} s`
+      : `Mean vs Median: Δ ${formatSecs(skew)} s`
+    );
+
+    const contractPcd = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    contractInfoFocus.textContent = contractPcd>0
+      ? (currentLang==='es' ? `Contrato: ${formatUnits(contractPcd)} pzs/día` : `Contract: ${formatUnits(contractPcd)} pcs/day`)
+      : (currentLang==='es' ? 'Sin contrato cargado' : 'No contract loaded');
+  }
+
+  function renderStatsTables(){
+    const map = groupByProcess();
+    statsBody.innerHTML='';
+    focusBody.innerHTML='';
+
+    const hours = clamp(parseFloat(hInput.value)||8,0,24);
+    const days  = clamp(parseFloat(dInput.value)||5,1,7);
+    const eff   = clamp(parseFloat(effInput.value)||100,0,100)/100;
+    const view  = capViewSel.value || 'hour';
+    const contractPcd = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    const contractUnits = contractUnitsFromPcd(contractPcd, view, Math.max(hours,0.0001), days);
+
+    const keys = [...map.keys()].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+
+    keys.forEach(key=>{
+      const [proc, mode] = key.split('||');
+      const arr = map.get(key)||[];
+      const st = calcStats(arr);
+      if(!st) return;
+
+      { // stats detail
+        const tr=document.createElement('tr');
+        const {cp, cpk} = calcCpCpk(st);
+        const cells = [
+          proc, mode, st.n,
+          formatSecs(st.mean), formatSecs(st.median),
+          formatSecs(st.p10), formatSecs(st.p90),
+          formatSecs(st.min), formatSecs(st.max),
+          formatSecs(st.std),
+          (st.cv*100).toFixed(1),
+          isFinite(cp)?cp.toFixed(2):'-',
+          isFinite(cpk)?cpk.toFixed(2):'-'
+        ];
+        cells.forEach((c,i)=>{
+          const td=document.createElement('td');
+          td.textContent = String(c);
+          if(i===0 || i===1) td.style.textAlign='left';
+          tr.appendChild(td);
+        });
+        statsBody.appendChild(tr);
+      }
+
+      { // focus
+        const tr=document.createElement('tr');
+        const sampleLine = buildSampleLine(st);
+
+        const curCap = capFromCt(st.median, view, Math.max(hours,0.0001), days) * eff;
+        const potCap = capFromCt(st.p10, view, Math.max(hours,0.0001), days) * eff;
+        const wstCap = capFromCt(st.p90, view, Math.max(hours,0.0001), days) * eff;
+
+        const gap = (contractUnits>0) ? (curCap - contractUnits) : NaN;
+        const vs  = (contractUnits>0) ? (curCap/contractUnits*100) : NaN;
+
+        const {cp, cpk} = calcCpCpk(st);
+
+        const cells = [
+          proc, mode, st.n, sampleLine.text,
+          formatSecs(st.std), (st.cv*100).toFixed(1),
+          formatSecs(st.median), formatSecs(st.p10), formatSecs(st.p90),
+          formatUnits(curCap), formatUnits(potCap), formatUnits(wstCap),
+          contractPcd>0 ? formatUnits(contractUnits) : '-',
+          isFinite(gap)?formatUnits(gap):'-',
+          isFinite(vs)?pct(vs,0):'-',
+          isFinite(cp)?cp.toFixed(2):'-',
+          isFinite(cpk)?cpk.toFixed(2):'-',
+          ''
+        ];
+
+        cells.forEach((c,i)=>{
+          const td=document.createElement('td');
+          if(i===0 || i===1 || i===3 || i===17) td.style.textAlign='left';
+          if(i===3){
+            const span=document.createElement('span');
+            span.className = 'badge ' + (sampleLine.cls==='sample-good'?'badge-good':(sampleLine.cls==='sample-bad'?'badge-bad':'badge-warn'));
+            span.textContent = c;
+            td.appendChild(span);
+          }else{
+            td.textContent = String(c);
+          }
+          tr.appendChild(td);
+        });
+
+        focusBody.appendChild(tr);
+      }
+    });
+
+    const proc = (processInput.value||'').trim();
+    const mode = modeSelect.value || 'CT';
+    const curKey = proc + '||' + mode;
+    const curArr = map.get(curKey) || [];
+    if(curArr.length<1){
+      setInfo(sampleInfoTop,'sample-neutral',
+        currentLang==='es'
+          ? 'Sin muestras todavía para el proceso actual. Empieza a capturar vueltas.'
+          : 'No samples yet for current process. Start capturing laps.'
+      );
+    }else{
+      const st = calcStats(curArr);
+      const line = buildSampleLine(st);
+      setInfo(sampleInfoTop, line.cls, line.text);
+    }
+  }
+
+  function renderRaw(){
+    dataBody.innerHTML = '';
+    laps.forEach((l, idx)=>{
+      const tr=document.createElement('tr');
+
+      function tdTxt(txt, left=false){
+        const c=document.createElement('td');
+        c.textContent = txt;
+        if(left) c.style.textAlign='left';
+        tr.appendChild(c);
+      }
+
+      tdTxt(String(idx+1), true);
+      tdTxt(l.process, true);
+      tdTxt(l.mode, true);
+
+      { // status
+        const c=document.createElement('td');
+        c.style.textAlign='left';
+        const sel=document.createElement('select');
+        sel.className='wb-sel';
+        const opts = [
+          {v:'',        en:'',         es:''},
+          {v:'Normal',  en:'Normal',   es:'Normal'},
+          {v:'Blocked', en:'Blocked',  es:'Bloqueado'},
+          {v:'Starved', en:'Starved',  es:'Hambriento'}
+        ];
+        opts.forEach(o=>{
+          const op=document.createElement('option');
+          op.value=o.v;
+          op.textContent = (currentLang==='es'?o.es:o.en);
+          if((l.status||'')===o.v) op.selected=true;
+          sel.appendChild(op);
+        });
+        sel.addEventListener('change',()=>{
+          l.status = sel.value;
+          renderAll();
+          scheduleSaveAll();
+        });
+        c.appendChild(sel);
+        tr.appendChild(c);
+      }
+
+      { // note
+        const c=document.createElement('td');
+        c.style.textAlign='left';
+        const inp=document.createElement('input');
+        inp.type='text';
+        inp.className='wb-inp wide';
+        inp.value = (l.note||'');
+        inp.placeholder = (currentLang==='es'?'nota…':'note…');
+        inp.addEventListener('input',()=>{
+          l.note = inp.value;
+          scheduleSaveAll();
+        });
+        c.appendChild(inp);
+        tr.appendChild(c);
+      }
+
+      tdTxt(formatSecs(l.t1));
+      tdTxt(formatSecs(l.t2));
+      tdTxt(formatSecs(l.total));
+
+      { // edit
+        const tdEdit=document.createElement('td');
+        const bEdit=document.createElement('button');
+        bEdit.className='btn-edit';
+        bEdit.textContent=t('col.edit');
+        bEdit.addEventListener('click',()=>{
+          const newProc = prompt(currentLang==='es'?'Proceso':'Process', l.process) ?? l.process;
+          const newMode = prompt(currentLang==='es'?'Modo (CT/MLD)':'Mode (CT/MLD)', l.mode) ?? l.mode;
+          const newT1 = prompt('T1 (s)', formatSecs(l.t1)) ?? l.t1;
+          const newT2 = prompt('T2 (s)', formatSecs(l.t2)) ?? l.t2;
+
+          const p = (newProc||'').toString().trim();
+          const m = (newMode||'CT').toString().trim().toUpperCase()==='MLD'?'MLD':'CT';
+          const t1v = Math.round((parseFloat(newT1)||0)*100)/100;
+          const t2v = Math.round((parseFloat(newT2)||0)*100)/100;
+
+          l.process = p || l.process;
+          l.mode = m;
+          l.t1 = t1v;
+          l.t2 = t2v;
+          l.total = Math.round((t1v+t2v)*100)/100;
+
+          ensureWbRowForOperation(l.process);
+          renderAll();
+          scheduleSaveAll();
+        });
+        tdEdit.appendChild(bEdit);
+        tr.appendChild(tdEdit);
+      }
+
+      { // del
+        const tdDel=document.createElement('td');
+        const bDel=document.createElement('button');
+        bDel.className='btn-del';
+        bDel.textContent=t('col.del');
+        bDel.addEventListener('click',()=>{
+          laps = laps.filter(x=>x.id!==l.id);
+          renderAll();
+          scheduleSaveAll();
+        });
+        tdDel.appendChild(bDel);
+        tr.appendChild(tdDel);
+      }
+
+      dataBody.appendChild(tr);
+    });
+  }
+
+  function ctx2d(canvas){
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return ctx;
+  }
+  function clearCanvas(ctx, canvas){ ctx.clearRect(0,0,canvas.width,canvas.height); }
+  function drawAxes(ctx, w, h, pad){
+    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(11,18,32,.18)';
+    ctx.beginPath();
+    ctx.moveTo(pad, pad);
+    ctx.lineTo(pad, h-pad);
+    ctx.lineTo(w-pad, h-pad);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawTimeSeries(proc, mode){
+    const ctx = ctx2d(timeSeriesCanvas);
+    const rect = timeSeriesCanvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    clearCanvas(ctx,timeSeriesCanvas);
+    const pad=18;
+    drawAxes(ctx,w,h,pad);
+
+    const map = groupByProcess();
+    const key = proc + '||' + mode;
+    const arr = map.get(key) || [];
+    if(arr.length<2) return;
+
+    const vals = arr.map(x=>x.total);
+    const st = calcStats(arr);
+    const mean = st.mean;
+    const med = st.median;
+    const std = st.std;
+
+    const minV = Math.min(...vals, mean-3*std, med-3*std);
+    const maxV = Math.max(...vals, mean+3*std, med+3*std);
+
+    function x(i){ return pad + ( (w-2*pad) * (i/(vals.length-1)) ); }
+    function y(v){
+      const t = (v-minV)/(maxV-minV || 1);
+      return (h-pad) - t*(h-2*pad);
+    }
+
+    ctx.strokeStyle='rgba(11,18,32,.55)';
+    ctx.lineWidth=1.2;
+    ctx.beginPath();
+    vals.forEach((v,i)=>{
+      const X=x(i), Y=y(v);
+      if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle='rgba(11,18,32,.65)';
+    vals.forEach((v,i)=>{
+      const X=x(i), Y=y(v);
+      ctx.beginPath(); ctx.arc(X,Y,2.2,0,Math.PI*2); ctx.fill();
+    });
+
+    function hline(v, alpha){
+      ctx.globalAlpha=alpha;
+      ctx.beginPath();
+      ctx.moveTo(pad,y(v));
+      ctx.lineTo(w-pad,y(v));
+      ctx.stroke();
+      ctx.globalAlpha=1;
+    }
+
+    ctx.strokeStyle='rgba(57,189,245,.85)';
+    ctx.lineWidth=1.2; hline(mean, 0.85);
+
+    ctx.strokeStyle='rgba(242,193,78,.85)';
+    ctx.lineWidth=1.2; hline(med, 0.85);
+
+    ctx.strokeStyle='rgba(11,18,32,.20)';
+    ctx.lineWidth=1; hline(mean+3*std, 0.30); hline(mean-3*std, 0.30);
+
+    ctx.fillStyle='rgba(11,18,32,.70)';
+    ctx.font='11px system-ui';
+    ctx.fillText(`Mean ${formatSecs(mean)}s`, pad+4, pad+10);
+    ctx.fillText(`Median ${formatSecs(med)}s`, pad+4, pad+24);
+  }
+
+  function drawHistogram(proc, mode){
+    const ctx = ctx2d(histCanvas);
+    const rect = histCanvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    clearCanvas(ctx,histCanvas);
+    const pad=18;
+    drawAxes(ctx,w,h,pad);
+
+    const map = groupByProcess();
+    const key = proc + '||' + mode;
+    const arr = map.get(key) || [];
+    if(arr.length<3) return;
+
+    const vals = arr.map(x=>x.total).slice().sort((a,b)=>a-b);
+    const st = calcStats(arr);
+
+    const bins = Math.max(6, Math.min(18, Math.round(Math.sqrt(vals.length))));
+    const minV = vals[0], maxV = vals[vals.length-1];
+    const bw = (maxV-minV)/(bins || 1) || 1;
+
+    const counts = new Array(bins).fill(0);
+    vals.forEach(v=>{
+      let idx = Math.floor((v-minV)/bw);
+      if(idx>=bins) idx=bins-1;
+      if(idx<0) idx=0;
+      counts[idx]++;
+    });
+    const maxC = Math.max(...counts);
+
+    const plotW = w-2*pad;
+    const plotH = h-2*pad;
+
+    ctx.fillStyle='rgba(11,18,32,.25)';
+    counts.forEach((c,i)=>{
+      const x0 = pad + (i/bins)*plotW;
+      const barW = (plotW/bins)*0.92;
+      const barH = (c/(maxC||1))*plotH;
+      ctx.fillRect(x0, (h-pad)-barH, barW, barH);
+    });
+
+    function vline(v, stroke){
+      const t=(v-minV)/(maxV-minV || 1);
+      const X= pad + t*plotW;
+      ctx.strokeStyle=stroke;
+      ctx.lineWidth=1.2;
+      ctx.beginPath();
+      ctx.moveTo(X,pad);
+      ctx.lineTo(X,h-pad);
+      ctx.stroke();
+    }
+    vline(st.median,'rgba(242,193,78,.90)');
+    vline(st.p10,'rgba(24,201,122,.85)');
+    vline(st.p90,'rgba(255,51,85,.85)');
+
+    ctx.fillStyle='rgba(11,18,32,.70)';
+    ctx.font='11px system-ui';
+    ctx.fillText(`P10 ${formatSecs(st.p10)}s`, pad+4, pad+10);
+    ctx.fillText(`Median ${formatSecs(st.median)}s`, pad+4, pad+24);
+    ctx.fillText(`P90 ${formatSecs(st.p90)}s`, pad+4, pad+38);
+  }
+
+  function populateChartSelect(){
+    const map = groupByProcess();
+    const keys = [...map.keys()].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+    const prev = chartSelect.value;
+
+    chartSelect.innerHTML='';
+    const placeholder=document.createElement('option');
+    placeholder.value='';
+    placeholder.textContent = currentLang==='es' ? 'Selecciona un proceso…' : 'Select a process…';
+    chartSelect.appendChild(placeholder);
+
+    keys.forEach(k=>{
+      const [p,m] = k.split('||');
+      const opt=document.createElement('option');
+      opt.value=k;
+      opt.textContent = `${p} · ${m}`;
+      chartSelect.appendChild(opt);
+    });
+
+    if(prev && keys.includes(prev)) chartSelect.value=prev;
+
+    const cur = (processInput.value||'').trim() + '||' + (modeSelect.value||'CT');
+    if(!chartSelect.value && keys.includes(cur)) chartSelect.value = cur;
+  }
+
+  function renderCharts(){
+    populateChartSelect();
+    const val = chartSelect.value;
+    if(!val) return;
+    const [p,m] = val.split('||');
+    drawTimeSeries(p,m);
+    drawHistogram(p,m);
+  }
+  chartSelect.addEventListener('change',()=>renderCharts());
+
+  function renderMethodGuide(){
+    const textES =
+`GUÍA COMPLETA (campo por campo)
+
+A) CONFIGURACIÓN DE MEDICIÓN
+1) Proceso
+- Qué es: el nombre de la operación/estación que estás midiendo (ej: "Op 30", "Op 10-2", "Router 1").
+- Cómo llenarlo: usa un nombre consistente, sin inventar variaciones cada rato (para que las estadísticas se agrupen bien).
+- Por qué importa: si cambias el nombre, TaktLab cree que es “otro proceso” y te separa los datos.
+
+2) Modo
+- CT (Tiempo de ciclo): cada VUELTA es un tiempo total. Úsalo cuando el operador está integrado al ciclo y no te interesa separar máquina vs mano.
+- MLD (Machine & Load/Unload): aquí medimos en 2 pasos:
+  - VUELTA 1 = T1 (tiempo de máquina)
+  - VUELTA 2 = T2 (carga/descarga / trabajo manual)
+  - Total = T1 + T2
+- Por qué importa: MLD te ayuda a ver si estás limitado por máquina o por mano.
+
+3) Eficiencia %
+- Qué es: factor para ajustar capacidad real vs ideal (micro-paros, variación normal, eficiencia de la línea).
+- Cómo llenarlo: si no tienes datos, empieza con 100 y baja con evidencia (ej. 85–95 suele ser típico).
+- Por qué importa: evita prometer capacidad “de laboratorio” que nunca ocurre en piso.
+
+4) Capacidad contrato (pzs/día)
+- Qué es: demanda/compromiso diario que DEBES cumplir.
+- Cómo llenarlo: usa lo que realmente pide el cliente o el plan maestro.
+- Por qué importa: todas las alertas de “gap” y “% vs contrato” salen de aquí.
+
+5) Horas / día
+- Qué es: horas disponibles reales del día (no “turno nominal”).
+- Cómo llenarlo: si trabajas 2 turnos de 10.5 = 21, si son 3 turnos de 8 = 24, etc.
+- Por qué importa: convierte capacidad a día/semana correctamente.
+
+6) Días / semana
+- Qué es: cuántos días se trabaja (5, 6, 7).
+- Por qué importa: el view semanal se calcula con esto.
+
+7) Vista de capacidad
+- Por hora: útil para comparar con UPH o ver si un proceso “da” por hora.
+- Por día: útil para contrato diario.
+- Por semana: útil para planeación y compromisos semanales.
+
+B) CONTROLES DE DATOS
+- Copiar resumen: copia el resumen de capacidad/contrato + stats.
+- Copiar todo: incluye raw data (ideal para pegar en Excel).
+- Agregar vuelta manual: útil cuando te dictan datos o traes tiempos de otro sistema.
+- Reiniciar: BORRA todo (laps + WB + settings guardados). Solo úsalo cuando quieres empezar de cero.
+
+C) RESUMEN CONTRATO VS CAPACIDAD
+- Actual: usa la Mediana (robusta ante outliers).
+- Potencial: usa P10 (mejor escenario realista).
+- Peor: usa P90 (escenario conservador).
+- Todo multiplicado por Eficiencia %.
+
+D) ENFOQUE ESTADÍSTICO
+- N: número de muestras válidas (NO incluye Bloqueado/Hambriento).
+- Error estimado: aproximación con CV y 95% (direccional).
+- Consejo: si estás “casi suficiente” no te pelees: mide 5-10 más y cierras discusión con datos.
+
+E) WB – PLANEADOR DE CAPACIDAD (por proceso)
+Campos clave:
+1) Operación: nombre del proceso (ideal: mismo que en “Proceso”).
+2) Operadores (0–10): número de personas asignadas.
+3) Turnos (1–4): referencia (no cambia cálculo directo, es para contexto).
+4) Horas (0–24): horas reales disponibles por día.
+5) # Máquinas (1–50): multiplicador de tiempo disponible.
+6) Pzs/Op (1–99): piezas producidas por ciclo/operación (si haces 2-up, aquí pones 2).
+7) Contrato (pzs/día): meta diaria de esa operación (si aplica).
+8) Pérdidas planificadas (min/día): Comida, Changeover, 5S, Mtto, Otros
+9) Capacidad compartida (min/día): tiempo que se “come” otra familia/producto/recurso compartido.
+10) DT no planeado (min/día): paros NO planeados. Se captura como minutos al día.
+11) Scrap % y Yield: Yield = 1 - scrap.
+12) A/P/Q y OEE: OEE = A×P×Q (en decimales). Si no tienes datos: empieza 100/100/100 y baja con evidencia.
+13) CT Actual/Peor/Potencial: viene de tus mediciones (si quieres forzar valores, usa Edit).
+Resultados:
+- Min netos/día = Brutos - pérdidas planificadas - compartido - DT no planeado
+- Cap 100% (Cur) = (Seg netos / CT) × Yield × Pzs/Op
+- Cap@OEE (Cur) ajusta CT por OEE (más realista)
+- % vs contrato te grita si cumples o no.
+- Entrada requerida p/Contrato = Contrato / (Yield×Pzs/Op)
+
+F) DATOS CRUDOS DE TIEMPO
+- Estatus:
+  - Normal: cuenta para stats
+  - Bloqueado: NO cuenta (esperando material, falla upstream, etc.)
+  - Hambriento: NO cuenta (sin trabajo/flujo)
+- Nota: escribe causa, modelo, condición especial (sirve para análisis posterior).
+- Editar/Borrar: limpieza del dataset.
+
+Regla de oro:
+Si el dato no es defendible, no lo uses. Si el dato es defendible, que se vea en el WB.`;
+
+    const textEN =
+`FULL GUIDE (field-by-field)
+
+A) MEASUREMENT SETUP
+1) Process
+- What: operation/station name you are measuring (e.g., "Op 30").
+- How: keep naming consistent so stats group correctly.
+- Why: different names = different buckets.
+
+2) Mode
+- CT: each LAP is total cycle time.
+- MLD: two-step capture:
+  - LAP 1 = T1 (machine)
+  - LAP 2 = T2 (load/unload / manual)
+  - Total = T1 + T2
+- Why: shows whether constraint is machine or labor.
+
+3) Efficiency %
+- What: realism factor (micro-stops, normal losses).
+- How: start at 100, reduce with evidence.
+- Why: avoids “lab capacity”.
+
+4) Contract (pcs/day)
+- What: required output per day.
+- Why: drives gap and % vs contract.
+
+5) Hours / day
+- What: real available hours (not nominal).
+- Why: correct daily/weekly conversion.
+
+6) Days / week
+- What: working days.
+- Why: weekly view uses it.
+
+7) Capacity view
+- Hour/Day/Week for the lens you need.
+
+B) DATA CONTROLS
+- Copy summary / Copy all / Manual lap / Reset.
+
+C) CONTRACT vs CAPACITY
+- Current=Median, Potential=P10, Worst=P90, all × Efficiency.
+
+D) STAT FOCUS
+- N excludes Blocked/Starved.
+- Error estimate is directional.
+
+E) WB CAPACITY PLANNER
+- Net minutes/day = Gross - planned losses - shared - unplanned DT
+- Output = (Net seconds / CT) × Yield × Pcs/Op
+- Cap@OEE uses CT adjusted by OEE.
+- Input required = Contract / (Yield×Pcs/Op)
+
+F) RAW DATA
+- Status filters, notes, edit/delete for dataset quality.`;
+
+    methodGuideText.textContent = (currentLang==='es') ? textES : textEN;
+  }
+
+  function buildSummaryText(){
+    const b = buildContractLinesForCurrentSelection();
+    const lines = [];
+    lines.push('TaktLab Summary');
+    lines.push(`Date: ${new Date().toISOString()}`);
+    lines.push(b.l1);
+    lines.push(b.l2);
+    lines.push(b.l3);
+    lines.push(b.l4);
+    return lines.join('\n');
+  }
+
+  function buildAllText(){
+    const lines=[];
+    lines.push(buildSummaryText());
+    lines.push('\nRAW DATA');
+    lines.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
+    laps.forEach((l,idx)=>{
+      lines.push([
+        idx+1,
+        (l.process||'').trim(),
+        l.mode||'',
+        l.status||'',
+        (l.note||'').replace(/\t/g,' '),
+        formatSecs(l.t1),
+        formatSecs(l.t2),
+        formatSecs(l.total)
+      ].join('\t'));
+    });
+    return lines.join('\n');
+  }
+
+  // ✅ botones copiar por sección
+  btnCopyAll.addEventListener('click',()=>copyTextLocked(btnCopyAll, buildAllText()));
+  btnCopySum.addEventListener('click',()=>copyTextLocked(btnCopySum, buildSummaryText()));
+
+  btnCopySetup.addEventListener('click',()=>{
+    const txt =
+`SETUP
+Process: ${processInput.value||''}
+Mode: ${modeSelect.value||''}
+Efficiency%: ${effInput.value||''}
+Contract pcs/day: ${pcdInput.value||''}
+Hours/day: ${hInput.value||''}
+Days/week: ${dInput.value||''}
+View: ${capViewSel.value||''}`;
+    copyTextLocked(btnCopySetup, txt);
+  });
+
+  btnCopyControls.addEventListener('click',()=>{
+    copyTextLocked(btnCopyControls, 'Data Controls: Copy Summary / Copy All / Manual Lap / Reset');
+  });
+
+  btnCopyContract.addEventListener('click',()=>{
+    const b = buildContractLinesForCurrentSelection();
+    copyTextLocked(btnCopyContract, [b.l1,b.l2,b.l3,b.l4].join('\n'));
+  });
+
+  btnCopyFocus.addEventListener('click',()=>{
+    let out=[];
+    out.push('FOCUS TABLE');
+    out.push('Process\tMode\tN\tSample/Error\tStd\tCV%\tCTmed\tP10\tP90\tCur@Eff\tPot@Eff\tWst@Eff\tContract\tGap\t%vs\tCp\tCpk');
+    [...focusBody.querySelectorAll('tr')].forEach(tr=>{
+      const tds=[...tr.querySelectorAll('td')].map(td=>td.textContent.replace(/\s+/g,' ').trim());
+      out.push(tds.join('\t'));
+    });
+    copyTextLocked(btnCopyFocus, out.join('\n'));
+  });
+
+  btnCopyWB.addEventListener('click',()=>{
+    lockBtn(btnCopyWB,6000);
+    let out=[];
+    out.push(`WB Export (${new Date().toISOString()})`);
+    out.push('On\tOperation\tOperators\tShifts(ref)\tHours\tMachines\tPcsPerOp\tContractPcd\tNetMinDay\tOEE%\tYield%\tCTcur\tCap@OEE\t%vsContract\tUDTminDay');
+    wbRows.forEach(r=>{
+      const net = netMinPerDay(r);
+      const oee = computeOEE(r);
+      const y = yieldFromScrap(r)*100;
+      const {cur} = ctForRow(r);
+      const {capOee} = capPerDayFromRow(r);
+      const contract = clamp(parseFloat(r.contractPcd)||0,0,99999);
+      const vs = contract>0 ? (capOee/contract*100) : NaN;
+      const ppo = clamp(parseFloat(r.pcsPerOp)||1, 1, 99);
+      out.push([
+        r.enabled?1:0,
+        (r.operation||'').trim(),
+        Math.round(clamp(parseFloat(r.operators)||0,0,10)),
+        Math.round(clamp(parseFloat(r.shifts)||1,1,4)),
+        clamp(parseFloat(r.hours)||0,0,24),
+        clamp(parseFloat(r.machines)||1,1,50),
+        Math.round(ppo),
+        Math.round(contract),
+        Math.round(net),
+        oee.toFixed(1),
+        y.toFixed(1),
+        (isFinite(cur)?formatSecs(cur):''),
+        (isFinite(capOee)?Math.round(capOee):''),
+        (isFinite(vs)?vs.toFixed(0):''),
+        clamp(parseFloat(r.udtMinDay)||0,0,1440)
+      ].join('\t'));
+    });
+    copyText(out.join('\n'));
+  });
+
+  btnCopyCharts.addEventListener('click',()=>{
+    const v = chartSelect.value || '';
+    copyTextLocked(btnCopyCharts, `CHARTS\nSelected: ${v}\n(Charts are visual; export raw data for Excel.)`);
+  });
+
+  btnCopyRaw.addEventListener('click',()=>{
+    let out=[];
+    out.push('RAW DATA');
+    out.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
+    laps.forEach((l,idx)=>{
+      out.push([
+        idx+1,
+        (l.process||'').trim(),
+        l.mode||'',
+        l.status||'',
+        (l.note||'').replace(/\t/g,' '),
+        formatSecs(l.t1),
+        formatSecs(l.t2),
+        formatSecs(l.total)
+      ].join('\t'));
+    });
+    copyTextLocked(btnCopyRaw, out.join('\n'));
+  });
+
+  btnCopyGuide.addEventListener('click',()=>{
+    copyTextLocked(btnCopyGuide, methodGuideText.textContent || '');
+  });
+
+  function restoreState(){
+    const raw = localStorage.getItem(TL_STATE_KEY);
+    if(!raw){
+      loadWB();
+      return;
+    }
+    const snap = safeJsonParse(raw);
+    if(!snap || !snap.settings) { loadWB(); return; }
+
+    try{
+      currentLang = (snap.lang==='en') ? 'en' : (localStorage.getItem(LANG_KEY)||'es');
+    }catch(e){}
+
+    processInput.value = (snap.settings.processName ?? '');
+    modeSelect.value   = (snap.settings.mode ?? 'CT');
+    effInput.value     = (snap.settings.efficiency ?? '100');
+    pcdInput.value     = (snap.settings.contractPcd ?? '');
+    hInput.value       = (snap.settings.hoursPerDay ?? '8');
+    dInput.value       = (snap.settings.daysPerWeek ?? '5');
+    capViewSel.value   = (snap.settings.capView ?? 'hour');
+
+    laps = Array.isArray(snap.laps) ? snap.laps : [];
+    nextId = isFinite(snap.nextId) ? snap.nextId : 1;
+
+    wbRows = Array.isArray(snap.wbRows) ? snap.wbRows : [];
+    if(!wbRows.length) loadWB();
+
+    wbRows.forEach(r=>{
+      r.pcsPerOp = clamp(parseFloat(r.pcsPerOp)||1,1,99);
+      r.udtMinDay = clamp(parseFloat(r.udtMinDay)||0,0,1440);
+      if(!isFinite(r.changeoverMin) || r.changeoverMin<1) r.changeoverMin = 1;
+      if(!isFinite(r.maintMin) || r.maintMin<1) r.maintMin = 1;
+    });
+  }
+
+  [processInput, modeSelect, effInput, pcdInput, hInput, dInput, capViewSel].forEach(el=>{
+    el.addEventListener('input',()=>{ scheduleSaveAll(); renderAll(); });
+    el.addEventListener('change',()=>{ scheduleSaveAll(); renderAll(); });
+  });
+
+  processInput.addEventListener('change',()=>{
+    const proc=(processInput.value||'').trim();
+    if(proc) ensureWbRowForOperation(proc);
+    renderAll();
+    scheduleSaveAll();
+  });
+
+  function renderAll(){
+    updateLangButtons();
+    applyTranslations();
+    renderMethodGuide();
+    renderContractSummaryAndFocus();
+    renderStatsTables();
+    renderWB();
+    renderRaw();
+    renderCharts();
+    updateSplitClocks();
+  }
+
+  restoreState();
+  setLanguage(currentLang);
+
+  btnStart.textContent = running ? t('btn.pause') : t('btn.start');
+  refreshRingStates();
+
+  window.addEventListener('resize',()=>{ renderCharts(); });
 
 })();
 </script>
