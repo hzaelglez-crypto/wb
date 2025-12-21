@@ -686,7 +686,7 @@ th{ white-space:normal; line-height:1.05; }
               <th>Util %</th>
               <th>Semáforo</th>
               <th>Sync a WB</th>
-              <th>Partes</th>
+              <th>Subprocesos</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -1474,37 +1474,76 @@ th{ white-space:normal; line-height:1.05; }
         tdNode(chk);
       }
 
-      // Parts button
-      {
-        const btn=document.createElement('button');
-        btn.className='btn-small btn-small-wbadd';
-        btn.textContent = `Partes (${m.parts.length})`;
-        btn.addEventListener('click',()=>{
-          // abre editor simple con prompts (modo "Roberto no se pierde")
-          if(m.parts.length>=100){
-            alert('Límite: 100 líneas por máquina.');
-            return;
-          }
-          const addCount = parseInt(prompt('¿Cuántas líneas agregar? (1-10)', '1')||'1',10);
-          const n = clamp(addCount||1,1,10);
-          for(let i=0;i<n;i++){
-            if(m.parts.length>=100) break;
-            m.parts.push(defaultScPart());
-          }
-          saveSC(); renderAll();
-          // editor rápido: te deja llenar 1 por 1 si quieres
-          if(confirm('¿Quieres capturar AHORA la primera línea (rápido con prompts)?')){
-            const p = m.parts[m.parts.length-1];
-            p.partDesc = prompt('Part Description:', p.partDesc||'') ?? p.partDesc;
-            p.partNo = prompt('Part Number:', p.partNo||'') ?? p.partNo;
-            p.annualContract = prompt('Annual Contract (volumen anual):', p.annualContract||'') ?? p.annualContract;
-            p.pcsPerCycle = clamp(parseFloat(prompt('Parts per Cycle (1-99):', String(p.pcsPerCycle||1))||p.pcsPerCycle)||1,1,99);
-            p.ctSec = clamp(parseFloat(prompt('Cycle Time seconds (0-999):', String(p.ctSec||0))||p.ctSec)||0,0,999);
-            p.scrapPct = clamp(parseFloat(prompt('True Scrap % (0-100):', String(p.scrapPct||0))||p.scrapPct)||0,0,100);
-            p.changeoverMin = clamp(parseFloat(prompt('Changeover minutes (0-1440):', String(p.changeoverMin||0))||p.changeoverMin)||0,0,1440);
-            p.changeoverFreqDays = clamp(parseFloat(prompt('Changeover frequency in DAYS (0=none):', String(p.changeoverFreqDays||0))||p.changeoverFreqDays)||0,0,365);
-            saveSC(); renderAll();
-          }
+// Subprocess table (Shared Capacity – Level 1.x)
+{
+  const wrap = document.createElement('div');
+  wrap.className = 'sc-sublevel';
+
+  const title = document.createElement('div');
+  title.className = 'sc-subtitle';
+  title.textContent = 'Subprocesos (1, 1.1, 1.2…)';
+  wrap.appendChild(title);
+
+  const table = document.createElement('table');
+  table.className = 'sc-subtable';
+
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Subproceso</th>
+        <th>CT (s)</th>
+        <th>Scrap %</th>
+        <th>Contrato anual</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tbody = table.querySelector('tbody');
+
+  function renderSubParts(){
+    tbody.innerHTML = '';
+    m.parts.forEach((p, idx)=>{
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td><input value="${p.subCode||''}" placeholder="1.1"/></td>
+        <td><input type="number" min="0" max="999" value="${p.ctSec||0}"/></td>
+        <td><input type="number" min="0" max="100" value="${p.scrapPct||0}"/></td>
+        <td><input type="number" min="0" value="${p.annualContract||0}"/></td>
+      `;
+
+      const [sub,ct,scr,ann] = tr.querySelectorAll('input');
+
+      sub.onchange = ()=>{ p.subCode=sub.value; saveSC(); };
+      ct.onchange  = ()=>{ p.ctSec=+ct.value||0; saveSC(); };
+      scr.onchange = ()=>{ p.scrapPct=+scr.value||0; saveSC(); };
+      ann.onchange = ()=>{ p.annualContract=+ann.value||0; saveSC(); };
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  const btnAdd = document.createElement('button');
+  btnAdd.textContent = '+ Agregar subproceso';
+  btnAdd.className = 'btn-small';
+  btnAdd.onclick = ()=>{
+    m.parts.push({
+      subCode: `${m.parts.length+1}`,
+      ctSec: 0,
+      scrapPct: 0,
+      annualContract: 0
+    });
+    renderSubParts();
+    saveSC();
+  };
+
+  wrap.appendChild(table);
+  wrap.appendChild(btnAdd);
+  tdNode(wrap);
+
+  renderSubParts();
+}
         });
         tdNode(btn);
       }
