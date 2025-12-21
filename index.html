@@ -2067,9 +2067,9 @@ function applyTranslations(){
 
   return Math.max(0, gross - planned - sharedTotal - unplanned);
 }
-
-    const scrap = clamp(parseFloat(row.scrapPct)||0,0,100);
-    return (100 - scrap)/100;
+function yieldFromScrap(row){
+  const scrap = clamp(parseFloat(row.scrapPct)||0,0,100);
+  return (100 - scrap)/100;
   }
 
   function getProcessStatsForRow(row){
