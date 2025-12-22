@@ -3413,14 +3413,25 @@ View: ${capViewSel.value||''}`;
     copyTextLocked(btnCopyGuide, methodGuideText.textContent || '');
   });
 
-  function restoreState(){
-    const raw = localStorage.getItem(TL_STATE_KEY);
-    if(!raw){
-      loadWB();
-      return;
-        // ✅ load shared capacity
+function restoreState(){
+  const raw = localStorage.getItem(TL_STATE_KEY);
+
+  if(!raw){
+    loadWB();
     loadSC();
-    scRender(); 
+    scRender();
+    return;
+  }
+
+  const snap = safeJsonParse(raw);
+  if(!snap || !snap.settings){
+    loadWB();
+    loadSC();
+    scRender();
+    return;
+  }
+
+  // resto del restore normal…
 }
     const snap = safeJsonParse(raw);
     if(!snap || !snap.settings) { loadWB(); return; }
@@ -3533,6 +3544,9 @@ function copySectionById(sectionId){
     alert('✅ Copiado al portapapeles');
   }
 }
+  // === SHARED CAPACITY CORE ===
+- if(machine.enabled) scSyncToWB(machine);
++ if(machine.enabled && machine.syncToWB) scSyncToWB(machine);
 </script>
 </body>
 </html>
