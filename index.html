@@ -33,32 +33,6 @@
     --badge-green:rgba(24,201,122,.14);
     --badge-red:rgba(255,51,85,.14);
     --badge-amber:rgba(242,193,78,.14);
-    }
-    .sc-summary{
-  display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
-  gap:12px;
-  margin-bottom:12px;
-}
-.sc-summary-block{
-  border:1px solid #e0e6ef;
-  border-radius:10px;
-  padding:10px 12px;
-  background:#f9fbff;
-  font-size:13px;
-}
-.sc-summary-reco{
-  grid-column:1/-1;
-  border-radius:10px;
-  padding:12px;
-  background:#fff6e5;
-  border:1px solid #ffd58a;
-  font-size:14px;
-}
-.sc-ok{color:#1a7f37;font-weight:600;}
-.sc-warn{color:#9a6700;font-weight:600;}
-.sc-bad{color:#b42318;font-weight:600;}
-
 
     /* WB sticky sizing */
     --wb-on-w:56px;
@@ -210,21 +184,6 @@
     cursor:not-allowed;
     transform:none !important;
   }
-  .sc-sim-controls{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  margin-bottom:10px;
-}
-.sc-sim-controls button{
-  padding:6px 10px;
-  font-size:13px;
-}
-#scSimNote{
-  font-size:12px;
-  color:#666;
-}
-
 
   .flash{animation:flash-bg .12s ease-out;}
   @keyframes flash-bg{ from{background:rgba(57,189,245,.10);} to{background:transparent;} }
@@ -531,12 +490,6 @@ th{ white-space:normal; line-height:1.05; }
     <div class="section-card" data-accent="green" id="secContract">
       <div class="section-head">
         <div class="section-title" data-i18n="section.contractSummary">Resumen Contrato vs Capacidad</div>
-        <div class="sc-sim-controls">
-  <button id="scPlusMachine">+1 Máquina</button>
-  <button id="scMinusMachine">−1 Máquina</button>
-  <span id="scSimNote"></span>
-</div>
-
         <div class="section-tools">
           <button class="btn-small btn-small-copy" id="btnCopyContract" data-i18n="btn.copySection">Copiar</button>
         </div>
@@ -701,16 +654,6 @@ th{ white-space:normal; line-height:1.05; }
       </div>
     </div>
     <!-- 4.5) Shared Capacity -->
-    <section id="secSharedCapacity">
-  <h3>Shared Capacity</h3>
-  <div id="sharedCapacity"></div>
-</section>
-    <div id="scSummaryBox" class="sc-summary">
-  <div id="scMachineSummary" class="sc-summary-block"></div>
-  <div id="scOperationSummary" class="sc-summary-block"></div>
-  <div id="scRecommendation" class="sc-summary-reco"></div>
-</div>
-
     <div class="section-card" data-accent="red" id="secSharedCapacity">
       <div class="section-head">
         <div class="section-title">Shared Capacity (Capacidad compartida)</div>
@@ -840,12 +783,6 @@ th{ white-space:normal; line-height:1.05; }
 (function(){
   const display = document.getElementById('display');
   const btnStart = document.getElementById('btnStart');
-  if(btnStart){
-  btnStart.addEventListener('click', ()=>{
-    console.log('CLICK INICIAR');
-    running ? pause() : start();
-  });
-}
   const btnLap = document.getElementById('btnLap');
   const timerCard = document.getElementById('timerCard');
   const logoGear = document.getElementById('logoGear');
@@ -1121,108 +1058,13 @@ function lockBtn(btn, ms=6000){
     /* =======================
      ✅ SHARED CAPACITY MODEL
      ======================= */
-  function renderSharedSummary(machine, main){
-  if(!machine) return;
-
-  const pool =
-    (machine.hours||24)*60*(machine.machines||1)
-    - (machine.plannedDT||0)
-    - (machine.unplannedDT||0);
-
-  const sharedReq = scTotalRequiredMinDay(machine);
-
-  const utilShared = pool>0 ? (sharedReq/pool)*100 : 0;
-
-  const remain = Math.max(0, pool - sharedReq);
-
-  const mainReq =
-    ((main.dailyDemand||0)*(main.ctSec||0))/60;
-
-  // --- MACHINE SUMMARY ---
-  document.getElementById('scMachineSummary').innerHTML = `
-    <b>Shared Capacity – Máquina</b><br>
-    Disponibles netos: ${pool.toFixed(0)} min/día<br>
-    Requeridos (otros OEM): ${sharedReq.toFixed(1)} min/día<br>
-    Utilización: <span class="${utilShared>100?'sc-bad':utilShared>90?'sc-warn':'sc-ok'}">
-      ${utilShared.toFixed(1)}%
-    </span>
-  `;
-
-  // --- OPERATION SUMMARY ---
-  const okMain = remain >= mainReq;
-  document.getElementById('scOperationSummary').innerHTML = `
-    <b>Impacto en tu operación</b><br>
-    Min restantes: ${remain.toFixed(0)} min/día<br>
-    Min requeridos (tu contrato): ${mainReq.toFixed(0)} min/día<br>
-    Resultado:
-    <span class="${okMain?'sc-ok':'sc-bad'}">
-      ${okMain?'ALCANZA':'NO ALCANZA'}
-    </span>
-  `;
-
-  // --- RECOMMENDATION ---
-  let reco = '';
-  if(!okMain){
-    const needMachines = Math.ceil(mainReq / (remain/(machine.machines||1)));
-    const targetCT = (remain*60)/(main.dailyDemand||1);
-    reco = `
-      <b>Recomendaciones:</b><br>
-      • Agregar ${needMachines} máquina(s)<br>
-      • o bajar CT a ${targetCT.toFixed(1)} s<br>
-      • o reducir ${Math.abs(remain-mainReq).toFixed(0)} min/día de carga compartida
-    `;
-  }else{
-    reco = `<b>Estado:</b> Capacidad suficiente. No se requiere acción.`;
-  }
-
-  document.getElementById('scRecommendation').innerHTML = reco;
-}
-
   const SC_KEY = 'taktlabSharedCapacity_v1';
-  
 
   const scBody = document.getElementById('scBody');
   const btnScAddMachine = document.getElementById('btnScAddMachine');
   const btnScClear = document.getElementById('btnScClear');
   const btnCopyShared = document.getElementById('btnCopyShared');
-  // ===============================
-// Shared Capacity – Add Machine
-// ===============================
-if(btnScAddMachine){
-  btnScAddMachine.addEventListener('click', ()=>{
-    const m = defaultScMachine();
-    scMachines.push(m);
-    saveSC();
-    renderAll();
-  });
-}
 
-// ===============================
-// Shared Capacity – Clear All (incluye WB)
-// ===============================
-if(btnScClear){
-  btnScClear.addEventListener('click', ()=>{
-    const ok = confirm(
-      currentLang === 'es'
-        ? 'Esto borrará Shared Capacity y limpiará WB. ¿Continuar?'
-        : 'This will clear Shared Capacity AND WB. Continue?'
-    );
-    if(!ok) return;
-
-    // 1️⃣ Limpiar modelo Shared
-    scMachines = [];
-    localStorage.removeItem(SC_KEY);
-
-    // 2️⃣ Limpiar WB: sharedMin = 0 en todas las filas
-    wbRows.forEach(r=>{
-      r.sharedMin = 0;
-    });
-    saveWB();
-
-    // 3️⃣ Redibujar todo
-    renderAll();
-  });
-}
   let scMachines = [];
 
   function loadSC(){
@@ -1308,9 +1150,8 @@ if(btnScClear){
   }
 
   function scNetAvailMinDay(m){
-    let scSimMachinesDelta = 0;
     const availOne = clamp(parseFloat(m.availMinDay)||0,0,1440);
-    const machines = clamp(parseFloat(m.machines)||1,1,50) + scSimMachinesDelta;
+    const machines = clamp(parseFloat(m.machines)||1,1,50);
     const availTotal = availOne * machines;
 
     const pdt = clamp(parseFloat(m.plannedDT)||0,0,1440);
@@ -1336,26 +1177,27 @@ if(btnScClear){
     if(util <= 100) return {cls:'badge-warn', txt:'Riesgo'};
     return {cls:'badge-bad', txt:'No Capacity'};
   }
+
   function scSyncToWB(m){
-  if(!m || !m.operation) return;
+  const op = (m.operation || "").trim();
+  if(!op) return;
 
-  const opKey = normOp(m.operation);
-  ensureWbRowForOperation(m.operation);
-
-  const row = wbRows.find(r => normOp(r.operation) === opKey);
-  if(!row) return;
-
-  // minutos requeridos TOTALES por día
+  // total requerido por día (todas las máquinas del recurso)
   const reqTotal = scTotalRequiredMinDay(m);
 
-  // repartir por máquina
-  const machines = Math.max(1, parseInt(row.machines || 1,10));
-  const perMachine = reqTotal / machines;
+  // ✅ convertir a "min/día por máquina" para WB (porque WB lo multiplica por Machines)
+  const machines = Math.max(1, parseInt(m.machines || 1, 10));
+  const reqPerMachine = reqTotal / machines;
 
-  row.sharedMin = Math.round(perMachine);
+  ensureWbRowForOperation(op);
 
-  saveWB();
-}
+  const row = wbRows.find(r => normOp(r.operation) === normOp(op));
+  if(row){
+    const snap5 = (x)=> Math.round(x/5)*5;
+row.sharedMin = clamp(snap5(reqPerMachine), 0, 1440);
+    saveWB();
+    renderWB();
+  }
 }
   function scEnsureWbRowExists(op){
     const name = (op||'').trim();
@@ -1413,127 +1255,8 @@ if(btnScClear){
   }
 
   function scRender(){
-      const scWrap = document.getElementById('sharedCapacity');
-  if(!scWrap) return;
-  scWrap.innerHTML = '';
-
-    const scWrap = document.getElementById('sharedCapacity');
     if(!scBody) return;
-    const simNote = document.getElementById('scSimNote');
-if(simNote){
-  simNote.textContent =
-    scSimMachinesDelta > 0
-      ? `Simulación activa: +${scSimMachinesDelta} máquina(s)`
-      : '';
-}
-
     scBody.innerHTML = '';
- // ===== Shared Capacity – Recommendations =====
-const scReco = document.createElement('div');
-scReco.className = 'sc-reco';
-scReco.style.margin = '6px 0 12px';
-scReco.style.padding = '6px 10px';
-scReco.style.background = '#fff7e6';
-scReco.style.border = '1px solid #f2c14e';
-scReco.style.borderRadius = '8px';
-scReco.style.fontSize = '.78rem';
-scReco.style.fontWeight = '600';
-
-scReco.textContent = scBuildRecommendations();
-scWrap.appendChild(scReco);
-// ============================================
-  // ===== Copy Shared Recommendations =====
-const btnCopyReco = document.createElement('button');
-btnCopyReco.className = 'btn btn-grey';
-btnCopyReco.textContent = 'Copiar recomendaciones';
-btnCopyReco.style.marginBottom = '8px';
-
-btnCopyReco.onclick = ()=>{
-  const txt = scBuildRecommendations()
-    .replace(/ · /g, '\n')
-    .replace(/✔/g,'OK')
-    .replace(/➕/g,'+')
-    .replace(/⏱/g,'CT')
-    .replace(/🔁/g,'Changeover')
-    .replace(/🧪/g,'Scrap')
-    .replace(/❗/g,'Gap');
-
-  navigator.clipboard.writeText(
-    `SHARED CAPACITY – RECOMENDACIONES\n\n${txt}`
-  );
-};
-
-scWrap.appendChild(btnCopyReco);
-// ======================================
- 
-// ===== Shared Capacity – Executive Summary =====
-const scSummary = document.createElement('div');
-scSummary.className = 'sc-summary';
-scSummary.style.margin = '8px 0 12px';
-scSummary.style.padding = '6px 10px';
-scSummary.style.background = '#f6f8fb';
-scSummary.style.border = '1px dashed #c9d3e6';
-scSummary.style.borderRadius = '8px';
-scSummary.style.fontSize = '.78rem';
-scSummary.style.fontWeight = '600';
-
-scSummary.textContent = scBuildSummary();
-scWrap.appendChild(scSummary);
-
-function scBuildRecommendations(){
-  if(!Array.isArray(scMachines) || !scMachines.length){
-    return 'Recomendaciones: sin datos';
-  }
-
-  const tips = [];
-
-  scMachines.forEach(m=>{
-    if(!m.syncToWB) return;
-
-    const req = scTotalRequiredMinDay(m);
-    const avail =
-      Math.max(
-        0,
-        (m.availMinDay||0) -
-        (m.plannedDT||0) -
-        (m.unplannedDT||0)
-      );
-
-    if(req <= avail){
-      tips.push(`✔ ${m.operation}: no requiere acción`);
-      return;
-    }
-
-    const gap = Math.round(req - avail);
-
-    // 1) +1 máquina
-    const addMachineGain = Math.round(avail);
-    tips.push(`➕ ${m.operation}: +1 máquina recupera ~${addMachineGain} min/día`);
-
-    // 2) CT objetivo
-    const worstCT = Math.max(...(m.parts||[]).map(p=>p.ctSec||0));
-    if(worstCT > 0){
-      const targetCT = Math.max(1, Math.round(worstCT * 0.85));
-      tips.push(`⏱ ${m.operation}: CT objetivo ≈ ${targetCT}s`);
-    }
-
-    // 3) Changeover
-    if((m.plannedDT||0) > 60){
-      tips.push(`🔁 ${m.operation}: reduce changeover (>${m.plannedDT} min/día)`);
-    }
-
-    // 4) Scrap
-    if(m.parts?.some(p=>(p.scrapPct||0) > 5)){
-      tips.push(`🧪 ${m.operation}: scrap >5%, atacar calidad`);
-    }
-
-    tips.push(`❗ Gap actual: ${gap} min/día`);
-  });
-
-  return tips.join(' · ');
-}
-   
-// ===============================================
 
     const ops = getOperationOptions();
 
@@ -1580,20 +1303,10 @@ function scBuildRecommendations(){
         inp.checked = !!m.enabled;
         inp.addEventListener('change',()=>{
           m.enabled = !!inp.checked;
-          saveSC();
-if(m.syncToWB) scSyncToWB(m);
-renderAll();
-
+          saveSC(); renderAll();
         });
         tdNode(inp);
       }
-if(m.syncToWB){
-  const wbRow = wbRows.find(r => normOp(r.operation) === normOp(m.operation));
-  if(wbRow){
-    wbRow.sharedMin = Math.round(req); // min/día desde Shared
-    saveWB();
-  }
-}
 
       // Operation selector
       {
@@ -1658,14 +1371,6 @@ if(m.syncToWB){
         });
         tdNode(sel);
       }
-      function getCurrentCT(){
-  const st = buildContractLinesForCurrentSelection().st;
-  return st?.median || 0;
-}
-renderSharedSummary(m, {
-  dailyDemand: pcdInput.value,
-  ctSec: getCurrentCT(),
-});
 
       // Avail 0-1440
       {
@@ -1877,7 +1582,8 @@ renderSharedSummary(m, {
 
   if(btnScAddMachine){
     btnScAddMachine.addEventListener('click',()=>{
-            const m = defaultScMachine();
+      lockBtn(btnScAddMachine,6000);
+      const m = defaultScMachine();
       scEnsureWbRowExists(m.operation);
       scMachines.push(m);
       saveSC(); renderAll();
@@ -1886,6 +1592,7 @@ renderSharedSummary(m, {
 
   if(btnScClear){
     btnScClear.addEventListener('click',()=>{
+      lockBtn(btnScClear,6000);
       if(!confirm('¿Borrar TODO Shared Capacity?')) return;
       scMachines = [];
       saveSC(); renderAll();
@@ -1894,6 +1601,7 @@ renderSharedSummary(m, {
 
   if(btnCopyShared){
     btnCopyShared.addEventListener('click',()=>{
+      lockBtn(btnCopyShared,6000);
       copyText(scCopyAllText());
     });
   }
@@ -2481,6 +2189,7 @@ function yieldFromScrap(row){
 
   function renderWB(){
     wbRows.forEach(r=>applyGlobalToRow(r));
+    saveWB();
 
     wbBody.innerHTML = '';
     let opSum=0;
@@ -3742,6 +3451,34 @@ function restoreState(){
 
   loadSC();
 }
+    try{
+      currentLang = (snap.lang==='en') ? 'en' : (localStorage.getItem(LANG_KEY)||'es');
+    }catch(e){}
+
+    processInput.value = (snap.settings.processName ?? '');
+    modeSelect.value   = (snap.settings.mode ?? 'CT');
+    effInput.value     = (snap.settings.efficiency ?? '100');
+    pcdInput.value     = (snap.settings.contractPcd ?? '');
+    if(pcdInput.value === '' || pcdInput.value === null || pcdInput.value === undefined){
+  pcdInput.value = '0';
+}
+    hInput.value       = (snap.settings.hoursPerDay ?? '8');
+    dInput.value       = (snap.settings.daysPerWeek ?? '5');
+    capViewSel.value   = (snap.settings.capView ?? 'hour');
+
+    laps = Array.isArray(snap.laps) ? snap.laps : [];
+    nextId = isFinite(snap.nextId) ? snap.nextId : 1;
+
+    wbRows = Array.isArray(snap.wbRows) ? snap.wbRows : [];
+    if(!wbRows.length) loadWB();
+
+    wbRows.forEach(r=>{
+      r.pcsPerOp = clamp(parseFloat(r.pcsPerOp)||1,1,99);
+      r.udtMinDay = clamp(parseFloat(r.udtMinDay)||0,0,1440);
+      if(!isFinite(r.changeoverMin) || r.changeoverMin<1) r.changeoverMin = 1;
+      if(!isFinite(r.maintMin) || r.maintMin<0) r.maintMin = 0;
+    });
+  }
 
   [processInput, modeSelect, effInput, pcdInput, hInput, dInput, capViewSel].forEach(el=>{
     el.addEventListener('input',()=>{ scheduleSaveAll(); renderAll(); });
@@ -3777,18 +3514,46 @@ function restoreState(){
   window.addEventListener('resize',()=>{ renderCharts(); });
 
 })();
-  let scSimMachinesDelta = 0;
+  /* =========================================================
+   COPIAR POR SECCIÓN – IMPLEMENTACIÓN SIMPLE Y FUNCIONAL
+   ========================================================= */
 
-document.getElementById('scPlusMachine').onclick = ()=>{
-  scSimMachinesDelta++;
-  scRender();
-};
+// Copia texto "visible" de una sección
+  // Clonamos para no afectar la UI
+  const clone = sec.cloneNode(true);
 
-document.getElementById('scMinusMachine').onclick = ()=>{
-  scSimMachinesDelta = Math.max(0, scSimMachinesDelta - 1);
-  scRender();
-};
+  // Quitamos botones para que no se copien
+  clone.querySelectorAll('button').forEach(b=>b.remove());
 
+  // Reemplazamos inputs/selects por su valor
+  clone.querySelectorAll('input, select, textarea').forEach(el=>{
+    const span = document.createElement('span');
+    span.textContent = el.value ?? '';
+    el.replaceWith(span);
+  });
+
+  const text = clone.innerText.trim();
+  if(!text){
+    alert('La sección está vacía, no hay nada que copiar.');
+    return;
+  }
+
+  // Clipboard moderno + fallback
+  try{
+    navigator.clipboard.writeText(text);
+    alert('✅ Copiado al portapapeles');
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('✅ Copiado al portapapeles');
+  }
+}
+  // === SHARED CAPACITY CORE ===
+  if(m.enabled && m.syncToWB) scSyncToWB(m);
 </script>
 </body>
 </html>
