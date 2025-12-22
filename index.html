@@ -209,6 +209,21 @@
     cursor:not-allowed;
     transform:none !important;
   }
+  .sc-sim-controls{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-bottom:10px;
+}
+.sc-sim-controls button{
+  padding:6px 10px;
+  font-size:13px;
+}
+#scSimNote{
+  font-size:12px;
+  color:#666;
+}
+
 
   .flash{animation:flash-bg .12s ease-out;}
   @keyframes flash-bg{ from{background:rgba(57,189,245,.10);} to{background:transparent;} }
@@ -515,6 +530,12 @@ th{ white-space:normal; line-height:1.05; }
     <div class="section-card" data-accent="green" id="secContract">
       <div class="section-head">
         <div class="section-title" data-i18n="section.contractSummary">Resumen Contrato vs Capacidad</div>
+        <div class="sc-sim-controls">
+  <button id="scPlusMachine">+1 Máquina</button>
+  <button id="scMinusMachine">−1 Máquina</button>
+  <span id="scSimNote"></span>
+</div>
+
         <div class="section-tools">
           <button class="btn-small btn-small-copy" id="btnCopyContract" data-i18n="btn.copySection">Copiar</button>
         </div>
@@ -1240,7 +1261,7 @@ function lockBtn(btn, ms=6000){
 
   function scNetAvailMinDay(m){
     const availOne = clamp(parseFloat(m.availMinDay)||0,0,1440);
-    const machines = clamp(parseFloat(m.machines)||1,1,50);
+    const machines = clamp(parseFloat(m.machines)||1,1,50) + scSimMachinesDelta;
     const availTotal = availOne * machines;
 
     const pdt = clamp(parseFloat(m.plannedDT)||0,0,1440);
@@ -1345,6 +1366,14 @@ row.sharedMin = clamp(snap5(reqPerMachine), 0, 1440);
 
   function scRender(){
     if(!scBody) return;
+    const simNote = document.getElementById('scSimNote');
+if(simNote){
+  simNote.textContent =
+    scSimMachinesDelta > 0
+      ? `Simulación activa: +${scSimMachinesDelta} máquina(s)`
+      : '';
+}
+
     scBody.innerHTML = '';
 
     const ops = getOperationOptions();
@@ -3578,6 +3607,18 @@ function restoreState(){
   window.addEventListener('resize',()=>{ renderCharts(); });
 
 })();
+  let scSimMachinesDelta = 0;
+
+document.getElementById('scPlusMachine').onclick = ()=>{
+  scSimMachinesDelta++;
+  scRender();
+};
+
+document.getElementById('scMinusMachine').onclick = ()=>{
+  scSimMachinesDelta = Math.max(0, scSimMachinesDelta - 1);
+  scRender();
+};
+
 </script>
 </body>
 </html>
