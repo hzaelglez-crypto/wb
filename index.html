@@ -701,6 +701,10 @@ th{ white-space:normal; line-height:1.05; }
       </div>
     </div>
     <!-- 4.5) Shared Capacity -->
+    <section id="secSharedCapacity">
+  <h3>Shared Capacity</h3>
+  <div id="sharedCapacity"></div>
+</section>
     <div id="scSummaryBox" class="sc-summary">
   <div id="scMachineSummary" class="sc-summary-block"></div>
   <div id="scOperationSummary" class="sc-summary-block"></div>
@@ -1403,6 +1407,10 @@ if(btnScClear){
   }
 
   function scRender(){
+      const scWrap = document.getElementById('sharedCapacity');
+  if(!scWrap) return;
+  scWrap.innerHTML = '';
+
     const scWrap = document.getElementById('sharedCapacity');
     if(!scBody) return;
     const simNote = document.getElementById('scSimNote');
