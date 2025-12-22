@@ -1174,6 +1174,17 @@ function lockBtn(btn, ms=6000){
   const btnScAddMachine = document.getElementById('btnScAddMachine');
   const btnScClear = document.getElementById('btnScClear');
   const btnCopyShared = document.getElementById('btnCopyShared');
+  // ===============================
+// Shared Capacity – Add Machine
+// ===============================
+if(btnScAddMachine){
+  btnScAddMachine.addEventListener('click', ()=>{
+    const m = defaultScMachine();   // crea máquina con defaults
+    scMachines.push(m);             // la agrega al modelo
+    saveSC();                        // guarda en localStorage
+    renderAll();                     // vuelve a pintar todo
+  });
+}
 
   let scMachines = [];
 
