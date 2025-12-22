@@ -840,6 +840,12 @@ th{ white-space:normal; line-height:1.05; }
 (function(){
   const display = document.getElementById('display');
   const btnStart = document.getElementById('btnStart');
+  if(btnStart){
+  btnStart.addEventListener('click', ()=>{
+    console.log('CLICK INICIAR');
+    running ? pause() : start();
+  });
+}
   const btnLap = document.getElementById('btnLap');
   const timerCard = document.getElementById('timerCard');
   const logoGear = document.getElementById('logoGear');
