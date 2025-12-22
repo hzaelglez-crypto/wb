@@ -33,6 +33,7 @@
     --badge-green:rgba(24,201,122,.14);
     --badge-red:rgba(255,51,85,.14);
     --badge-amber:rgba(242,193,78,.14);
+    }
     .sc-summary{
   display:grid;
   grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
@@ -1212,7 +1213,6 @@ if(btnScClear){
     renderAll();
   });
 }
-}
   let scMachines = [];
 
   function loadSC(){
@@ -1384,21 +1384,6 @@ if(btnScClear){
 
   saveWB();
 }
-function scSyncToWB(m){
-  const op = (m.operation || "").trim();
-  if(!op) return;
-
-  const reqTotal = scTotalRequiredMinDay(m); // min/día TOTAL
-  const machines = Math.max(1, parseInt(m.machines || 1, 10));
-  const reqPerMachine = reqTotal / machines;
-
-  ensureWbRowForOperation(op);
-
-  const row = wbRows.find(r => normOp(r.operation) === normOp(op));
-  if(row){
-    row.sharedMin = Math.round(reqPerMachine); // 🔥 CLAVE
-    saveWB();
-  }
 }
   function scEnsureWbRowExists(op){
     const name = (op||'').trim();
@@ -1456,6 +1441,7 @@ function scSyncToWB(m){
   }
 
   function scRender(){
+    const scWrap = document.getElementById('sharedCapacity');
     if(!scBody) return;
     const simNote = document.getElementById('scSimNote');
 if(simNote){
