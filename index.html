@@ -1442,7 +1442,30 @@ scReco.style.fontWeight = '600';
 scReco.textContent = scBuildRecommendations();
 scWrap.appendChild(scReco);
 // ============================================
-   
+  // ===== Copy Shared Recommendations =====
+const btnCopyReco = document.createElement('button');
+btnCopyReco.className = 'btn btn-grey';
+btnCopyReco.textContent = 'Copiar recomendaciones';
+btnCopyReco.style.marginBottom = '8px';
+
+btnCopyReco.onclick = ()=>{
+  const txt = scBuildRecommendations()
+    .replace(/ · /g, '\n')
+    .replace(/✔/g,'OK')
+    .replace(/➕/g,'+')
+    .replace(/⏱/g,'CT')
+    .replace(/🔁/g,'Changeover')
+    .replace(/🧪/g,'Scrap')
+    .replace(/❗/g,'Gap');
+
+  navigator.clipboard.writeText(
+    `SHARED CAPACITY – RECOMENDACIONES\n\n${txt}`
+  );
+};
+
+scWrap.appendChild(btnCopyReco);
+// ======================================
+ 
 // ===== Shared Capacity – Executive Summary =====
 const scSummary = document.createElement('div');
 scSummary.className = 'sc-summary';
