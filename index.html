@@ -1,694 +1,3559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaktLab – Cycle Time & Capacity Analyzer</title>
+
+<style>
+  :root{
+    /* ✅ fondo gris claro */
+    --bg-main:#f3f5f7;
+    --bg-card:#ffffff;
+    --bg-card-soft:#fbfcfe;
+
+    /* accents (professional) */
+    --accent-green:#18c97a;
+    --accent-amber:#f2c14e;
+    --accent-red:#ff3355;
+    --accent-blue:#39bdf5;
+    --accent-grey:#cfd8dc;
+
+    --text-main:#0b1220;
+    --text-soft:#3a4a66;
+    --text-muted:#6b7a90;
+
+    --border-soft:#d9e2ef;
+
+    --btn-green:#18c97a;
+    --btn-orange:#f2a93b;
+    --btn-grey:#455a64;
+    --btn-amber:#f2c14e;
+
+    --badge-green:rgba(24,201,122,.14);
+    --badge-red:rgba(255,51,85,.14);
+    --badge-amber:rgba(242,193,78,.14);
+
+    /* WB sticky sizing */
+    --wb-on-w:56px;
+    --wb-op-w:210px;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg-main);
+    color:var(--text-main);
+  }
+.page{
+  max-width:1100px;
+  margin:0 auto;
+  padding:6px 8px 16px; /* más compacto */
+  }
+
+  .sticky-timer-bar{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:rgba(243,245,247,.92);
+    backdrop-filter: blur(8px);
+    padding:6px 0 8px;
+    border-bottom:1px solid var(--border-soft);
+  }
+
+  .top-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:6px;
+  }
+
+  .logo-circle{
+    width:38px;height:38px;border-radius:50%;
+    border:2px solid rgba(11,18,32,.18);
+    display:flex;align-items:center;justify-content:center;
+    background:#fff;
+  }
+  .logo-gear{
+    width:22px;height:22px;border-radius:50%;
+    border:2px solid rgba(11,18,32,.18);
+    position:relative;
+  }
+  .logo-gear::before{
+    content:"";
+    position:absolute;
+    inset:4px;
+    border-radius:50%;
+    border:2px solid rgba(24,201,122,.95);
+    border-right-color:transparent;
+    border-bottom-color:transparent;
+    transform-origin:50% 50%;
+  }
+  .logo-gear.spinning::before{ animation:logo-spin 5s linear infinite; }
+  @keyframes logo-spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+  .title-block{display:flex;flex-direction:column;gap:2px;}
+  .title-main{font-size:1.2rem;font-weight:800;letter-spacing:.02em;}
+  .title-sub{font-size:.72rem;color:var(--text-soft);}
+
+  .lang-switch{margin-left:auto;display:flex;align-items:center;gap:6px;}
+  .lang-btn{
+    border-radius:999px;border:1px solid var(--border-soft);
+    background:#fff;color:var(--text-soft);
+    font-size:.7rem;padding:5px 10px;cursor:pointer;min-width:34px;
+  }
+  .lang-btn.active{
+    background:rgba(57,189,245,.95);
+    color:#051018;border-color:rgba(57,189,245,.95);
+    font-weight:800;
+  }
+
+  .timer-card{
+    background:var(--bg-card);
+    border-radius:18px;
+    border:1px solid var(--border-soft);
+    padding:6px 10px 10px;
+    box-shadow:0 10px 22px rgba(10,20,40,.08);
+  }
+
+  .timer-display{
+    text-align:center;
+    font-size:5rem;
+    font-weight:650;
+    letter-spacing:.08em;
+    padding:10px 10px 4px;
+  }
+
+  .split-clocks{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    margin:2px 0 8px;
+    flex-wrap:wrap;
+  }
+  .split-pill{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid rgba(11,18,32,.10);
+    background:rgba(11,18,32,.02);
+    font-size:1rem;
+    color:var(--text-soft);
+    min-width:150px;
+    justify-content:center;
+  }
+  .split-pill .tag{font-weight:900;letter-spacing:.04em;color:var(--text-main);opacity:.9;}
+  .split-pill .val{font-variant-numeric:tabular-nums;letter-spacing:.04em;color:var(--text-main);}
+  .split-pill.t1{ border-color: rgba(57,189,245,.28); }
+  .split-pill.t2{ border-color: rgba(242,193,78,.26); }
+
+  .info-stack{ display:flex; flex-direction:column; gap:6px; margin:0 0 8px; }
+  .info-line{
+    font-size:.78rem;margin:0;padding:6px 10px;
+    border-radius:12px;border:1px solid transparent;
+    line-height:1.25;
+  }
+  .sample-neutral{background:rgba(11,18,32,.02);border-color:rgba(11,18,32,.08);color:var(--text-soft);}
+  .sample-good{background:rgba(24,201,122,.10);border-color:rgba(24,201,122,.35);color:#0b5a33;}
+  .sample-warn{background:rgba(242,193,78,.10);border-color:rgba(242,193,78,.35);color:#6a4a00;}
+  .sample-bad{background:rgba(255,51,85,.10);border-color:rgba(255,51,85,.35);color:#6b0014;}
+
+  .btn-row-main{display:flex;gap:10px;margin-bottom:2px;}
+  .btn{
+    border:none;border-radius:16px;padding:10px 12px;
+    font-size:.9rem;font-weight:850;cursor:pointer;color:#051018;
+    box-shadow:0 6px 14px rgba(10,20,40,.10);flex:1;
+    transition:transform .04s ease, box-shadow .04s ease, background .15s, opacity .15s;
+    touch-action:manipulation;
+  }
+  .btn:active{transform:translateY(1px);box-shadow:0 2px 8px rgba(10,20,40,.12);}
+  .btn-start{background:rgba(24,201,122,.95); }
+  .btn-lap{background:rgba(242,169,59,.95); }
+
+  .btn[disabled],
+  .btn-small[disabled],
+  .btn-small-copy[disabled],
+  .btn-small-summary[disabled],
+  .btn-small-manual[disabled],
+  .btn-small-reset[disabled]{
+    opacity:.55;
+    cursor:not-allowed;
+    transform:none !important;
+  }
+
+  .flash{animation:flash-bg .12s ease-out;}
+  @keyframes flash-bg{ from{background:rgba(57,189,245,.10);} to{background:transparent;} }
+
+  .content-section{margin-top:10px;}
+
+  /* ✅ cards con marco pintado por acento */
+  .section-card{
+  background:var(--bg-card);
+  border-radius:18px;
+  border:2px solid var(--border-soft);
+  padding:6px 8px 8px;   /* menos padding */
+  margin-bottom:8px;      /* menos separación entre secciones */
+  position:relative;
+  box-shadow:0 10px 22px rgba(10,20,40,.06);
+}
+  .section-card[data-accent="blue"]{ border-color: rgba(57,189,245,.55); }
+  .section-card[data-accent="green"]{ border-color: rgba(24,201,122,.45); }
+  .section-card[data-accent="amber"]{ border-color: rgba(242,193,78,.55); }
+  .section-card[data-accent="red"]{ border-color: rgba(255,51,85,.40); }
+  .section-card[data-accent="grey"]{ border-color: rgba(207,216,220,.85); }
+
+  .section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin:0 0 4px;
+  }
+  .section-title{font-size:.98rem;font-weight:900;margin:0;}
+  .section-tools{display:flex;gap:8px;align-items:center;}
+
+  .btn-small{
+    padding:10px 14px;
+    border-radius:16px;
+    font-size:.9rem;
+    font-weight:950;
+    flex:0 0 auto;
+    background:var(--bg-card-soft);
+    color:var(--text-main);
+    border:1px solid var(--border-soft);
+    cursor:pointer;
+    box-shadow:0 6px 14px rgba(10,20,40,.08);
+    transition:opacity .15s;
+  }
+  .btn-small-copy{background:rgba(57,189,245,.95);border-color:rgba(57,189,245,.95);color:#051018;}
+  .btn-small-summary{background:var(--btn-amber);border-color:var(--btn-amber);color:#0b0b0b;}
+  .btn-small-manual{background:rgba(24,201,122,.95);border-color:rgba(24,201,122,.95);color:#051018;}
+  .btn-small-reset{background:rgba(255,51,85,.92);border-color:rgba(255,51,85,.92);color:#fff;}
+  .btn-small-wbadd{background:rgba(11,18,32,.03);color:var(--text-main);}
+  .btn-small-wbclear{background:rgba(255,51,85,.10);border-color:rgba(255,51,85,.30);color:#6b0014;}
+
+  .mode-row{
+    display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;
+    font-size:.76rem;color:var(--text-soft);
+  }
+  .mode-row select,.mode-row input{
+    background:#fff;border-radius:6px;border:1px solid var(--border-soft);
+    padding:4px 8px;color:var(--text-main);font-size:.78rem;min-width:70px;
+    outline:none;
+  }
+  .mode-row input[type="number"]{width:88px;}
+
+  table{width:100%;border-collapse:collapse;font-size:.72rem;}
+th,td{
+  padding:3px 5px; /* más compacto */
+  text-align:right;
+  border-bottom:1px solid rgba(11,18,32,.06);
+  white-space:nowrap;
+  vertical-align:middle;
+}
+/* ✅ headers pueden partirse en 2 líneas (sin afectar datos) */
+th{ white-space:normal; line-height:1.05; }
+  th:first-child,td:first-child{text-align:left;}
+  th{
+    color:var(--text-soft);font-weight:800;background:rgba(11,18,32,.02);
+    position:sticky;top:0;z-index:5;
+  }
+  tbody tr:nth-child(even){background:rgba(11,18,32,.015);}
+
+  .badge{
+    display:inline-block;padding:2px 8px;border-radius:999px;
+    font-size:.68rem;border:1px solid rgba(11,18,32,.12);
+  }
+  .badge-good{background:var(--badge-green);border-color:rgba(24,201,122,.36);color:#0b5a33;}
+  .badge-warn{background:var(--badge-amber);border-color:rgba(242,193,78,.36);color:#6a4a00;}
+  .badge-bad{background:var(--badge-red);border-color:rgba(255,51,85,.36);color:#6b0014;}
+
+  .btn-row-secondary{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px;}
+
+  .subsection-title{margin-top:6px;font-size:.82rem;font-weight:900;color:var(--text-soft);}
+  .footer-note{margin-top:10px;font-size:.68rem;color:var(--text-muted);text-align:right;}
+
+  .charts-wrapper{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:10px;
+  }
+  .chart-card{
+    background:var(--bg-card-soft);
+    border-radius:14px;
+    border:1px solid var(--border-soft);
+    padding:8px;
+  }
+  .chart-title{font-size:.75rem;margin-bottom:4px;color:var(--text-soft);font-weight:800;}
+  canvas{width:100%;height:180px;background:#fff;border-radius:10px;border:1px solid rgba(11,18,32,.08);}
+
+  .btn-edit,.btn-del,.btn-relink{
+    padding:2px 8px;border-radius:10px;font-size:.7rem;
+    border:1px solid rgba(11,18,32,.20);cursor:pointer;background:#fff;
+  }
+  .btn-edit{color:#085b7a;}
+  .btn-del{color:#6b0014;}
+  .btn-relink{color:#6a4a00;}
+
+  .wb-inp, .wb-sel, .wb-chk{
+    background:#fff;border-radius:10px;border:1px solid var(--border-soft);
+    padding:3px 8px;color:var(--text-main);font-size:.70rem;
+    outline:none;
+  }
+  .wb-inp{width:72px;}
+  .wb-inp.wide{width:160px;}
+  .wb-inp.slim{width:56px;}
+  .wb-sel{width:120px;}
+  .wb-sel.narrow{width:92px;}
+
+  .wb-opwrap{display:flex;gap:6px;align-items:center;justify-content:flex-start;}
+  .wb-opselect{
+    width: calc(var(--wb-op-w) - 14px);
+    max-width: calc(var(--wb-op-w) - 14px);
+    background:#fff;border-radius:10px;border:1px solid var(--border-soft);
+    padding:4px 8px;color:var(--text-main);font-size:.72rem;
+  }
+  .wb-opbtn{
+    border:1px solid rgba(11,18,32,.16);
+    background:#fff;
+    color:var(--text-soft);
+    border-radius:10px;
+    padding:3px 8px;
+    cursor:pointer;
+    font-size:.72rem;
+  }
+  .wb-opbtn:hover{ background:rgba(11,18,32,.03); }
+
+  .wb-alert{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;}
+  .wb-alert .badge{font-size:.72rem;padding:4px 10px;}
+  .wb-badge-title{font-size:.72rem;color:var(--text-soft);font-weight:900;}
+  .wb-mini{font-size:.7rem;color:var(--text-muted);line-height:1.25;margin-top:6px;}
+  .wb-sumline{
+    display:flex;justify-content:flex-end;gap:10px;align-items:center;
+    margin-top:6px;font-size:.72rem;color:var(--text-soft);
+    font-weight:800;
+  }
+
+  /* ✅ WB STICKY COLUMNS */
+  #wbTable{ border-collapse:separate; border-spacing:0; }
+  #wbTable th, #wbTable td{ position:relative; }
+
+  #wbTable th:nth-child(1), #wbTable td:nth-child(1){ width:var(--wb-on-w); min-width:var(--wb-on-w); }
+  #wbTable th:nth-child(2), #wbTable td:nth-child(2){ width:var(--wb-op-w); min-width:var(--wb-op-w); }
+
+  #wbTable th:nth-child(1), #wbTable td:nth-child(1){
+    position:sticky; left:0;
+    z-index:30;
+    background:#fff;
+  }
+  #wbTable th:nth-child(2), #wbTable td:nth-child(2){
+    position:sticky; left:var(--wb-on-w);
+    z-index:30;
+    background:#fff;
+  }
+  #wbTable thead th:nth-child(1),
+  #wbTable thead th:nth-child(2){ z-index:40; }
+
+  @media (max-width:600px){
+    .timer-display{font-size:2.2rem;}
+    .btn-row-main{gap:6px;}
+    .btn{font-size:.9rem;border-radius:14px;}
+    canvas{height:160px;}
+    th,td{font-size:.70rem;}
+
+    :root{
+      --wb-on-w:52px;
+      --wb-op-w:190px;
+    }
+    .wb-opselect{
+      width: calc(var(--wb-op-w) - 14px);
+      max-width: calc(var(--wb-op-w) - 14px);
+    }
+  }
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <div class="sticky-timer-bar">
+    <div class="top-row">
+      <div class="logo-circle"><div class="logo-gear" id="logoGear"></div></div>
+      <div class="title-block">
+        <div class="title-main">TaktLab</div>
+        <div class="title-sub" data-i18n="title.subtitle">Analizador de Tiempo de Ciclo y Capacidad</div>
+      </div>
+      <div class="lang-switch">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="es">ES</button>
+      </div>
+    </div>
+
+    <div class="timer-card" id="timerCard">
+      <div class="timer-display" id="display">00:00.00</div>
+
+      <div class="split-clocks" id="splitClocks">
+        <div class="split-pill t1"><span class="tag">T1</span><span class="val" id="t1Clock">00:00.00</span></div>
+        <div class="split-pill t2"><span class="tag">T2</span><span class="val" id="t2Clock">00:00.00</span></div>
+      </div>
+
+      <div class="info-stack">
+        <div class="info-line sample-neutral" id="sampleInfoTop">
+          Sin muestras todavía para el proceso actual. Empieza a capturar vueltas.
+        </div>
+      </div>
+
+      <div class="btn-row-main">
+        <button class="btn btn-start" id="btnStart" data-i18n="btn.start">Iniciar</button>
+        <button class="btn btn-lap" id="btnLap" data-i18n="btn.lap">VUELTA</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <!-- 1) Configuración de Medición -->
+    <div class="section-card" data-accent="blue" id="secSetup">
+      <div class="section-head">
+        <div class="section-title" data-i18n="section.measurementSetup">Configuración de Medición</div>
+        <div class="section-tools">
+          <button class="btn-small btn-small-copy" id="btnCopySetup" data-i18n="btn.copySection">Copiar</button>
+        </div>
+      </div>
+
+      <div class="mode-row">
+        <div>
+          <label for="processName" data-i18n="label.process">Proceso</label><br/>
+          <input id="processName" type="text" placeholder="p. ej. Op 30" data-i18n-placeholder="label.processPlaceholder"/>
+        </div>
+
+        <div>
+          <label for="mode" data-i18n="label.mode">Modo</label><br/>
+          <select id="mode">
+            <option value="CT" data-i18n="mode.ct">Tiempo de ciclo (CT)</option>
+            <option value="MLD" data-i18n="mode.mld">Máquina y Carga/Descarga</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="efficiency" data-i18n="label.efficiency">Eficiencia %</label><br/>
+          <input id="efficiency" type="number" value="100" min="0" max="100" step="1"/>
+        </div>
+
+        <div>
+          <label for="contractPcd" data-i18n="label.contractPcd">Capacidad contrato (pzs/día)</label><br/>
+          <input id="contractPcd" type="number" value="0" min="0" max="99999" step="1"/>
+        </div>
+
+        <div>
+          <label for="hoursPerDay" data-i18n="label.hoursPerDay">Horas / día</label><br/>
+          <input id="hoursPerDay" type="number" value="8" min="0" max="24" step=".5"/>
+        </div>
+
+        <div>
+          <label for="daysPerWeek" data-i18n="label.daysPerWeek">Días / semana</label><br/>
+          <input id="daysPerWeek" type="number" value="5" min="1" max="7"/>
+        </div>
+
+        <div>
+          <label for="capView" data-i18n="label.capView">Vista de capacidad</label><br/>
+          <select id="capView">
+            <option value="hour" data-i18n="capView.hour">por hora</option>
+            <option value="day" data-i18n="capView.day">por día</option>
+            <option value="week" data-i18n="capView.week">por semana</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2) Controles de Datos (movido debajo del Setup) -->
+    <div class="section-card" data-accent="red" id="secControls">
+      <div class="section-head">
+        <div class="section-title" data-i18n="section.dataControls">Controles de Datos</div>
+        <div class="section-tools">
+          <button class="btn-small btn-small-copy" id="btnCopyControls" data-i18n="btn.copySection">Copiar</button>
+        </div>
+      </div>
+
+      <div class="btn-row-secondary">
+        <button class="btn-small btn-small-copy" id="btnCopyAll" data-i18n="btn.copyAll">Copiar todo</button>
+        <button class="btn-small btn-small-summary" id="btnCopySummary" data-i18n="btn.copySummary">Copiar resumen</button>
+        <button class="btn-small btn-small-manual" id="btnAddManualLap" data-i18n="btn.addManualLap">Agregar vuelta manual</button>
+        <button class="btn-small btn-small-reset" id="btnReset" data-i18n="btn.reset">Reiniciar</button>
+      </div>
+    </div>
+
+    <!-- 3) Contract vs Capacity Summary -->
+    <div class="section-card" data-accent="green" id="secContract">
+      <div class="section-head">
+        <div class="section-title" data-i18n="section.contractSummary">Resumen Contrato vs Capacidad</div>
+        <div class="section-tools">
+          <button class="btn-small btn-small-copy" id="btnCopyContract" data-i18n="btn.copySection">Copiar</button>
+        </div>
+      </div>
+
+      <div class="info-stack" style="margin-top:4px;">
+        <div class="info-line sample-neutral" id="contractSumLine1">—</div>
+        <div class="info-line sample-neutral" id="contractSumLine2">—</div>
+        <div class="info-line sample-neutral" id="contractSumLine3">—</div>
+        <div class="info-line sample-neutral" id="contractSumLine4">—</div>
+      </div>
+
+      <div style="font-size:.68rem;color:var(--text-muted);margin:6px 0 0;">
+        <span data-i18n="contract.note">Usa el proceso actual + tus vueltas (Mediana/P10/P90) con los supuestos del Setup.</span>
+      </div>
+    </div>
+
+    <!-- 4) Stat Focus -->
+    <div class="section-card" data-accent="amber" id="secFocus">
+      <div class="section-head">
+        <div class="section-title" data-i18n="section.statsFocus">Enfoque Estadístico</div>
+        <div class="section-tools">
+          <button class="btn-small btn-small-copy" id="btnCopyFocus" data-i18n="btn.copySection">Copiar</button>
+        </div>
+      </div>
+
+      <div class="info-stack" style="margin-top:4px;">
+        <div class="info-line sample-neutral" id="sampleInfoFocus">Tamaño de muestra: —</div>
+        <div class="info-line sample-neutral" id="stdInfoFocus">Desv est: —</div>
+        <div class="info-line sample-neutral" id="distInfoFocus">Media vs Mediana: —</div>
+        <div class="info-line sample-neutral" id="contractInfoFocus">Sin contrato cargado</div>
+      </div>
+
+      <div style="font-size:.68rem;color:var(--text-muted);margin:6px 0 6px;">
+        <span data-i18n="stats.note">Lenguaje simple a propósito: pocas/suficientes muestras, baja/alta variación, capaz/no capaz.</span>
+      </div>
+
+      <div style="max-height:300px;overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="col.process">Proceso</th>
+              <th data-i18n="col.mode">Modo</th>
+              <th>N</th>
+              <th data-i18n="col.sample">Tamaño muestra / Error</th>
+              <th>Std</th>
+              <th>CV%</th>
+              <th>CTmed</th>
+              <th>P10</th>
+              <th>P90</th>
+              <th data-i18n="col.capCurrent">Actual @Eff</th>
+              <th data-i18n="col.capPotential">Potencial @Eff</th>
+              <th data-i18n="col.capWorst">Peor @Eff</th>
+              <th data-i18n="col.contract">Contrato</th>
+              <th data-i18n="col.gap">Gap</th>
+              <th data-i18n="col.vsContract">% vs</th>
+              <th>Cp</th>
+              <th>Cpk</th>
+              <th data-i18n="col.note">Nota</th>
+            </tr>
+          </thead>
+          <tbody id="focusBody"></tbody>
+        </table>
+      </div>
+
+      <div class="subsection-title" data-i18n="section.wbPlanner">WB – Planeador de Capacidad (por proceso)</div>
+
+      <div class="btn-row-secondary" style="margin-top:8px;">
+        <button class="btn-small btn-small-wbadd" id="btnWbAdd" data-i18n="btn.wbAdd">+ Agregar operación</button>
+        <button class="btn-small btn-small-wbclear" id="btnWbClear" data-i18n="btn.wbClear">Borrar WB</button>
+        <button class="btn-small btn-small-copy" id="btnCopyWB" data-i18n="btn.copyWB">Copiar WB</button>
+      </div>
+
+      <div style="max-height:320px;overflow:auto;">
+        <table id="wbTable">
+          <thead>
+            <tr>
+              <th data-i18n="wb.enabled">On</th>
+              <th data-i18n="wb.operation">Operación</th>
+              <th data-i18n="wb.operators">Operadores</th>
+              <th data-i18n="wb.shifts">Turnos</th>
+              <th data-i18n="wb.hours">Horas</th>
+              <th data-i18n="wb.machines"># Máquinas</th>
+              <th data-i18n="wb.pcsPerOp">Pzs/Op</th>
+              <th data-i18n="wb.contract">Contrato (pzs/día)</th>
+
+              <th data-i18n="wb.gross">Min brutos/día</th>
+              <th data-i18n="wb.lunch">Comida min/día</th>
+              <th data-i18n="wb.changeover">Changeover</th>
+              <th data-i18n="wb.cleaning">5S/Limpieza</th>
+              <th data-i18n="wb.maint">Mtto</th>
+              <th data-i18n="wb.other">Otros</th>
+
+              <th data-i18n-html="wb.shared">Capacidad<br/>compartida</th>
+
+
+              <th data-i18n="wb.udt">DT no planeado (min/día)</th>
+
+              <th data-i18n="wb.net">Min netos/día</th>
+
+              <th data-i18n="wb.scrap">Scrap %</th>
+              <th data-i18n="wb.yield">Yield</th>
+
+              <th data-i18n="wb.oeeA">A%</th>
+              <th data-i18n="wb.oeeP">P%</th>
+              <th data-i18n="wb.oeeQ">Q%</th>
+              <th data-i18n="wb.oee">OEE%</th>
+
+              <th data-i18n="wb.ctCur">CT Actual</th>
+              <th data-i18n="wb.ctWst">CT Peor</th>
+              <th data-i18n="wb.ctPot">CT Potencial</th>
+
+              <th data-i18n="wb.ctCurOee">CT@OEE (Act)</th>
+
+              <th data-i18n="wb.cap100">Cap 100% (Act)</th>
+              <th data-i18n="wb.capOee">Cap@OEE (Act)</th>
+
+              <th data-i18n="wb.vsContract">% vs contrato</th>
+              <th data-i18n="wb.inputReq">Entrada req. p/Contrato</th>
+
+              <th data-i18n="wb.actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="wbBody"></tbody>
+        </table>
+      </div>
+
+      <div class="wb-sumline">
+        <span data-i18n="wb.opsSum">Operadores total:</span>
+        <span class="badge badge-warn" id="wbOperatorsSum">0</span>
+      </div>
+
+      <div class="wb-alert">
+        <span class="wb-badge-title" data-i18n="wb.constraintTitle">Restricción / Siguiente:</span>
+        <span class="badge badge-bad" id="wbConstraint">—</span>
+        <span class="badge badge-warn" id="wbNextConstraint">—</span>
+      </div>
+      <div class="wb-mini" id="wbConstraintNote"></div>
+
+      <div class="subsection-title" data-i18n="section.statsDetail">Detalle Estadístico (por proceso)</div>
+      <div style="max-height:240px;overflow:auto;">
+        <table id="statsTable">
+          <thead>
+            <tr>
+              <th data-i18n="col.process">Proceso</th>
+              <th data-i18n="col.mode">Modo</th>
+              <th data-i18n="col.n">N</th>
+              <th>Mean</th>
+              <th>Median</th>
+              <th>P10</th>
+              <th>P90</th>
+              <th>Min</th>
+              <th>Max</th>
+              <th>Std</th>
+              <th>CV%</th>
+              <th>Cp</th>
+              <th>Cpk</th>
+            </tr>
+          </thead>
+          <tbody id="statsBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 4.5) Shared Capacity -->
+    <div class="section-card" data-accent="red" id="secSharedCapacity">
+      <div class="section-head">
+        <div class="section-title">Shared Capacity (Capacidad compartida)</div>
+        <div class="section-tools">
+          <button class="btn-small btn-small-wbadd" id="btnScAddMachine">+ Agregar máquina compartida</button>
+          <button class="btn-small btn-small-wbclear" id="btnScClear">Borrar Shared</button>
+          <button class="btn-small btn-small-copy" id="btnCopyShared">Copiar</button>
+        </div>
+      </div>
+
+      <div style="font-size:.72rem;color:var(--text-soft);line-height:1.35;margin:6px 0 8px;">
+        <b>Qué es:</b> aquí declaras tiempo consumido por <b>otros números de parte / otros clientes</b> en una máquina o proceso compartido.
+        El resultado (minutos requeridos por día) se empuja a WB en la columna <b>Capacidad compartida</b> del proceso seleccionado.
+        <br><b>Semáforo:</b> &lt;90% verde · 90–100% amarillo · &gt;100% rojo.
+      </div>
+
+      <div style="max-height:360px;overflow:auto;">
+        <table id="scTable">
+          <thead>
+            <tr>
+              <th>On</th>
+              <th>Proceso/Máquina</th>
+              <th># Máqs</th>
+              <th>Avail min/día</th>
+              <th>Planned DT</th>
+              <th>Unplanned DT</th>
+              <th>Días/sem</th>
+              <th>Sem/año</th>
+              <th>Min req/día</th>
+              <th>Util %</th>
+              <th>Semáforo</th>
+              <th>Sync a WB</th>
+              <th>Subprocesos</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="scBody"></tbody>
+        </table>
+      </div>
+
+      <div class="wb-mini" style="margin-top:8px;">
+        Nota: <b>Avail min/día</b> es el tiempo “nominal” disponible según horas/turno (máximo 1440). No castiga comedor/mantenimiento: eso va en Planned/Unplanned.
+      </div>
+    </div>
+    <!-- 5) Charts -->
+    <div class="section-card" data-accent="grey" id="secCharts">
+      <div class="section-head">
+        <div class="section-title" data-i18n="section.charts">Gráficas (proceso seleccionado)</div>
+        <div class="section-tools">
+          <button class="btn-small btn-small-copy" id="btnCopyCharts" data-i18n="btn.copySection">Copiar</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:6px;font-size:.75rem;">
+        <label for="chartProcessSelect" data-i18n="label.chartProcessLabel">Proceso / Modo:</label>
+        <select id="chartProcessSelect"></select>
+      </div>
+
+      <div class="charts-wrapper">
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="chart.timeSeriesTitle">Serie de tiempo con media, mediana y ±3σ</div>
+          <canvas id="timeSeriesCanvas"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="chart.histTitle">Histograma con mediana y percentiles</div>
+          <canvas id="histCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6) Raw Data -->
+    <div class="section-card" data-accent="blue" id="secRaw">
+      <div class="section-head">
+        <div class="section-title" data-i18n="section.rawData">Datos Crudos de Tiempo</div>
+        <div class="section-tools">
+          <button class="btn-small btn-small-copy" id="btnCopyRaw" data-i18n="btn.copySection">Copiar</button>
+        </div>
+      </div>
+
+      <div style="max-height:300px;overflow:auto;">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th data-i18n="col.index">#</th>
+              <th data-i18n="col.process">Proceso</th>
+              <th data-i18n="col.mode">Modo</th>
+              <th data-i18n="col.status">Estatus</th>
+              <th data-i18n="col.note">Nota</th>
+              <th data-i18n="col.t1">T1 (s)</th>
+              <th data-i18n="col.t2">T2 (s)</th>
+              <th data-i18n="col.total">Total (s)</th>
+              <th data-i18n="col.edit">Editar</th>
+              <th data-i18n="col.del">Borrar</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 7) Método & Guía -->
+    <div class="section-card" data-accent="amber" id="secGuide">
+      <div class="section-head">
+        <div class="section-title" data-i18n="section.methodGuide">Método & Guía</div>
+        <div class="section-tools">
+          <button class="btn-small btn-small-copy" id="btnCopyGuide" data-i18n="btn.copySection">Copiar</button>
+        </div>
+      </div>
+
+      <details style="background:var(--bg-card-soft);border:1px solid var(--border-soft);border-radius:14px;padding:10px;">
+        <summary style="cursor:pointer;color:var(--text-soft);font-weight:900;">
+          <span data-i18n="method.open">Abrir</span>
+        </summary>
+        <div style="margin-top:8px;font-size:.72rem;color:var(--text-soft);line-height:1.35;white-space:pre-wrap;" id="methodGuideText"></div>
+      </details>
+    </div>
+
+  </div>
+
+  <div class="footer-note" data-i18n="footer.note">
+    Creado por Roberto González – Contacto: hzaelglez@gmail.com
+  </div>
+</div>
+
 <script>
 (function(){
-    // --- REFERENCIAS DOM ---
-    const display = document.getElementById('display');
-    const btnStart = document.getElementById('btnStart');
-    const btnLap = document.getElementById('btnLap');
-    const t1Clock = document.getElementById('t1Clock');
-    const t2Clock = document.getElementById('t2Clock');
-    const dataBody = document.getElementById('dataBody');
-    const logoGear = document.getElementById('logoGear');
+  const display = document.getElementById('display');
+  const btnStart = document.getElementById('btnStart');
+  const btnLap = document.getElementById('btnLap');
+  const timerCard = document.getElementById('timerCard');
+  const logoGear = document.getElementById('logoGear');
 
-    // --- VARIABLES DE ESTADO ---
-    let mainStartTime = 0;
-    let lapStartTime = 0;
-    let t1StartTime = 0;
-    let elapsedTime = 0;
-    let timerInterval = null;
-    let isRunning = false;
-    let currentT1 = 0;
-    let currentT2 = 0;
+  const t1Clock = document.getElementById('t1Clock');
+  const t2Clock = document.getElementById('t2Clock');
 
-    // DATA CORE (Carga inicial)
-    let laps = JSON.parse(localStorage.getItem('taktlab_data')) || [];
+  const sampleInfoTop = document.getElementById('sampleInfoTop');
+  const sampleInfoFocus = document.getElementById('sampleInfoFocus');
+  const stdInfoFocus = document.getElementById('stdInfoFocus');
+  const distInfoFocus = document.getElementById('distInfoFocus');
+  const contractInfoFocus = document.getElementById('contractInfoFocus');
 
-    // --- MOTOR DEL CRONÓMETRO ---
-    function updateClocks() {
-        const now = Date.now();
-        const totalMs = now - mainStartTime + elapsedTime;
-        const lapMs = now - lapStartTime;
+  const contractSumLine1 = document.getElementById('contractSumLine1');
+  const contractSumLine2 = document.getElementById('contractSumLine2');
+  const contractSumLine3 = document.getElementById('contractSumLine3');
+  const contractSumLine4 = document.getElementById('contractSumLine4');
 
-        // Display Principal (MM:SS.ms)
-        display.textContent = formatMs(totalMs);
+  const processInput = document.getElementById('processName');
+  const modeSelect   = document.getElementById('mode');
+  const effInput     = document.getElementById('efficiency');
+  const pcdInput     = document.getElementById('contractPcd');
+  const hInput       = document.getElementById('hoursPerDay');
+  const dInput       = document.getElementById('daysPerWeek');
+  const capViewSel   = document.getElementById('capView');
 
-        const mode = document.getElementById('mode').value;
-        if (mode === 'MLD') {
-            // Lógica T1/T2: T1 es el tiempo desde el inicio del lap hasta ahora
-            // En esta versión simplificada, T1 corre hasta que se presiona Lap
-            t1Clock.textContent = formatMs(lapMs);
-            t2Clock.textContent = "00:00.00"; 
-        } else {
-            t1Clock.textContent = formatMs(lapMs);
-            t2Clock.textContent = "---";
-        }
+  const focusBody     = document.getElementById('focusBody');
+  const statsBody     = document.getElementById('statsBody');
+
+  const dataBody    = document.getElementById('dataBody');
+  const btnCopyAll  = document.getElementById('btnCopyAll');
+  const btnCopySum  = document.getElementById('btnCopySummary');
+  const btnAddMan   = document.getElementById('btnAddManualLap');
+  const btnReset    = document.getElementById('btnReset');
+
+  const chartSelect      = document.getElementById('chartProcessSelect');
+  const timeSeriesCanvas = document.getElementById('timeSeriesCanvas');
+  const histCanvas       = document.getElementById('histCanvas');
+
+  const langButtons = document.querySelectorAll('.lang-btn');
+
+  const wbBody = document.getElementById('wbBody');
+  const btnWbAdd = document.getElementById('btnWbAdd');
+  const btnWbClear = document.getElementById('btnWbClear');
+  const btnCopyWB = document.getElementById('btnCopyWB');
+  const wbConstraint = document.getElementById('wbConstraint');
+  const wbNextConstraint = document.getElementById('wbNextConstraint');
+  const wbConstraintNote = document.getElementById('wbConstraintNote');
+  const wbOperatorsSum = document.getElementById('wbOperatorsSum');
+  const methodGuideText = document.getElementById('methodGuideText');
+
+  /* ✅ copiar por sección */
+  const btnCopySetup    = document.getElementById('btnCopySetup');
+  const btnCopyControls = document.getElementById('btnCopyControls');
+  const btnCopyContract = document.getElementById('btnCopyContract');
+  const btnCopyFocus    = document.getElementById('btnCopyFocus');
+  const btnCopyCharts   = document.getElementById('btnCopyCharts');
+  const btnCopyRaw      = document.getElementById('btnCopyRaw');
+  const btnCopyGuide    = document.getElementById('btnCopyGuide');
+
+  function formatSecs(s){
+    if(!isFinite(s)) return '-';
+    return (Math.round(s*100)/100).toFixed(2);
+  }
+  function formatTime(ms){
+    const total=Math.max(ms,0);
+    const mins=Math.floor(total/60000);
+    const secs=Math.floor((total%60000)/1000);
+    const cent=Math.floor((total%1000)/10);
+    return (mins<10?'0'+mins:mins)+':'+(secs<10?'0'+secs:secs)+'.'+(cent<10?'0'+cent:cent);
+  }
+  function formatUnits(n){
+    if(!isFinite(n)) return '-';
+    const rounded=Math.round(n);
+    return rounded.toLocaleString('en-US',{maximumFractionDigits:0});
+  }
+  function pct(n, digits=0){ if(!isFinite(n)) return '-'; return n.toFixed(digits)+'%'; }
+
+  function normOp(s){
+    return (s||'')
+      .toString()
+      .trim()
+      .replace(/\s+/g,' ')
+      .toLowerCase();
+  }
+
+function lockBtn(btn, ms=6000){
+  if(!btn) return;
+  btn.disabled = true;
+
+  // usa data-label si existe; si no, toma textContent y lo guarda
+  const base = btn.dataset.baseLabel || btn.textContent;
+  btn.dataset.baseLabel = base;
+
+  let left = Math.ceil(ms/1000);
+  const tick = () => {
+    if(!btn.disabled) return;
+    btn.textContent = `${base} (${left}s)`;
+    left--;
+    if(left < 0){
+      btn.disabled = false;
+      btn.textContent = btn.dataset.baseLabel || base;
+      return;
     }
+    setTimeout(tick, 1000);
+  };
+  tick();
 
-    function formatMs(ms) {
-        const minutes = Math.floor(ms / 60000);
-        const seconds = Math.floor((ms % 60000) / 1000);
-        const centis = Math.floor((ms % 1000) / 10);
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centis.toString().padStart(2, '0')}`;
+  setTimeout(()=>{
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = btn.dataset.baseLabel || base;
     }
+  }, ms);
+}
 
-    // --- ACCIONES ---
-    btnStart.onclick = () => {
-        if (!isRunning) {
-            mainStartTime = Date.now();
-            lapStartTime = mainStartTime;
-            timerInterval = setInterval(updateClocks, 30);
-            isRunning = true;
-            btnStart.textContent = "PAUSAR";
-            btnStart.style.background = "var(--accent-amber)";
-            btnLap.disabled = false;
-            logoGear.classList.add('spinning');
-        } else {
-            clearInterval(timerInterval);
-            elapsedTime += Date.now() - mainStartTime;
-            isRunning = false;
-            btnStart.textContent = "REANUDAR";
-            btnStart.style.background = "var(--accent-green)";
-            logoGear.classList.remove('spinning');
-        }
-    };
+  const i18n = {
+    en:{
+      'title.subtitle':'Cycle Time & Capacity Analyzer',
+      'btn.start':'Start','btn.pause':'Pause','btn.lap':'LAP',
+      'btn.copyAll':'Copy All','btn.copySummary':'Copy Summary','btn.addManualLap':'Add Manual Lap','btn.reset':'Reset',
+      'btn.copyWB':'Copy WB',
+      'btn.copySection':'Copy',
 
-    btnLap.onclick = () => {
-        const now = Date.now();
-        const lapTimeTotal = (now - lapStartTime) / 1000;
-        
-        const newLap = {
-            id: laps.length + 1,
-            process: document.getElementById('processName').value || "Op General",
-            mode: document.getElementById('mode').value,
-            t1: lapTimeTotal, // En Parte 2 refinaremos la separación exacta T1/T2
-            t2: 0,
-            total: lapTimeTotal,
-            timestamp: new Date().toLocaleTimeString()
-        };
+      'section.measurementSetup':'Measurement Setup',
+      'section.contractSummary':'Contract vs Capacity Summary',
+      'contract.note':'Uses current process + your laps (Median/P10/P90) with the Measurement Setup assumptions.',
+      'section.statsFocus':'Stat Focus',
+      'section.dataControls':'Data Controls',
+      'section.rawData':'Raw Time Data',
+      'section.charts':'Charts (selected process)',
+      'section.statsDetail':'Statistical Detail (per process)',
+      'section.wbPlanner':'WB – Capacity Planner (by process)',
+      'section.methodGuide':'Method & Guide',
+      'method.open':'Open',
 
-        laps.push(newLap);
-        lapStartTime = now; // Reset lap
-        
-        // Efecto visual flash
-        document.getElementById('timerCard').classList.add('flash');
-        setTimeout(() => document.getElementById('timerCard').classList.remove('flash'), 150);
-        
-        saveAndRender();
-    };
+      'label.process':'Process','label.processPlaceholder':'e.g. Op 30',
+      'label.mode':'Mode','label.efficiency':'Efficiency %','label.contractPcd':'Contract Cap (pcs/day)',
+      'label.hoursPerDay':'Hours / Day','label.daysPerWeek':'Days / Week','label.capView':'Capacity View',
+      'label.chartProcessLabel':'Process / Mode:',
 
-    document.getElementById('btnReset').onclick = () => {
-        if (confirm("¿Reiniciar estudio? Se perderán los datos actuales.")) {
-            clearInterval(timerInterval);
-            laps = [];
-            elapsedTime = 0;
-            isRunning = false;
-            localStorage.removeItem('taktlab_data');
-            display.textContent = "00:00.00";
-            t1Clock.textContent = "00:00.00";
-            btnStart.textContent = "INICIAR";
-            btnStart.style.background = "var(--accent-green)";
-            btnLap.disabled = true;
-            saveAndRender();
-        }
-    };
+      'mode.ct':'Cycle Time (CT)','mode.mld':'Machine & Load/Unload',
+      'capView.hour':'per Hour','capView.day':'per Day','capView.week':'per Week',
 
-    // --- PERSISTENCIA Y RENDER ---
-    function saveAndRender() {
-        localStorage.setItem('taktlab_data', JSON.stringify(laps));
-        renderTable();
-        // Aquí se llamará a updateStats() en la Parte 2
+      'col.index':'#','col.process':'Process','col.mode':'Mode','col.status':'Status','col.note':'Note',
+      'col.t1':'T1 (s)','col.t2':'T2 (s)','col.total':'Total (s)','col.edit':'Edit','col.del':'Del','col.n':'N',
+      'col.sample':'Sample size / Error',
+      'col.capCurrent':'Current @Eff','col.capPotential':'Potential @Eff','col.capWorst':'Worst @Eff',
+      'col.contract':'Contract','col.gap':'Gap','col.vsContract':'% vs',
+
+      'chart.timeSeriesTitle':'Time Series with Mean, Median, ±3σ',
+      'chart.histTitle':'Histogram with Median & Percentiles',
+      'stats.note':'Simple language on purpose: few / enough samples, low / high variation, capable / not capable.',
+      'footer.note':'Created by Roberto González – Contact: hzaelglez@gmail.com',
+
+      'btn.wbAdd':'+ Add Operation',
+      'btn.wbClear':'Clear WB',
+      'wb.enabled':'On',
+      'wb.operation':'Operation',
+      'wb.operators':'Operators',
+      'wb.shifts':'Shifts',
+      'wb.hours':'Hours',
+      'wb.machines':'# Machines',
+      'wb.pcsPerOp':'Pcs/Op',
+      'wb.contract':'Contract (pcs/day)',
+      'wb.gross':'Gross min/day',
+      'wb.lunch':'Lunch min/day',
+      'wb.changeover':'Changeover',
+      'wb.cleaning':'5S/Clean',
+      'wb.maint':'Maintenance',
+      'wb.other':'Other',
+      'wb.shared':'Shared<br>Capacity',
+      'wb.udt':'Unplanned DT (min/day)',
+      'wb.net':'Net min/day',
+      'wb.scrap':'Scrap %',
+      'wb.yield':'Yield',
+      'wb.oeeA':'A%',
+      'wb.oeeP':'P%',
+      'wb.oeeQ':'Q%',
+      'wb.oee':'OEE%',
+      'wb.ctCur':'CT Current',
+      'wb.ctWst':'CT Worst',
+      'wb.ctPot':'CT Potential',
+      'wb.ctCurOee':'CT@OEE (Cur)',
+      'wb.cap100':'Cap 100% (Cur)',
+      'wb.capOee':'Cap@OEE (Cur)',
+      'wb.vsContract':'% vs contract',
+      'wb.inputReq':'Input req. for Contract',
+      'wb.actions':'Actions',
+      'wb.constraintTitle':'Constraint / Next:',
+      'wb.opsSum':'Operators total:'
+    },
+    es:{
+      'title.subtitle':'Analizador de Tiempo de Ciclo y Capacidad',
+      'btn.start':'Iniciar','btn.pause':'Pausar','btn.lap':'VUELTA',
+      'btn.copyAll':'Copiar todo','btn.copySummary':'Copiar resumen','btn.addManualLap':'Agregar vuelta manual','btn.reset':'Reiniciar',
+      'btn.copyWB':'Copiar WB',
+      'btn.copySection':'Copiar',
+
+      'section.measurementSetup':'Configuración de Medición',
+      'section.contractSummary':'Resumen Contrato vs Capacidad',
+      'contract.note':'Usa el proceso actual + tus vueltas (Mediana/P10/P90) con los supuestos del Setup.',
+      'section.statsFocus':'Enfoque Estadístico',
+      'section.dataControls':'Controles de Datos',
+      'section.rawData':'Datos Crudos de Tiempo',
+      'section.charts':'Gráficas (proceso seleccionado)',
+      'section.statsDetail':'Detalle Estadístico (por proceso)',
+      'section.wbPlanner':'WB – Planeador de Capacidad (por proceso)',
+      'section.methodGuide':'Método & Guía',
+      'method.open':'Abrir',
+
+      'label.process':'Proceso','label.processPlaceholder':'p. ej. Op 30',
+      'label.mode':'Modo','label.efficiency':'Eficiencia %','label.contractPcd':'Capacidad contrato (pzs/día)',
+      'label.hoursPerDay':'Horas / día','label.daysPerWeek':'Días / semana','label.capView':'Vista de capacidad',
+      'label.chartProcessLabel':'Proceso / Modo:',
+
+      'mode.ct':'Tiempo de ciclo (CT)','mode.mld':'Máquina y Carga/Descarga',
+      'capView.hour':'por hora','capView.day':'por día','capView.week':'por semana',
+
+      'col.index':'#','col.process':'Proceso','col.mode':'Modo','col.status':'Estatus','col.note':'Nota',
+      'col.t1':'T1 (s)','col.t2':'T2 (s)','col.total':'Total (s)' ,'col.edit':'Editar','col.del':'Borrar','col.n':'N',
+      'col.sample':'Tamaño de muestra / Error',
+      'col.capCurrent':'Actual @Eff','col.capPotential':'Potencial @Eff','col.capWorst':'Peor @Eff',
+      'col.contract':'Contrato','col.gap':'Gap','col.vsContract':'% vs',
+
+      'chart.timeSeriesTitle':'Serie de tiempo con media, mediana y ±3σ',
+      'chart.histTitle':'Histograma con mediana y percentiles',
+      'stats.note':'Lenguaje simple a propósito: pocas/suficientes muestras, baja/alta variación, capaz/no capaz.',
+      'footer.note':'Creado por Roberto González – Contacto: hzaelglez@gmail.com',
+
+      'btn.wbAdd':'+ Agregar operación',
+      'btn.wbClear':'Borrar WB',
+      'wb.enabled':'On',
+      'wb.operation':'Operación',
+      'wb.operators':'Operadores',
+      'wb.shifts':'Turnos',
+      'wb.hours':'Horas',
+      'wb.machines':'# Máquinas',
+      'wb.pcsPerOp':'Pzs/Op',
+      'wb.contract':'Contrato (pzs/día)',
+      'wb.gross':'Min brutos/día',
+      'wb.lunch':'Comida min/día',
+      'wb.changeover':'Changeover',
+      'wb.cleaning':'5S/Limpieza',
+      'wb.maint':'Mtto',
+      'wb.other':'Otros',
+      'wb.shared':'Capacidad<br>compartida',
+      'wb.udt':'DT no planeado (min/día)',
+      'wb.net':'Min netos/día',
+      'wb.scrap':'Scrap %',
+      'wb.yield':'Yield',
+      'wb.oeeA':'A%',
+      'wb.oeeP':'P%',
+      'wb.oeeQ':'Q%',
+      'wb.oee':'OEE%',
+      'wb.ctCur':'CT Actual',
+      'wb.ctWst':'CT Peor',
+      'wb.ctPot':'CT Potencial',
+      'wb.ctCurOee':'CT@OEE (Act)',
+      'wb.cap100':'Cap 100% (Act)',
+      'wb.capOee':'Cap@OEE (Act)',
+      'wb.vsContract':'% vs contrato',
+      'wb.inputReq':'Entrada req. p/Contrato',
+      'wb.actions':'Acciones',
+      'wb.constraintTitle':'Restricción / Siguiente:',
+      'wb.opsSum':'Operadores total:'
     }
+  };
 
-    function renderTable() {
-        dataBody.innerHTML = '';
-        [...laps].reverse().forEach((lap) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${lap.id}</td>
-                <td>${lap.process}</td>
-                <td>${lap.mode}</td>
-                <td><span class="badge badge-good">OK</span></td>
-                <td>-</td>
-                <td>${lap.t1.toFixed(2)}</td>
-                <td>${lap.t2.toFixed(2)}</td>
-                <td><b>${lap.total.toFixed(2)}</b></td>
-                <td><button class="btn-edit" onclick="alert('Próximamente')">✎</button></td>
-                <td><button class="btn-del" onclick="deleteLap(${lap.id})">✖</button></td>
-            `;
-            dataBody.appendChild(row);
+  const TL_STATE_KEY = 'taktlab_state_v4_full';
+  const WB_KEY = 'taktlabWB_v3_sync';
+  const LANG_KEY = 'taktlabLang';
+    /* =======================
+     ✅ SHARED CAPACITY MODEL
+     ======================= */
+  const SC_KEY = 'taktlabSharedCapacity_v1';
+
+  const scBody = document.getElementById('scBody');
+  const btnScAddMachine = document.getElementById('btnScAddMachine');
+  const btnScClear = document.getElementById('btnScClear');
+  const btnCopyShared = document.getElementById('btnCopyShared');
+
+  let scMachines = [];
+
+  function loadSC(){
+    try{
+      const raw = localStorage.getItem(SC_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      scMachines = Array.isArray(parsed) ? parsed : [];
+    }catch(e){ scMachines = []; }
+  }
+
+  function saveSC(){
+    try{ localStorage.setItem(SC_KEY, JSON.stringify(scMachines)); }catch(e){}
+    scheduleSaveAll();
+  }
+
+  function defaultScMachine(){
+    const gOp = (processInput.value||'').trim();
+    const opKey = normOp(gOp);
+
+    const hours = clamp(parseFloat(hInput.value)||8,0,24);
+    const availDefault = Math.round(hours*60); // <= 1440
+
+    // Si existe row en WB, jalo defaults
+    const wbRow = wbRows.find(r => normOp((r.operation||'').trim()) === opKey);
+    const machinesDefault = wbRow ? clamp(parseFloat(wbRow.machines)||1,1,50) : 1;
+    const udtDefault = wbRow ? clamp(parseFloat(wbRow.udtMinDay)||0,0,1440) : 0;
+
+    return {
+      id: 'sc_' + Math.random().toString(36).slice(2,9),
+      enabled: true,
+      operation: gOp || '',
+      machines: machinesDefault,          // #Máqs
+      availMinDay: clamp(availDefault,0,1440), // avail por máquina
+      plannedDT: 0,                       // min/día
+      unplannedDT: udtDefault,            // min/día (default desde WB)
+      daysPerWeek: clamp(parseFloat(dInput.value)||5,0,7),
+      weeksPerYear: 47,
+      syncToWB: true,
+      parts: [] // rows
+    };
+  }
+
+  function defaultScPart(){
+    return {
+      partDesc: '',
+      partNo: '',
+      annualContract: '',   // manual
+      pcsPerCycle: 1,       // 1-99
+      ctSec: 0,             // 0-999
+      scrapPct: 0,          // 0-100
+      changeoverMin: 0,     // 0-1440
+      changeoverFreqDays: 0 // 0-365 (0=sin CO)
+    };
+  }
+
+  function scDailyParts(part, m){
+    const annual = parseFloat(part.annualContract);
+    const weeks = clamp(parseFloat(m.weeksPerYear)||0,0,52);
+    const days  = clamp(parseFloat(m.daysPerWeek)||0,0,7);
+    if(!isFinite(annual) || annual<=0) return 0;
+    if(weeks<=0 || days<=0) return 0;
+    return annual/(weeks*days);
+  }
+
+  function scDailyMinutesRequired(part, m){
+    const dailyParts = scDailyParts(part,m);
+    const ppc = clamp(parseFloat(part.pcsPerCycle)||1,1,99);
+    const ct = clamp(parseFloat(part.ctSec)||0,0,999);
+    const scrap = clamp(parseFloat(part.scrapPct)||0,0,100);
+    const y = (100 - scrap)/100;
+
+    // piezas a correr considerando yield
+    const partsToRun = y>0 ? (dailyParts / y) : dailyParts;
+
+    const cycles = ppc>0 ? (partsToRun / ppc) : 0;
+    const runMin = (cycles * ct)/60;
+
+    const coMin = clamp(parseFloat(part.changeoverMin)||0,0,1440);
+    const freq = clamp(parseFloat(part.changeoverFreqDays)||0,0,365);
+    const coPerDay = (freq>0) ? (coMin / freq) : 0;
+
+    return Math.max(runMin + coPerDay, 0);
+  }
+
+  function scNetAvailMinDay(m){
+    const availOne = clamp(parseFloat(m.availMinDay)||0,0,1440);
+    const machines = clamp(parseFloat(m.machines)||1,1,50);
+    const availTotal = availOne * machines;
+
+    const pdt = clamp(parseFloat(m.plannedDT)||0,0,1440);
+    const udt = clamp(parseFloat(m.unplannedDT)||0,0,1440);
+
+    return Math.max(availTotal - pdt - udt, 0);
+  }
+
+  function scTotalRequiredMinDay(m){
+    const parts = Array.isArray(m.parts) ? m.parts : [];
+    return parts.reduce((sum,p)=> sum + scDailyMinutesRequired(p,m), 0);
+  }
+
+  function scUtilPct(m){
+    const req = scTotalRequiredMinDay(m);
+    const net = scNetAvailMinDay(m);
+    if(net<=0) return (req>0)? 999 : 0;
+    return (req/net)*100;
+  }
+
+  function scBadge(util){
+    if(util < 90) return {cls:'badge-good', txt:'OK'};
+    if(util <= 100) return {cls:'badge-warn', txt:'Riesgo'};
+    return {cls:'badge-bad', txt:'No Capacity'};
+  }
+
+  function scSyncToWB(m){
+  const op = (m.operation || "").trim();
+  if(!op) return;
+
+  // total requerido por día (todas las máquinas del recurso)
+  const reqTotal = scTotalRequiredMinDay(m);
+
+  // ✅ convertir a "min/día por máquina" para WB (porque WB lo multiplica por Machines)
+  const machines = Math.max(1, parseInt(m.machines || 1, 10));
+  const reqPerMachine = reqTotal / machines;
+
+  ensureWbRowForOperation(op);
+
+  const row = wbRows.find(r => normOp(r.operation) === normOp(op));
+  if(row){
+    const snap5 = (x)=> Math.round(x/5)*5;
+row.sharedMin = clamp(snap5(reqPerMachine), 0, 1440);
+    saveWB();
+    renderWB();
+  }
+}
+  function scEnsureWbRowExists(op){
+    const name = (op||'').trim();
+    if(!name) return;
+    ensureWbRowForOperation(name);
+  }
+
+  function scCopyAllText(){
+    const lines = [];
+    lines.push(`SHARED CAPACITY EXPORT (${new Date().toISOString()})`);
+    lines.push(`On\t\tMachines\tAvailMinDay(per)\tPlannedDT\tUnplannedDT\tDaysWeek\tWeeksYear\tReqMinDay\tUtil%\tSemaphore\tOpenMinDay`);
+    scMachines.forEach(m=>{
+      const on = m.enabled?1:0;
+      const op = (m.operation||'').trim();
+      const machines = clamp(parseFloat(m.machines)||1,1,50);
+      const avail = clamp(parseFloat(m.availMinDay)||0,0,1440);
+      const pdt = clamp(parseFloat(m.plannedDT)||0,0,1440);
+      const udt = clamp(parseFloat(m.unplannedDT)||0,0,1440);
+      const dw = clamp(parseFloat(m.daysPerWeek)||0,0,7);
+      const wy = clamp(parseFloat(m.weeksPerYear)||0,0,52);
+
+      const req = scTotalRequiredMinDay(m);
+      const net = scNetAvailMinDay(m);
+      const util = scUtilPct(m);
+      const open = Math.max(net - req, 0);
+      const sem = scBadge(util).txt;
+
+      lines.push([
+        on, op, machines, avail, pdt, udt, dw, wy,
+        req.toFixed(2), util.toFixed(1), sem, open.toFixed(2)
+      ].join('\t'));
+
+      if(Array.isArray(m.parts) && m.parts.length){
+        lines.push(`\tPARTS for ${op}`);
+        lines.push(`\tPartDesc\tPartNo\tAnnual\tDailyParts\tPcs/Cycle\tCT(s)\tScrap%\tCOmin\tFreqDays\tMinReq/Day`);
+        m.parts.forEach(p=>{
+          const dp = scDailyParts(p,m);
+          const mr = scDailyMinutesRequired(p,m);
+          lines.push([
+            '', (p.partDesc||'').replace(/\t/g,' '),
+            (p.partNo||'').replace(/\t/g,' '),
+            (p.annualContract||''),
+            dp.toFixed(2),
+            clamp(parseFloat(p.pcsPerCycle)||1,1,99),
+            clamp(parseFloat(p.ctSec)||0,0,999),
+            clamp(parseFloat(p.scrapPct)||0,0,100),
+            clamp(parseFloat(p.changeoverMin)||0,0,1440),
+            clamp(parseFloat(p.changeoverFreqDays)||0,0,365),
+            mr.toFixed(2)
+          ].join('\t'));
         });
+      }
+    });
+    return lines.join('\n');
+  }
+
+  function scRender(){
+    if(!scBody) return;
+    scBody.innerHTML = '';
+
+    const ops = getOperationOptions();
+
+    scMachines.forEach(m=>{
+      // defaults y límites
+      m.machines = clamp(parseFloat(m.machines)||1,1,50);
+      m.availMinDay = clamp(parseFloat(m.availMinDay)||0,0,1440);
+      m.plannedDT = clamp(parseFloat(m.plannedDT)||0,0,1440);
+      m.unplannedDT = clamp(parseFloat(m.unplannedDT)||0,0,1440);
+      m.daysPerWeek = clamp(parseFloat(m.daysPerWeek)||0,0,7);
+      m.weeksPerYear = clamp(parseFloat(m.weeksPerYear)||47,0,52);
+      if(m.weeksPerYear === 0) m.weeksPerYear = 47;
+      if(!Array.isArray(m.parts)) m.parts = [];
+
+   // auto sync (solo si está activo y sync habilitado)
+      if(m.enabled && m.syncToWB) scSyncToWB(m);
+
+
+      const req = scTotalRequiredMinDay(m);
+      const util = scUtilPct(m);
+      const badge = scBadge(util);
+      const net = scNetAvailMinDay(m);
+      const open = Math.max(net - req, 0);
+
+      const tr = document.createElement('tr');
+
+      function tdNode(node){
+        const td = document.createElement('td');
+        td.appendChild(node);
+        tr.appendChild(td);
+      }
+      function tdTxt(txt, left=false){
+        const td = document.createElement('td');
+        td.textContent = txt;
+        if(left) td.style.textAlign='left';
+        tr.appendChild(td);
+      }
+
+      // On
+      {
+        const inp = document.createElement('input');
+        inp.type='checkbox';
+        inp.className='wb-chk';
+        inp.checked = !!m.enabled;
+        inp.addEventListener('change',()=>{
+          m.enabled = !!inp.checked;
+          saveSC(); renderAll();
+        });
+        tdNode(inp);
+      }
+
+      // Operation selector
+      {
+        const sel = document.createElement('select');
+        sel.className='wb-opselect';
+        const cur = (m.operation||'').trim();
+
+        const ph = document.createElement('option');
+        ph.value='';
+        ph.textContent = (currentLang==='es'?'Selecciona…':'Select…');
+        if(!cur) ph.selected = true;
+        sel.appendChild(ph);
+
+        const list = ops.slice();
+        if(cur && !list.some(x=>normOp(x)===normOp(cur))) list.unshift(cur);
+
+        list.forEach(opName=>{
+          const o=document.createElement('option');
+          o.value=opName; o.textContent=opName;
+          if(normOp(opName)===normOp(cur)) o.selected=true;
+          sel.appendChild(o);
+        });
+
+        const customOpt=document.createElement('option');
+        customOpt.value='__custom__';
+        customOpt.textContent = (currentLang==='es'?'+ Personalizar…':'+ Custom…');
+        sel.appendChild(customOpt);
+
+        sel.addEventListener('change',()=>{
+          let v = sel.value;
+          if(v==='__custom__'){
+            const newName = prompt(currentLang==='es'?'Nombre de proceso/máquina:':'Process/machine name:', cur || (processInput.value||'').trim());
+            if(newName===null){ sel.value = cur || ''; return; }
+            v = (newName||'').trim();
+            if(!v){ sel.value = cur || ''; return; }
+          }
+          m.operation = (v||'').trim();
+          scEnsureWbRowExists(m.operation);
+          saveSC(); renderAll();
+        });
+
+        const wrap = document.createElement('div');
+        wrap.className='wb-opwrap';
+        wrap.appendChild(sel);
+
+        tdNode(wrap);
+      }
+
+      // Machines (1-50)
+      {
+        const sel=document.createElement('select');
+        sel.className='wb-sel narrow';
+        for(let v=1; v<=50; v++){
+          const o=document.createElement('option');
+          o.value=String(v); o.textContent=String(v);
+          if(v===m.machines) o.selected=true;
+          sel.appendChild(o);
+        }
+        sel.addEventListener('change',()=>{
+          m.machines = clamp(parseFloat(sel.value)||1,1,50);
+          saveSC(); renderAll();
+        });
+        tdNode(sel);
+      }
+
+      // Avail 0-1440
+      {
+        const sel=document.createElement('select');
+        sel.className='wb-sel';
+        for(let v=0; v<=1440; v+=5){
+          const o=document.createElement('option');
+          o.value=String(v); o.textContent=String(v);
+          if(v===m.availMinDay) o.selected=true;
+          sel.appendChild(o);
+        }
+        sel.addEventListener('change',()=>{
+          m.availMinDay = clamp(parseFloat(sel.value)||0,0,1440);
+          saveSC(); renderAll();
+        });
+        tdNode(sel);
+      }
+
+      // Planned DT 0-1440
+      {
+        const sel=document.createElement('select');
+        sel.className='wb-sel';
+        for(let v=0; v<=1440; v+=5){
+          const o=document.createElement('option');
+          o.value=String(v); o.textContent=String(v);
+          if(v===m.plannedDT) o.selected=true;
+          sel.appendChild(o);
+        }
+        sel.addEventListener('change',()=>{
+          m.plannedDT = clamp(parseFloat(sel.value)||0,0,1440);
+          saveSC(); renderAll();
+        });
+        tdNode(sel);
+      }
+
+      // Unplanned DT 0-1440
+      {
+        const sel=document.createElement('select');
+        sel.className='wb-sel';
+        for(let v=0; v<=1440; v+=5){
+          const o=document.createElement('option');
+          o.value=String(v); o.textContent=String(v);
+          if(v===m.unplannedDT) o.selected=true;
+          sel.appendChild(o);
+        }
+        sel.addEventListener('change',()=>{
+          m.unplannedDT = clamp(parseFloat(sel.value)||0,0,1440);
+          saveSC(); renderAll();
+        });
+        tdNode(sel);
+      }
+
+      // Days/week 0-7
+      {
+        const sel=document.createElement('select');
+        sel.className='wb-sel narrow';
+        for(let v=0; v<=7; v++){
+          const o=document.createElement('option');
+          o.value=String(v); o.textContent=String(v);
+          if(v===m.daysPerWeek) o.selected=true;
+          sel.appendChild(o);
+        }
+        sel.addEventListener('change',()=>{
+          m.daysPerWeek = clamp(parseFloat(sel.value)||0,0,7);
+          saveSC(); renderAll();
+        });
+        tdNode(sel);
+      }
+
+      // Weeks/year 0-52 (default 47)
+      {
+        const sel=document.createElement('select');
+        sel.className='wb-sel narrow';
+        for(let v=0; v<=52; v++){
+          const o=document.createElement('option');
+          o.value=String(v); o.textContent=String(v);
+          if(v===m.weeksPerYear) o.selected=true;
+          sel.appendChild(o);
+        }
+        sel.addEventListener('change',()=>{
+          m.weeksPerYear = clamp(parseFloat(sel.value)||47,0,52);
+          if(m.weeksPerYear===0) m.weeksPerYear = 47;
+          saveSC(); renderAll();
+        });
+        tdNode(sel);
+      }
+
+      // Req / Util / Semaforo
+      tdTxt(req.toFixed(2));
+      tdTxt(util.toFixed(1));
+      tdTxt('', false);
+      tr.lastChild.innerHTML = `<span class="badge ${badge.cls}">${badge.txt}</span>`;
+
+      // Sync toggle
+      {
+        const chk=document.createElement('input');
+        chk.type='checkbox';
+        chk.className='wb-chk';
+        chk.checked = !!m.syncToWB;
+        chk.addEventListener('change',()=>{
+          m.syncToWB = !!chk.checked;
+          saveSC(); renderAll();
+        });
+        tdNode(chk);
+      }
+
+// Subprocesos (simple, seguro)
+{
+  const wrap = document.createElement('div');
+  wrap.style.minWidth = '260px';
+
+  const title = document.createElement('div');
+  title.style.fontWeight = '800';
+  title.style.fontSize = '.72rem';
+  title.style.color = 'var(--text-soft)';
+  title.style.marginBottom = '6px';
+  title.textContent = (currentLang === 'es')
+    ? 'Subprocesos (1, 1.1, 1.2…)'
+    : 'Subprocesses (1, 1.1, 1.2…)';
+  wrap.appendChild(title);
+
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th style="text-align:left;">Sub</th>
+        <th>CT(s)</th>
+        <th>Scrap%</th>
+        <th>Anual</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  const tbody = table.querySelector('tbody');
+
+  function renderSubParts(){
+    tbody.innerHTML = '';
+    (m.parts || []).forEach((p, idx)=>{
+      const tr2 = document.createElement('tr');
+      tr2.innerHTML = `
+        <td style="text-align:left;"><input class="wb-inp slim" value="${p.subCode||''}" placeholder="1.1"></td>
+        <td><input class="wb-inp slim" type="number" min="0" max="999" value="${p.ctSec||0}"></td>
+        <td><input class="wb-inp slim" type="number" min="0" max="100" value="${p.scrapPct||0}"></td>
+        <td><input class="wb-inp" type="number" min="0" value="${p.annualContract||0}"></td>
+      `;
+      const [sub, ct, scr, ann] = tr2.querySelectorAll('input');
+
+      sub.addEventListener('input', ()=>{ p.subCode = sub.value; saveSC(); });
+      ct.addEventListener('input',  ()=>{ p.ctSec = +ct.value||0; saveSC(); });
+      scr.addEventListener('input', ()=>{ p.scrapPct = +scr.value||0; saveSC(); });
+      ann.addEventListener('input', ()=>{ p.annualContract = +ann.value||0; saveSC(); });
+
+      tbody.appendChild(tr2);
+    });
+  }
+
+  const btnAdd = document.createElement('button');
+  btnAdd.className = 'btn-small';
+  btnAdd.textContent = (currentLang === 'es') ? '+ Agregar subproceso' : '+ Add subprocess';
+  btnAdd.addEventListener('click', ()=>{
+    if(!Array.isArray(m.parts)) m.parts = [];
+    m.parts.push({ subCode: String(m.parts.length + 1), ctSec: 0, scrapPct: 0, annualContract: 0 });
+    renderSubParts();
+    saveSC();
+  });
+
+  wrap.appendChild(table);
+  wrap.appendChild(btnAdd);
+
+  tdNode(wrap);
+  renderSubParts();
+}
+
+      // Actions
+      {
+        const td = document.createElement('td');
+
+        const bDel=document.createElement('button');
+        bDel.className='btn-del';
+        bDel.textContent='Del';
+        bDel.addEventListener('click',()=>{
+          if(!confirm('¿Borrar esta máquina compartida?')) return;
+          scMachines = scMachines.filter(x=>x.id!==m.id);
+          saveSC(); renderAll();
+        });
+
+        const bClrParts=document.createElement('button');
+        bClrParts.className='btn-relink';
+        bClrParts.textContent='Clear Parts';
+        bClrParts.addEventListener('click',()=>{
+          if(!confirm('¿Borrar TODAS las partes de esta máquina?')) return;
+          m.parts = [];
+          saveSC(); renderAll();
+        });
+
+        td.appendChild(bClrParts);
+        td.appendChild(document.createTextNode(' '));
+        td.appendChild(bDel);
+
+        tr.appendChild(td);
+      }
+
+      if(!m.enabled) tr.style.opacity='0.55';
+      scBody.appendChild(tr);
+    });
+  }
+
+  if(btnScAddMachine){
+    btnScAddMachine.addEventListener('click',()=>{
+      lockBtn(btnScAddMachine,6000);
+      const m = defaultScMachine();
+      scEnsureWbRowExists(m.operation);
+      scMachines.push(m);
+      saveSC(); renderAll();
+    });
+  }
+
+  if(btnScClear){
+    btnScClear.addEventListener('click',()=>{
+      lockBtn(btnScClear,6000);
+      if(!confirm('¿Borrar TODO Shared Capacity?')) return;
+      scMachines = [];
+      saveSC(); renderAll();
+    });
+  }
+
+  if(btnCopyShared){
+    btnCopyShared.addEventListener('click',()=>{
+      lockBtn(btnCopyShared,6000);
+      copyText(scCopyAllText());
+    });
+  }
+
+  function safeJsonParse(raw){ try{ return JSON.parse(raw); }catch(e){ return null; } }
+
+  let _saveTimer = null;
+  function scheduleSaveAll(){
+    if(_saveTimer) clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(()=>{ saveAllNow(); }, 120);
+  }
+
+  function buildStateSnapshot(){
+    return {
+      v: 4,
+      ts: Date.now(),
+      lang: currentLang,
+      settings: {
+        processName: (processInput.value||'').toString(),
+        mode: (modeSelect.value||'CT'),
+        efficiency: (effInput.value||''),
+        contractPcd: (pcdInput.value||''),
+        hoursPerDay: (hInput.value||''),
+        daysPerWeek: (dInput.value||''),
+        capView: (capViewSel.value||'hour')
+      },
+      laps: Array.isArray(laps) ? laps : [],
+      nextId: (isFinite(nextId)?nextId:1),
+      wbRows: Array.isArray(wbRows) ? wbRows : []
+    };
+  }
+
+  function saveAllNow(){
+    const snap = buildStateSnapshot();
+    try{ localStorage.setItem(TL_STATE_KEY, JSON.stringify(snap)); }catch(e){}
+    try{ localStorage.setItem(WB_KEY, JSON.stringify(snap.wbRows || [])); }catch(e){}
+    try{ localStorage.setItem(LANG_KEY, currentLang); }catch(e){}
+  }
+
+  function clearAllSaved(){
+    try{ localStorage.removeItem(TL_STATE_KEY); }catch(e){}
+    try{ localStorage.removeItem(WB_KEY); }catch(e){}
+    try{ localStorage.removeItem(LANG_KEY); }catch(e){}
+  }
+
+  let currentLang = localStorage.getItem(LANG_KEY) || 'es';
+  function t(key){ return (i18n[currentLang] && i18n[currentLang][key]) || i18n.es[key] || i18n.en[key] || key; }
+function applyTranslations(){
+document.querySelectorAll('button').forEach(b=>{
+  b.dataset.baseLabel = b.textContent;
+});
+
+  // ✅ i18n con HTML (para headers en 2 líneas)
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+    const key = el.dataset.i18nHtml;
+    el.innerHTML = t(key);
+  });
+
+  // placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key = el.dataset.i18nPlaceholder;
+    el.placeholder = t(key);
+  });
+}
+  function updateLangButtons(){ langButtons.forEach(b=>b.classList.toggle('active', b.dataset.lang === currentLang)); }
+
+  function setLanguage(lang){
+    currentLang = (lang==='en') ? 'en' : 'es';
+    try{ localStorage.setItem(LANG_KEY, currentLang); }catch(e){}
+    document.documentElement.lang = currentLang;
+    updateLangButtons();
+    applyTranslations();
+    btnStart.textContent = running ? t('btn.pause') : t('btn.start');
+    renderAll();
+    scheduleSaveAll();
+  }
+  langButtons.forEach(btn=>btn.addEventListener('click',()=>{ lockBtn(btn,6000); setLanguage(btn.dataset.lang); }));
+
+  function clamp(n,min,max){ n = isFinite(n)?n:0; return Math.min(Math.max(n,min),max); }
+
+  let running=false, startTime=0, elapsed=0, timerId=null;
+  let laps=[], nextId=1;
+  let pendingT1=null;
+
+  function updateDisplay(){ display.textContent = formatTime(elapsed); }
+
+  function updateSplitClocks(){
+    const mode = modeSelect.value || 'CT';
+    if(mode === 'CT'){
+      t1Clock.textContent = formatTime(elapsed);
+      t2Clock.textContent = '00:00.00';
+      return;
+    }
+    if(pendingT1 === null){
+      t1Clock.textContent = formatTime(elapsed);
+      t2Clock.textContent = '00:00.00';
+    }else{
+      t1Clock.textContent = formatTime(pendingT1*1000);
+      t2Clock.textContent = formatTime(elapsed);
+    }
+  }
+
+  function refreshRingStates(){
+    if(!running){ logoGear.classList.remove('spinning'); return; }
+    logoGear.classList.add('spinning');
+  }
+
+  function tick(){
+    const now=performance.now();
+    elapsed=now-startTime;
+    updateDisplay();
+    updateSplitClocks();
+    timerId=requestAnimationFrame(tick);
+  }
+
+  function start(){
+    if(running) return;
+    running=true;
+    startTime=performance.now()-elapsed;
+    timerId=requestAnimationFrame(tick);
+    btnStart.textContent=t('btn.pause');
+    refreshRingStates();
+  }
+  function pause(){
+    if(!running) return;
+    running=false;
+    cancelAnimationFrame(timerId);
+    timerId=null;
+    btnStart.textContent=t('btn.start');
+    refreshRingStates();
+  }
+  btnStart.addEventListener('click',()=>{
+    lockBtn(btnStart,1000);
+    running?pause():start();
+  });
+
+  function flashCard(){ timerCard.classList.add('flash'); setTimeout(()=>timerCard.classList.remove('flash'),120); }
+  function vibrate(ms=18){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+
+  function ensureDefaults(){
+    let proc=(processInput.value||'').trim();
+    if(!proc){
+      proc = currentLang==='es' ? 'Proceso 1' : 'Process 1';
+      processInput.value=proc;
+    }
+    let mode=modeSelect.value||'CT';
+    modeSelect.value=mode;
+    return {proc,mode};
+  }
+
+  function isAtypicalStatus(s){
+    const x=(s||'').toString().trim().toLowerCase();
+    return (x==='blocked' || x==='starved' || x==='bloqueado' || x==='hambriento');
+  }
+
+  function groupByProcess(){
+    const map=new Map();
+    laps.forEach(l=>{
+      if(isAtypicalStatus(l.status)) return;
+      const key=l.process+'||'+l.mode;
+      if(!map.has(key)) map.set(key,[]);
+      map.get(key).push(l);
+    });
+    return map;
+  }
+
+  function percentile(values,p){
+    const n=values.length;
+    if(n===0) return NaN;
+    if(n===1) return values[0];
+    const idx=(n-1)*p;
+    const lo=Math.floor(idx), hi=Math.ceil(idx);
+    if(lo===hi) return values[lo];
+    return values[lo]+(values[hi]-values[lo])*(idx-lo);
+  }
+
+  function calcStats(arr){
+    if(!arr.length) return null;
+    const values=arr.map(x=>x.total).slice().sort((a,b)=>a-b);
+    const n=values.length;
+    const mean=values.reduce((s,v)=>s+v,0)/n;
+    const median=n%2?values[(n-1)/2]:(values[n/2-1]+values[n/2])/2;
+    const min=values[0], max=values[n-1];
+    const variance=values.reduce((s,v)=>s+Math.pow(v-mean,2),0)/(n-1||1);
+    const std=Math.sqrt(variance);
+    const p10=percentile(values,0.1);
+    const p90=percentile(values,0.9);
+    const cv=mean?std/mean:0;
+    return {n,values,mean,median,min,max,std,p10,p90,cv};
+  }
+
+  function capFromCt(ctSeconds, view, hours, days){
+    if(!ctSeconds || ctSeconds<=0) return 0;
+    const perHour=3600/ctSeconds;
+    if(view==='hour') return perHour;
+    if(view==='day') return perHour*hours;
+    return perHour*hours*days;
+  }
+  function contractUnitsFromPcd(pcd, view, hours, days){
+    if(!pcd || pcd<=0) return 0;
+    if(view==='hour') return (pcd/Math.max(hours,0.0001))||0;
+    if(view==='day') return pcd;
+    return pcd*days;
+  }
+
+  function sampleReqN(cv){
+    const Z=1.96, targetError=0.03;
+    if(!isFinite(cv) || cv<=0) return 10;
+    let n = Math.ceil(Math.pow((Z*cv)/targetError,2));
+    if(n<10) n=10;
+    return n;
+  }
+  function estErrorPct(cv,n){
+    const Z=1.96;
+    if(!isFinite(cv) || cv<=0 || n<=0) return 0;
+    return (Z*cv)/Math.sqrt(n)*100;
+  }
+
+  function setInfo(div, cls, text){
+    div.className = 'info-line ' + cls;
+    div.textContent = text;
+  }
+
+  function buildSampleLine(st){
+    if(!st || st.n<3){
+      return {
+        cls:'sample-neutral',
+        text:(currentLang==='es'
+          ? `Tamaño de muestra: ${st?st.n:0} / 3 – se requieren ≥3 vueltas antes de estimar el error.`
+          : `Sample size: ${st?st.n:0} / 3 – need ≥3 laps before estimating error.`
+        )
+      };
+    }
+    const n=st.n;
+    const cv=st.cv||0;
+    const recN = sampleReqN(cv);
+    const errPct = estErrorPct(cv,n);
+    const ratio=n/recN;
+
+    let cls='sample-warn', tail='';
+    if(ratio<0.6){
+      cls='sample-bad';
+      tail = currentLang==='es'
+        ? 'Muestra muy pequeña para ±3% – úsala solo como referencia.'
+        : 'Sample too small for ±3% – use only as reference.';
+    }else if(ratio<0.9){
+      cls='sample-warn';
+      tail = currentLang==='es'
+        ? 'Casi suficiente para ±3% – un par de vueltas más ayudarán.'
+        : 'Almost enough for ±3% – a couple more laps would help.';
+    }else{
+      cls='sample-good';
+      tail = currentLang==='es'
+        ? 'Tamaño de muestra suficiente para objetivo ±3%.'
+        : 'Sample size is enough for ±3% target.';
     }
 
-    window.deleteLap = (id) => {
-        laps = laps.filter(l => l.id !== id);
-        saveAndRender();
-    };
+    const head = (currentLang==='es')
+      ? `Tamaño de muestra: ${n} / ${recN} · Error estimado: ±${errPct.toFixed(1)}% (95%) – `
+      : `Sample size: ${n} / ${recN} · Est. error: ±${errPct.toFixed(1)}% (95%) – `;
 
-    // Inicialización
-    saveAndRender();
+    return {cls, text: head + tail};
+  }
+
+  function copyText(text){
+    try{ navigator.clipboard.writeText(text); }
+    catch(e){
+      const ta=document.createElement('textarea');
+      ta.value=text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+  }
+
+  function calcCpCpk(stats){
+    if(!stats || !isFinite(stats.std) || stats.std<=0) return {cp:NaN, cpk:NaN};
+    const mean=stats.mean;
+    const std=stats.std;
+    const center=stats.median;
+    const LSL = center - 3*std;
+    const USL = center + 3*std;
+    const cp = (USL-LSL)/(6*std);
+    const cpk = Math.min((USL-mean)/(3*std), (mean-LSL)/(3*std));
+    return {cp, cpk};
+  }
+
+  /* =======================
+     ✅ WB DATA MODEL
+     ======================= */
+  function defaultWbRow(){
+    const globalHours = clamp(parseFloat(hInput.value)||8, 0, 24);
+    const globalContract = clamp(parseFloat(pcdInput.value)||0, 0, 99999);
+    const globalQ = 100; // ✅ Q% por default (calidad), NO viene del Efficiency%
+    const gOp = (processInput.value||'').trim();
+
+    return {
+      id: 'wb_' + Math.random().toString(36).slice(2,9),
+      enabled: true,
+
+      operation: gOp || '',
+      opAuto: true,
+      opAutoKey: normOp(gOp || ''),
+
+      operators: 1,     // 0-10 dropdown
+      shifts: 1,        // 1-4 dropdown reference
+      hours: globalHours, // 0-24 step .5
+      hoursAuto: true,
+
+      machines: 1,      // 1-50 dropdown
+
+      pcsPerOp: 1,      // ✅ dropdown 1-99
+
+      contractPcd: globalContract,  // editable
+      contractAuto: true,
+
+      lunchMin: 0,        // 0-1440
+      changeoverMin: 0,   // 0-1440
+      cleanMin: 0,        // 0-1440
+      maintMin: 0,        // 0-1440
+      otherMin: 0,        // 0-1440
+
+      sharedMin: 0,       // 0-1440
+
+      udtMinDay: 0,       // ✅ dropdown 0-1440 step 5
+
+      scrapPct: 0,      // 0-100
+
+      oeeA: 100,        // 0-100
+      oeeP: 100,        // 0-100
+      oeeQ: globalQ,    // 0-100
+      qAuto: true,
+
+      ctCurManual: null,
+      ctWstManual: null,
+      ctPotManual: null
+    };
+  }
+
+  let wbRows = [];
+
+  function loadWB(){
+    try{
+      const raw = localStorage.getItem(WB_KEY);
+      if(!raw){ wbRows=[]; return; }
+      const parsed = JSON.parse(raw);
+      wbRows = Array.isArray(parsed) ? parsed : [];
+    }catch(e){ wbRows=[]; }
+  }
+  function saveWB(){
+    try{ localStorage.setItem(WB_KEY, JSON.stringify(wbRows)); }catch(e){}
+    scheduleSaveAll();
+  }
+
+  function applyGlobalToRow(row){
+  const gHours = clamp(parseFloat(hInput.value)||8,0,24);
+  const gContract = clamp(parseFloat(pcdInput.value)||0,0,99999);
+  const gQ = 100; // ✅ Q% por default, NO viene de Efficiency
+  const gOp = (processInput.value||'').trim();
+  const gOpKey = normOp(gOp);
+
+  if(row.opAuto && gOp && gOpKey){
+    row.operation = gOp;
+    row.opAutoKey = gOpKey;
+  }
+  if(row.hoursAuto) row.hours = gHours;
+  if(row.contractAuto) row.contractPcd = gContract;
+
+  // ✅ Solo aplica Q global si quieres “Q default = 100”
+  if(row.qAuto) row.oeeQ = gQ;
+
+  row.pcsPerOp = clamp(parseFloat(row.pcsPerOp)||1,1,99);
+  row.udtMinDay = clamp(parseFloat(row.udtMinDay)||0,0,1440);
+}
+  function ensureWbRowForOperation(opName){
+    const op = (opName||'').trim();
+    const opKey = normOp(op);
+    if(!op || !opKey) return;
+
+    let row = wbRows.find(r => normOp(r.operation) === opKey);
+    if(!row){
+      row = defaultWbRow();
+      row.operation = op;
+      row.opAuto = true;
+      row.opAutoKey = opKey;
+      wbRows.push(row);
+      saveWB();
+    }
+  }
+
+  function addLap(manualData){
+    const {proc,mode}=ensureDefaults();
+    ensureWbRowForOperation(proc);
+
+    const status='', note='';
+    if(manualData){
+      const {t1,t2,total}=manualData;
+      laps.push({id:nextId++,process:proc,mode,status,note,t1,t2,total});
+      renderAll(); scheduleSaveAll();
+      return;
+    }
+    const seconds=Math.max(elapsed/1000,0);
+    if(mode==='CT'){
+      laps.push({id:nextId++,process:proc,mode,status,note,t1:seconds,t2:0,total:seconds});
+      elapsed=0; startTime=performance.now();
+      updateDisplay(); pendingT1=null; updateSplitClocks();
+      renderAll(); scheduleSaveAll();
+      return;
+    }
+    if(pendingT1===null){
+      pendingT1=seconds;
+      elapsed=0; startTime=performance.now();
+      updateSplitClocks();
+    }else{
+      const t2=seconds, t1=pendingT1;
+      laps.push({id:nextId++,process:proc,mode,status,note,t1,t2,total:t1+t2});
+      pendingT1=null;
+      elapsed=0; startTime=performance.now();
+      updateDisplay(); updateSplitClocks();
+      renderAll(); scheduleSaveAll();
+    }
+  }
+
+  btnLap.addEventListener('click',()=>{
+    lockBtn(btnLap,1000);
+    flashCard(); vibrate(18);
+    addLap();
+  });
+
+  btnAddMan.addEventListener('click',()=>{
+    lockBtn(btnAddMan,1000);
+    const t1 = parseFloat(prompt(currentLang==='es'?'T1 (s)':'T1 (s)',''));
+    const t2 = parseFloat(prompt(currentLang==='es'?'T2 (s)':'T2 (s)',''));
+    if(isNaN(t1) && isNaN(t2)) return;
+    const v1=isNaN(t1)?0:t1, v2=isNaN(t2)?0:t2;
+    addLap({t1:v1,t2:v2,total:v1+v2});
+  });
+
+  btnReset.addEventListener('click',()=>{
+    lockBtn(btnReset,1000);
+    if(!confirm(currentLang==='es'
+      ? '¿Reset TOTAL? Borra laps, WB y configuración guardada.'
+      : 'TOTAL reset? This will delete laps, WB and saved settings.'
+    )) return;
+
+    pause();
+    elapsed=0; updateDisplay();
+    laps=[]; nextId=1; pendingT1=null;
+    wbRows=[];
+    clearAllSaved();
+    updateSplitClocks();
+    renderAll();
+  });
+
+  modeSelect.addEventListener('change',()=>{ pendingT1=null; updateSplitClocks(); scheduleSaveAll(); });
+
+  function computeOEE(row){
+    const A = clamp(parseFloat(row.oeeA)||0,0,100);
+    const P = clamp(parseFloat(row.oeeP)||0,0,100);
+    const Q = clamp(parseFloat(row.oeeQ)||0,0,100);
+    return (A/100)*(P/100)*(Q/100)*100;
+  }
+
+  function grossMinPerDay(row){
+    const hours = clamp(parseFloat(row.hours)||8,0,24);
+    const machines = clamp(parseFloat(row.machines)||1,1,50);
+    return hours*60*machines;
+  }
+
+  function plannedLossMin(row){
+    return (
+      clamp(parseFloat(row.lunchMin)||0,0,1440) +
+      clamp(parseFloat(row.changeoverMin)||0,0,1440) +
+      clamp(parseFloat(row.cleanMin)||0,0,1440) +
+      clamp(parseFloat(row.maintMin)||0,0,1440) +
+      clamp(parseFloat(row.otherMin)||0,0,1440)
+    );
+  }
+  function netMinPerDay(row){
+  // Gross = horas * 60 * máquinas
+  const hours = clamp(parseFloat(row.hours)||0, 0, 24);
+  const machines = clamp(parseFloat(row.machines)||1, 1, 50);
+  const gross = hours * 60 * machines;
+
+  // Planned losses (min/día) — TODOS son por proceso (no por máquina)
+  const planned =
+    clamp(parseFloat(row.lunchMin)||0, 0, 1440) +
+    clamp(parseFloat(row.changeoverMin)||0, 0, 1440) +
+    clamp(parseFloat(row.cleanMin)||0, 0, 1440) +
+    clamp(parseFloat(row.maintMin)||0, 0, 1440) +
+    clamp(parseFloat(row.otherMin)||0, 0, 1440);
+
+  // SharedMin = min/día POR MÁQUINA → totaliza por máquinas
+  const sharedTotal = clamp(parseFloat(row.sharedMin)||0, 0, 1440) * machines;
+
+  // Unplanned DT (min/día) — tu campo real es udtMinDay
+  const unplanned = clamp(parseFloat(row.udtMinDay)||0, 0, 1440);
+
+  return Math.max(0, gross - planned - sharedTotal - unplanned);
+}
+function yieldFromScrap(row){
+  const scrap = clamp(parseFloat(row.scrapPct)||0,0,100);
+  return (100 - scrap)/100;
+  }
+
+  function getProcessStatsForRow(row){
+    const op = (row.operation||'').trim();
+    if(!op) return null;
+
+    const map = groupByProcess();
+    let keyCT = op + '||CT';
+    let keyMLD = op + '||MLD';
+
+    if(map.has(keyCT)) return {mode:'CT', stats: calcStats(map.get(keyCT))};
+    if(map.has(keyMLD)) return {mode:'MLD', stats: calcStats(map.get(keyMLD))};
+
+    for(const [k,arr] of map.entries()){
+      const [p,m]=k.split('||');
+      if(normOp(p)===normOp(op)) return {mode:m, stats: calcStats(arr)};
+    }
+    return null;
+  }
+
+  function ctForRow(row){
+    const st = getProcessStatsForRow(row);
+
+    let cur = (row.ctCurManual!==null && isFinite(row.ctCurManual)) ? row.ctCurManual : null;
+    let wst = (row.ctWstManual!==null && isFinite(row.ctWstManual)) ? row.ctWstManual : null;
+    let pot = (row.ctPotManual!==null && isFinite(row.ctPotManual)) ? row.ctPotManual : null;
+
+    if(!st || !st.stats){
+      cur = cur ?? NaN; wst = wst ?? NaN; pot = pot ?? NaN;
+      return {cur,wst,pot, src:'manual'};
+    }
+
+    const S = st.stats;
+    cur = cur ?? S.median;
+    wst = wst ?? S.p90;
+    pot = pot ?? S.p10;
+
+    return {cur,wst,pot, src:st.mode};
+  }
+
+  function capPerDayFromRow(row){
+    const {cur} = ctForRow(row);
+    const oee = computeOEE(row);
+    const netMin = netMinPerDay(row);
+    const y = yieldFromScrap(row);
+    const ppo = clamp(parseFloat(row.pcsPerOp)||1,1,99);
+
+    if(!isFinite(cur) || cur<=0) return {cap100:0, capOee:0, ctOee:NaN};
+    const ctOee = cur / Math.max(oee/100, 0.0001);
+    const cap100 = ((netMin*60)/cur) * y * ppo;
+    const capOee = ((netMin*60)/ctOee) * y * ppo;
+    return {cap100, capOee, ctOee};
+  }
+
+  function getOperationOptions(){
+    const set = new Map();
+    const g = (processInput.value||'').trim();
+    if(g) set.set(normOp(g), g);
+    laps.forEach(l=>{
+      const p=(l.process||'').trim();
+      if(p) set.set(normOp(p), p);
+    });
+    wbRows.forEach(r=>{
+      const p=(r.operation||'').trim();
+      if(p) set.set(normOp(p), p);
+    });
+    return [...set.values()].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+  }
+
+  function buildNumericOptions(min, max, step=1){
+    const out=[];
+    for(let v=min; v<=max+1e-9; v+=step){
+      const vv = Math.round(v*1000)/1000;
+      out.push({value:String(vv), label:String(vv)});
+    }
+    return out;
+  }
+
+  function copyTextLocked(btn, txt){
+    lockBtn(btn,6000);
+    copyText(txt);
+  }
+
+  function renderWB(){
+    wbRows.forEach(r=>applyGlobalToRow(r));
+    saveWB();
+
+    wbBody.innerHTML = '';
+    let opSum=0;
+    let constr = null;
+    let second = null;
+
+    const ops = getOperationOptions();
+
+    wbRows.forEach((row)=>{
+      const enabled = !!row.enabled;
+      const tr = document.createElement('tr');
+
+      const gGross = grossMinPerDay(row);
+      const net = netMinPerDay(row);
+
+      const y = yieldFromScrap(row);
+      const oee = computeOEE(row);
+      const {cur,wst,pot} = ctForRow(row);
+      const {cap100, capOee, ctOee} = capPerDayFromRow(row);
+
+      const contract = clamp(parseFloat(row.contractPcd)||0,0,99999);
+      const vs = contract>0 ? (capOee/contract*100) : NaN;
+
+      const ppo = clamp(parseFloat(row.pcsPerOp)||1, 1, 99);
+      const inputReq = (contract>0) ? (contract / (Math.max(y,0.0001) * ppo)) : NaN;
+
+      if(enabled){
+        opSum += clamp(parseFloat(row.operators)||0,0,10);
+      }
+
+      if(enabled && contract>0 && isFinite(vs)){
+        const item = {row, vs};
+        if(!constr || item.vs < constr.vs){
+          second = constr;
+          constr = item;
+        }else if(!second || item.vs < second.vs){
+          second = item;
+        }
+      }
+
+      function td(html){ const c=document.createElement('td'); c.innerHTML=html; tr.appendChild(c); }
+
+      function chkCell(checked, onChange){
+        const c=document.createElement('td');
+        const inp=document.createElement('input');
+        inp.type='checkbox'; inp.className='wb-chk';
+        inp.checked=checked;
+        inp.addEventListener('change',()=>onChange(inp.checked));
+        c.appendChild(inp);
+        tr.appendChild(c);
+      }
+
+      function selCell(value, options, onChange, cls='wb-sel'){
+        const c=document.createElement('td');
+        const sel=document.createElement('select');
+        sel.className=cls;
+        options.forEach(o=>{
+          const op=document.createElement('option');
+          op.value=o.value; op.textContent=o.label;
+          if(String(o.value)===String(value)) op.selected=true;
+          sel.appendChild(op);
+        });
+        sel.addEventListener('change',()=>onChange(sel.value));
+        c.appendChild(sel); tr.appendChild(c);
+      }
+
+      function operationCell(){
+        const c=document.createElement('td');
+        const wrap=document.createElement('div');
+        wrap.className='wb-opwrap';
+
+        const sel=document.createElement('select');
+        sel.className='wb-opselect';
+
+        const currentOp = (row.operation||'').trim();
+        const list = ops.slice();
+        if(currentOp && !list.some(x=>normOp(x)===normOp(currentOp))) list.unshift(currentOp);
+
+        const ph=document.createElement('option');
+        ph.value='';
+        ph.textContent = (currentLang==='es'?'Selecciona…':'Select…');
+        if(!currentOp) ph.selected=true;
+        sel.appendChild(ph);
+
+        list.forEach(opName=>{
+          const o=document.createElement('option');
+          o.value=opName;
+          o.textContent=opName;
+          if(normOp(opName)===normOp(currentOp)) o.selected=true;
+          sel.appendChild(o);
+        });
+
+        const customOpt=document.createElement('option');
+        customOpt.value='__custom__';
+        customOpt.textContent = (currentLang==='es'?'+ Personalizar…':'+ Custom…');
+        sel.appendChild(customOpt);
+
+        sel.addEventListener('change',()=>{
+          let v = sel.value;
+          if(v==='__custom__'){
+            const newName = prompt(currentLang==='es'?'Nombre de operación:':'Operation name:', currentOp || (processInput.value||'').trim());
+            if(newName===null){ sel.value = currentOp || ''; return; }
+            v = (newName||'').toString().trim();
+            if(!v){ sel.value = currentOp || ''; return; }
+          }
+          row.operation = (v||'').toString().trim();
+          row.opAuto = false;
+          row.opAutoKey = normOp(row.operation);
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+
+        const bEdit=document.createElement('button');
+        bEdit.className='wb-opbtn';
+        bEdit.textContent = '✎';
+        bEdit.title = (currentLang==='es'?'Editar nombre':'Edit name');
+        bEdit.addEventListener('click',()=>{
+          const newName = prompt(currentLang==='es'?'Nombre de operación:':'Operation name:', currentOp || '');
+          if(newName===null) return;
+          const v=(newName||'').toString().trim();
+          if(!v) return;
+          row.operation=v;
+          row.opAuto=false;
+          row.opAutoKey=normOp(v);
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+
+        wrap.appendChild(sel);
+        wrap.appendChild(bEdit);
+        c.appendChild(wrap);
+        tr.appendChild(c);
+      }
+
+      function btnCell(){
+        const c=document.createElement('td');
+
+        const bEdit=document.createElement('button');
+        bEdit.textContent='Edit';
+        bEdit.className='btn-edit';
+        bEdit.addEventListener('click',()=>{
+          const curIn = prompt(currentLang==='es'?'CT Actual (s) (2 dec)':'CT Current (s) (2 dec)', row.ctCurManual ?? '');
+          const wstIn = prompt(currentLang==='es'?'CT Peor (s) (2 dec)':'CT Worst (s) (2 dec)', row.ctWstManual ?? '');
+          const potIn = prompt(currentLang==='es'?'CT Potencial (s) (2 dec)':'CT Potential (s) (2 dec)', row.ctPotManual ?? '');
+
+          function parse2(x){
+            if(x===null) return null;
+            const s=(''+x).trim();
+            if(s==='') return null;
+            const n=parseFloat(s);
+            if(!isFinite(n)) return null;
+            return Math.round(n*100)/100;
+          }
+          row.ctCurManual = parse2(curIn);
+          row.ctWstManual = parse2(wstIn);
+          row.ctPotManual = parse2(potIn);
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+
+        const bRelink=document.createElement('button');
+        bRelink.textContent='Relink';
+        bRelink.className='btn-relink';
+        bRelink.addEventListener('click',()=>{
+          const gOp = (processInput.value||'').trim();
+          const gKey = normOp(gOp);
+          if(gOp && gKey){
+            row.opAuto = true;
+            row.opAutoKey = gKey;
+            row.operation = gOp;
+            saveWB(); renderAll(); scheduleSaveAll();
+          }
+        });
+
+        const bDel=document.createElement('button');
+        bDel.textContent='Del';
+        bDel.className='btn-del';
+        bDel.addEventListener('click',()=>{
+          wbRows = wbRows.filter(r=>r.id!==row.id);
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+
+        c.appendChild(bEdit);
+        c.appendChild(document.createTextNode(' '));
+        c.appendChild(bRelink);
+        c.appendChild(document.createTextNode(' '));
+        c.appendChild(bDel);
+        tr.appendChild(c);
+      }
+
+      /* =========================
+         ✅ WB CELLS (RANGOS / DROPDOWNS)
+         ========================= */
+      chkCell(row.enabled,(v)=>{ row.enabled=!!v; saveWB(); renderAll(); scheduleSaveAll(); });
+
+      operationCell();
+
+      // Operators 0-10
+      selCell(String(row.operators ?? 1), buildNumericOptions(0,10,1), v=>{
+        row.operators = clamp(parseFloat(v)||0,0,10);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
+
+      // Shifts 1-4
+      selCell(String(row.shifts ?? 1), buildNumericOptions(1,4,1), v=>{
+        row.shifts = clamp(parseFloat(v)||1,1,4);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
+
+      // Hours 0-24 step 0.5
+      selCell(String(row.hours ?? 8), buildNumericOptions(0,24,0.5), v=>{
+        row.hours = clamp(parseFloat(v)||0,0,24);
+        row.hoursAuto=false;
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel');
+
+      // Machines 1-50
+      selCell(String(row.machines ?? 1), buildNumericOptions(1,50,1), v=>{
+        row.machines = clamp(parseFloat(v)||1,1,50);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
+
+      // ✅ Pzs/Op dropdown 1-99
+      selCell(String(row.pcsPerOp ?? 1), buildNumericOptions(1,99,1), v=>{
+        row.pcsPerOp = clamp(parseFloat(v)||1,1,99);
+        saveWB(); renderAll(); scheduleSaveAll();
+      }, 'wb-sel narrow');
+
+      // Contract editable
+      {
+        const c=document.createElement('td');
+        const inp=document.createElement('input');
+        inp.type='number';
+        inp.className='wb-inp';
+        inp.value = row.contractPcd ?? 0;
+        inp.min='0'; inp.max='99999'; inp.step='1';
+        inp.addEventListener('input',()=>{
+          row.contractPcd=clamp(parseFloat(inp.value)||0,0,99999);
+          row.contractAuto=false;
+          saveWB(); renderAll(); scheduleSaveAll();
+        });
+        c.appendChild(inp);
+        tr.appendChild(c);
+      }
+
+      td(formatUnits(gGross));
+
+      function ddMinutes(value, min, max, step, onChange, cls='wb-sel'){
+        const c=document.createElement('td');
+        const sel=document.createElement('select');
+        sel.className=cls;
+        for(let v=min; v<=max+1e-9; v+=step){
+          const opt=document.createElement('option');
+          opt.value=String(v);
+          opt.textContent=String(v);
+          if(String(v)===String(value)) opt.selected=true;
+          sel.appendChild(opt);
+        }
+        sel.addEventListener('change',()=>onChange(parseFloat(sel.value)));
+        c.appendChild(sel);
+        tr.appendChild(c);
+      }
+
+      ddMinutes(row.lunchMin ?? 0, 0, 1440, 5, v=>{ row.lunchMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
+      ddMinutes(row.changeoverMin ?? 0, 0, 1440, 5, v=>{ row.changeoverMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
+      ddMinutes(row.cleanMin ?? 0, 0, 1440, 5, v=>{ row.cleanMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
+      ddMinutes(row.maintMin ?? 0, 0, 1440, 5, v=>{ row.maintMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
+      ddMinutes(row.otherMin ?? 0, 0, 1440, 5, v=>{ row.otherMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
+
+      ddMinutes(row.sharedMin ?? 0, 0, 1440, 5, v=>{ row.sharedMin=v; saveWB(); renderAll(); scheduleSaveAll(); });
+
+      // ✅ DT no planeado dropdown 0-1440 step 5
+      ddMinutes(row.udtMinDay ?? 0, 0, 1440, 5, v=>{ row.udtMinDay=v; saveWB(); renderAll(); scheduleSaveAll(); });
+
+      td(formatUnits(net));
+
+      ddMinutes(row.scrapPct ?? 0, 0, 100, 5, v=>{ row.scrapPct=v; saveWB(); renderAll(); scheduleSaveAll(); }, 'wb-sel narrow');
+      td(pct(y*100,1));
+
+      ddMinutes(row.oeeA ?? 100, 0, 100, 5, v=>{ row.oeeA=v; saveWB(); renderAll(); scheduleSaveAll(); }, 'wb-sel narrow');
+      ddMinutes(row.oeeP ?? 100, 0, 100, 5, v=>{ row.oeeP=v; saveWB(); renderAll(); scheduleSaveAll(); }, 'wb-sel narrow');
+      ddMinutes(row.oeeQ ?? 100, 0, 100, 5, v=>{ row.oeeQ=v; row.qAuto=false; saveWB(); renderAll(); scheduleSaveAll(); }, 'wb-sel narrow');
+
+      td(pct(oee,1));
+
+      td(isFinite(cur)?formatSecs(cur):'-');
+      td(isFinite(wst)?formatSecs(wst):'-');
+      td(isFinite(pot)?formatSecs(pot):'-');
+
+      td(isFinite(ctOee)?formatSecs(ctOee):'-');
+      td(isFinite(cap100)?formatUnits(cap100):'-');
+      td(isFinite(capOee)?formatUnits(capOee):'-');
+
+      let badge = 'badge-warn';
+      if(isFinite(vs)){
+        if(vs>=105) badge='badge-good';
+        else if(vs<95) badge='badge-bad';
+      }
+      td(isFinite(vs)?(`<span class="badge ${badge}">${pct(vs,0)}</span>`):'-');
+
+      td(isFinite(inputReq)?formatUnits(inputReq):'-');
+
+      btnCell();
+
+      if(!enabled) tr.style.opacity = '0.55';
+      wbBody.appendChild(tr);
+    });
+
+    wbOperatorsSum.textContent = String(Math.round(opSum));
+
+    if(constr){
+      const op = (constr.row.operation||'').trim() || '—';
+      wbConstraint.textContent = `${op} · ${pct(constr.vs,0)}`;
+      wbConstraint.className = 'badge badge-bad';
+    }else{
+      wbConstraint.textContent = '—';
+      wbConstraint.className = 'badge badge-bad';
+    }
+
+    if(second){
+      const op = (second.row.operation||'').trim() || '—';
+      wbNextConstraint.textContent = `${op} · ${pct(second.vs,0)}`;
+      wbNextConstraint.className = 'badge badge-warn';
+    }else{
+      wbNextConstraint.textContent = '—';
+      wbNextConstraint.className = 'badge badge-warn';
+    }
+
+    wbConstraintNote.textContent = (currentLang==='es'
+      ? 'Restricción = filas activas (On) con contrato > 0, usando Cap@OEE vs Contrato. Pzs/Op y Yield sí cambian la salida.'
+      : 'Constraint = active rows (On) with contract > 0, using Cap@OEE vs Contract. Pcs/Op and Yield affect output.'
+    );
+  }
+
+  btnWbAdd.addEventListener('click',()=>{
+    lockBtn(btnWbAdd,6000);
+    const r = defaultWbRow();
+    wbRows.push(r);
+    saveWB();
+    renderAll();
+    scheduleSaveAll();
+  });
+
+  btnWbClear.addEventListener('click',()=>{
+    lockBtn(btnWbClear,6000);
+    if(!confirm(currentLang==='es'?'¿Borrar WB completo?':'Clear WB entirely?')) return;
+    wbRows = [];
+    saveWB();
+    renderAll();
+    scheduleSaveAll();
+  });
+
+  function buildContractLinesForCurrentSelection(){
+    const proc = (processInput.value||'').trim();
+    const mode = modeSelect.value || 'CT';
+
+    const hours = clamp(parseFloat(hInput.value)||8,0,24);
+    const days  = clamp(parseFloat(dInput.value)||5,1,7);
+    const eff   = clamp(parseFloat(effInput.value)||100,0,100)/100;
+
+    const view  = capViewSel.value || 'hour';
+    const contractPcd = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    const contractUnits = contractUnitsFromPcd(contractPcd, view, Math.max(hours,0.0001), days);
+
+    const map = groupByProcess();
+    const key = proc + '||' + mode;
+    const arr = map.get(key) || [];
+
+    if(!proc){
+      return { l1: currentLang==='es' ? 'Proceso: (vacío)' : 'Process: (empty)', l2:'—', l3:'—', l4:'—' };
+    }
+
+    if(arr.length<1){
+      return {
+        l1: (currentLang==='es' ? `Proceso: ${proc} · Modo: ${mode}` : `Process: ${proc} · Mode: ${mode}`),
+        l2: (currentLang==='es' ? `Contrato (${view}): ${formatUnits(contractUnits)} (ref)` : `Contract (${view}): ${formatUnits(contractUnits)} (ref)`),
+        l3: (currentLang==='es' ? 'Sin vueltas todavía: captura laps para calcular capacidad.' : 'No laps yet: capture laps to compute capacity.'),
+        l4: '—'
+      };
+    }
+
+    const st = calcStats(arr);
+    const med = st.median;
+    const p10 = st.p10;
+    const p90 = st.p90;
+
+    const curCap = capFromCt(med, view, Math.max(hours,0.0001), days) * eff;
+    const potCap = capFromCt(p10, view, Math.max(hours,0.0001), days) * eff;
+    const wstCap = capFromCt(p90, view, Math.max(hours,0.0001), days) * eff;
+
+    const gapCur = (contractUnits>0) ? (curCap - contractUnits) : NaN;
+    const vsCur  = (contractUnits>0) ? (curCap/contractUnits*100) : NaN;
+
+    const l1 = (currentLang==='es'
+      ? `Proceso: ${proc} · Modo: ${mode} · Eff: ${Math.round(eff*100)}%`
+      : `Process: ${proc} · Mode: ${mode} · Eff: ${Math.round(eff*100)}%`
+    );
+
+    const l2 = (currentLang==='es'
+      ? `Contrato (${view}): ${formatUnits(contractUnits)}  (Base: ${formatUnits(contractPcd)} pzs/día)`
+      : `Contract (${view}): ${formatUnits(contractUnits)}  (Base: ${formatUnits(contractPcd)} pcs/day)`
+    );
+
+    const l3 = (currentLang==='es'
+      ? `Capacidad @Eff (${view}): Actual ${formatUnits(curCap)} · Potencial ${formatUnits(potCap)} · Peor ${formatUnits(wstCap)}`
+      : `Capacity @Eff (${view}): Current ${formatUnits(curCap)} · Potential ${formatUnits(potCap)} · Worst ${formatUnits(wstCap)}`
+    );
+
+    const l4 = (contractUnits>0 && isFinite(vsCur))
+      ? (currentLang==='es'
+          ? `Gap (Actual - Contrato): ${formatUnits(gapCur)} · % vs: ${pct(vsCur,0)}`
+          : `Gap (Current - Contract): ${formatUnits(gapCur)} · % vs: ${pct(vsCur,0)}`
+        )
+      : (currentLang==='es' ? 'Contrato no cargado (pon Capacidad contrato).' : 'Contract not loaded (set Contract Cap).');
+
+    return {l1,l2,l3,l4, st};
+  }
+
+  function renderContractSummaryAndFocus(){
+    const bundle = buildContractLinesForCurrentSelection();
+    contractSumLine1.textContent = bundle.l1;
+    contractSumLine2.textContent = bundle.l2;
+    contractSumLine3.textContent = bundle.l3;
+    contractSumLine4.textContent = bundle.l4;
+
+    const st = bundle.st;
+    if(!st){
+      sampleInfoFocus.textContent = (currentLang==='es' ? 'Tamaño de muestra: —' : 'Sample size: —');
+      stdInfoFocus.textContent    = (currentLang==='es' ? 'Desv est: —' : 'Std dev: —');
+      distInfoFocus.textContent   = (currentLang==='es' ? 'Media vs Mediana: —' : 'Mean vs Median: —');
+      contractInfoFocus.textContent = (currentLang==='es' ? 'Sin contrato cargado' : 'No contract loaded');
+      return;
+    }
+
+    const sampleLine = buildSampleLine(st);
+    sampleInfoFocus.textContent = sampleLine.text;
+    sampleInfoFocus.className = 'info-line ' + sampleLine.cls;
+
+    stdInfoFocus.textContent = (currentLang==='es'
+      ? `Desv est: ${formatSecs(st.std)} s · CV: ${(st.cv*100).toFixed(1)}%`
+      : `Std dev: ${formatSecs(st.std)} s · CV: ${(st.cv*100).toFixed(1)}%`
+    );
+
+    const skew = (st.mean - st.median);
+    distInfoFocus.textContent = (currentLang==='es'
+      ? `Media vs Mediana: Δ ${formatSecs(skew)} s`
+      : `Mean vs Median: Δ ${formatSecs(skew)} s`
+    );
+
+    const contractPcd = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    contractInfoFocus.textContent = contractPcd>0
+      ? (currentLang==='es' ? `Contrato: ${formatUnits(contractPcd)} pzs/día` : `Contract: ${formatUnits(contractPcd)} pcs/day`)
+      : (currentLang==='es' ? 'Sin contrato cargado' : 'No contract loaded');
+  }
+
+  function renderStatsTables(){
+    const map = groupByProcess();
+    statsBody.innerHTML='';
+    focusBody.innerHTML='';
+
+    const hours = clamp(parseFloat(hInput.value)||8,0,24);
+    const days  = clamp(parseFloat(dInput.value)||5,1,7);
+    const eff   = clamp(parseFloat(effInput.value)||100,0,100)/100;
+    const view  = capViewSel.value || 'hour';
+    const contractPcd = clamp(parseFloat(pcdInput.value)||0,0,99999);
+    const contractUnits = contractUnitsFromPcd(contractPcd, view, Math.max(hours,0.0001), days);
+
+    const keys = [...map.keys()].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+
+    keys.forEach(key=>{
+      const [proc, mode] = key.split('||');
+      const arr = map.get(key)||[];
+      const st = calcStats(arr);
+      if(!st) return;
+
+      { // stats detail
+        const tr=document.createElement('tr');
+        const {cp, cpk} = calcCpCpk(st);
+        const cells = [
+          proc, mode, st.n,
+          formatSecs(st.mean), formatSecs(st.median),
+          formatSecs(st.p10), formatSecs(st.p90),
+          formatSecs(st.min), formatSecs(st.max),
+          formatSecs(st.std),
+          (st.cv*100).toFixed(1),
+          isFinite(cp)?cp.toFixed(2):'-',
+          isFinite(cpk)?cpk.toFixed(2):'-'
+        ];
+        cells.forEach((c,i)=>{
+          const td=document.createElement('td');
+          td.textContent = String(c);
+          if(i===0 || i===1) td.style.textAlign='left';
+          tr.appendChild(td);
+        });
+        statsBody.appendChild(tr);
+      }
+
+      { // focus
+        const tr=document.createElement('tr');
+        const sampleLine = buildSampleLine(st);
+
+        const curCap = capFromCt(st.median, view, Math.max(hours,0.0001), days) * eff;
+        const potCap = capFromCt(st.p10, view, Math.max(hours,0.0001), days) * eff;
+        const wstCap = capFromCt(st.p90, view, Math.max(hours,0.0001), days) * eff;
+
+        const gap = (contractUnits>0) ? (curCap - contractUnits) : NaN;
+        const vs  = (contractUnits>0) ? (curCap/contractUnits*100) : NaN;
+
+        const {cp, cpk} = calcCpCpk(st);
+
+        const cells = [
+          proc, mode, st.n, sampleLine.text,
+          formatSecs(st.std), (st.cv*100).toFixed(1),
+          formatSecs(st.median), formatSecs(st.p10), formatSecs(st.p90),
+          formatUnits(curCap), formatUnits(potCap), formatUnits(wstCap),
+          contractPcd>0 ? formatUnits(contractUnits) : '-',
+          isFinite(gap)?formatUnits(gap):'-',
+          isFinite(vs)?pct(vs,0):'-',
+          isFinite(cp)?cp.toFixed(2):'-',
+          isFinite(cpk)?cpk.toFixed(2):'-',
+          ''
+        ];
+
+        cells.forEach((c,i)=>{
+          const td=document.createElement('td');
+          if(i===0 || i===1 || i===3 || i===17) td.style.textAlign='left';
+          if(i===3){
+            const span=document.createElement('span');
+            span.className = 'badge ' + (sampleLine.cls==='sample-good'?'badge-good':(sampleLine.cls==='sample-bad'?'badge-bad':'badge-warn'));
+            span.textContent = c;
+            td.appendChild(span);
+          }else{
+            td.textContent = String(c);
+          }
+          tr.appendChild(td);
+        });
+
+        focusBody.appendChild(tr);
+      }
+    });
+
+    const proc = (processInput.value||'').trim();
+    const mode = modeSelect.value || 'CT';
+    const curKey = proc + '||' + mode;
+    const curArr = map.get(curKey) || [];
+    if(curArr.length<1){
+      setInfo(sampleInfoTop,'sample-neutral',
+        currentLang==='es'
+          ? 'Sin muestras todavía para el proceso actual. Empieza a capturar vueltas.'
+          : 'No samples yet for current process. Start capturing laps.'
+      );
+    }else{
+      const st = calcStats(curArr);
+      const line = buildSampleLine(st);
+      setInfo(sampleInfoTop, line.cls, line.text);
+    }
+  }
+
+  function renderRaw(){
+    dataBody.innerHTML = '';
+    laps.forEach((l, idx)=>{
+      const tr=document.createElement('tr');
+
+      function tdTxt(txt, left=false){
+        const c=document.createElement('td');
+        c.textContent = txt;
+        if(left) c.style.textAlign='left';
+        tr.appendChild(c);
+      }
+
+      tdTxt(String(idx+1), true);
+      tdTxt(l.process, true);
+      tdTxt(l.mode, true);
+
+      { // status
+        const c=document.createElement('td');
+        c.style.textAlign='left';
+        const sel=document.createElement('select');
+        sel.className='wb-sel';
+        const opts = [
+          {v:'',        en:'',         es:''},
+          {v:'Normal',  en:'Normal',   es:'Normal'},
+          {v:'Blocked', en:'Blocked',  es:'Bloqueado'},
+          {v:'Starved', en:'Starved',  es:'Hambriento'}
+        ];
+        opts.forEach(o=>{
+          const op=document.createElement('option');
+          op.value=o.v;
+          op.textContent = (currentLang==='es'?o.es:o.en);
+          if((l.status||'')===o.v) op.selected=true;
+          sel.appendChild(op);
+        });
+        sel.addEventListener('change',()=>{
+          l.status = sel.value;
+          renderAll();
+          scheduleSaveAll();
+        });
+        c.appendChild(sel);
+        tr.appendChild(c);
+      }
+
+      { // note
+        const c=document.createElement('td');
+        c.style.textAlign='left';
+        const inp=document.createElement('input');
+        inp.type='text';
+        inp.className='wb-inp wide';
+        inp.value = (l.note||'');
+        inp.placeholder = (currentLang==='es'?'nota…':'note…');
+        inp.addEventListener('input',()=>{
+          l.note = inp.value;
+          scheduleSaveAll();
+        });
+        c.appendChild(inp);
+        tr.appendChild(c);
+      }
+
+      tdTxt(formatSecs(l.t1));
+      tdTxt(formatSecs(l.t2));
+      tdTxt(formatSecs(l.total));
+
+      { // edit
+        const tdEdit=document.createElement('td');
+        const bEdit=document.createElement('button');
+        bEdit.className='btn-edit';
+        bEdit.textContent=t('col.edit');
+        bEdit.addEventListener('click',()=>{
+          const newProc = prompt(currentLang==='es'?'Proceso':'Process', l.process) ?? l.process;
+          const newMode = prompt(currentLang==='es'?'Modo (CT/MLD)':'Mode (CT/MLD)', l.mode) ?? l.mode;
+          const newT1 = prompt('T1 (s)', formatSecs(l.t1)) ?? l.t1;
+          const newT2 = prompt('T2 (s)', formatSecs(l.t2)) ?? l.t2;
+
+          const p = (newProc||'').toString().trim();
+          const m = (newMode||'CT').toString().trim().toUpperCase()==='MLD'?'MLD':'CT';
+          const t1v = Math.round((parseFloat(newT1)||0)*100)/100;
+          const t2v = Math.round((parseFloat(newT2)||0)*100)/100;
+
+          l.process = p || l.process;
+          l.mode = m;
+          l.t1 = t1v;
+          l.t2 = t2v;
+          l.total = Math.round((t1v+t2v)*100)/100;
+
+          ensureWbRowForOperation(l.process);
+          renderAll();
+          scheduleSaveAll();
+        });
+        tdEdit.appendChild(bEdit);
+        tr.appendChild(tdEdit);
+      }
+
+      { // del
+        const tdDel=document.createElement('td');
+        const bDel=document.createElement('button');
+        bDel.className='btn-del';
+        bDel.textContent=t('col.del');
+        bDel.addEventListener('click',()=>{
+          laps = laps.filter(x=>x.id!==l.id);
+          renderAll();
+          scheduleSaveAll();
+        });
+        tdDel.appendChild(bDel);
+        tr.appendChild(tdDel);
+      }
+
+      dataBody.appendChild(tr);
+    });
+  }
+
+  function ctx2d(canvas){
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return ctx;
+  }
+  function clearCanvas(ctx, canvas){ ctx.clearRect(0,0,canvas.width,canvas.height); }
+  function drawAxes(ctx, w, h, pad){
+    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(11,18,32,.18)';
+    ctx.beginPath();
+    ctx.moveTo(pad, pad);
+    ctx.lineTo(pad, h-pad);
+    ctx.lineTo(w-pad, h-pad);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawTimeSeries(proc, mode){
+    const ctx = ctx2d(timeSeriesCanvas);
+    const rect = timeSeriesCanvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    clearCanvas(ctx,timeSeriesCanvas);
+    const pad=18;
+    drawAxes(ctx,w,h,pad);
+
+    const map = groupByProcess();
+    const key = proc + '||' + mode;
+    const arr = map.get(key) || [];
+    if(arr.length<2) return;
+
+    const vals = arr.map(x=>x.total);
+    const st = calcStats(arr);
+    const mean = st.mean;
+    const med = st.median;
+    const std = st.std;
+
+    const minV = Math.min(...vals, mean-3*std, med-3*std);
+    const maxV = Math.max(...vals, mean+3*std, med+3*std);
+
+    function x(i){ return pad + ( (w-2*pad) * (i/(vals.length-1)) ); }
+    function y(v){
+      const t = (v-minV)/(maxV-minV || 1);
+      return (h-pad) - t*(h-2*pad);
+    }
+
+    ctx.strokeStyle='rgba(11,18,32,.55)';
+    ctx.lineWidth=1.2;
+    ctx.beginPath();
+    vals.forEach((v,i)=>{
+      const X=x(i), Y=y(v);
+      if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle='rgba(11,18,32,.65)';
+    vals.forEach((v,i)=>{
+      const X=x(i), Y=y(v);
+      ctx.beginPath(); ctx.arc(X,Y,2.2,0,Math.PI*2); ctx.fill();
+    });
+
+    function hline(v, alpha){
+      ctx.globalAlpha=alpha;
+      ctx.beginPath();
+      ctx.moveTo(pad,y(v));
+      ctx.lineTo(w-pad,y(v));
+      ctx.stroke();
+      ctx.globalAlpha=1;
+    }
+
+    ctx.strokeStyle='rgba(57,189,245,.85)';
+    ctx.lineWidth=1.2; hline(mean, 0.85);
+
+    ctx.strokeStyle='rgba(242,193,78,.85)';
+    ctx.lineWidth=1.2; hline(med, 0.85);
+
+    ctx.strokeStyle='rgba(11,18,32,.20)';
+    ctx.lineWidth=1; hline(mean+3*std, 0.30); hline(mean-3*std, 0.30);
+
+    ctx.fillStyle='rgba(11,18,32,.70)';
+    ctx.font='11px system-ui';
+    ctx.fillText(`Mean ${formatSecs(mean)}s`, pad+4, pad+10);
+    ctx.fillText(`Median ${formatSecs(med)}s`, pad+4, pad+24);
+  }
+
+  function drawHistogram(proc, mode){
+    const ctx = ctx2d(histCanvas);
+    const rect = histCanvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    clearCanvas(ctx,histCanvas);
+    const pad=18;
+    drawAxes(ctx,w,h,pad);
+
+    const map = groupByProcess();
+    const key = proc + '||' + mode;
+    const arr = map.get(key) || [];
+    if(arr.length<3) return;
+
+    const vals = arr.map(x=>x.total).slice().sort((a,b)=>a-b);
+    const st = calcStats(arr);
+
+    const bins = Math.max(6, Math.min(18, Math.round(Math.sqrt(vals.length))));
+    const minV = vals[0], maxV = vals[vals.length-1];
+    const bw = (maxV-minV)/(bins || 1) || 1;
+
+    const counts = new Array(bins).fill(0);
+    vals.forEach(v=>{
+      let idx = Math.floor((v-minV)/bw);
+      if(idx>=bins) idx=bins-1;
+      if(idx<0) idx=0;
+      counts[idx]++;
+    });
+    const maxC = Math.max(...counts);
+
+    const plotW = w-2*pad;
+    const plotH = h-2*pad;
+
+    ctx.fillStyle='rgba(11,18,32,.25)';
+    counts.forEach((c,i)=>{
+      const x0 = pad + (i/bins)*plotW;
+      const barW = (plotW/bins)*0.92;
+      const barH = (c/(maxC||1))*plotH;
+      ctx.fillRect(x0, (h-pad)-barH, barW, barH);
+    });
+
+    function vline(v, stroke){
+      const t=(v-minV)/(maxV-minV || 1);
+      const X= pad + t*plotW;
+      ctx.strokeStyle=stroke;
+      ctx.lineWidth=1.2;
+      ctx.beginPath();
+      ctx.moveTo(X,pad);
+      ctx.lineTo(X,h-pad);
+      ctx.stroke();
+    }
+    vline(st.median,'rgba(242,193,78,.90)');
+    vline(st.p10,'rgba(24,201,122,.85)');
+    vline(st.p90,'rgba(255,51,85,.85)');
+
+    ctx.fillStyle='rgba(11,18,32,.70)';
+    ctx.font='11px system-ui';
+    ctx.fillText(`P10 ${formatSecs(st.p10)}s`, pad+4, pad+10);
+    ctx.fillText(`Median ${formatSecs(st.median)}s`, pad+4, pad+24);
+    ctx.fillText(`P90 ${formatSecs(st.p90)}s`, pad+4, pad+38);
+  }
+
+  function populateChartSelect(){
+    const map = groupByProcess();
+    const keys = [...map.keys()].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+    const prev = chartSelect.value;
+
+    chartSelect.innerHTML='';
+    const placeholder=document.createElement('option');
+    placeholder.value='';
+    placeholder.textContent = currentLang==='es' ? 'Selecciona un proceso…' : 'Select a process…';
+    chartSelect.appendChild(placeholder);
+
+    keys.forEach(k=>{
+      const [p,m] = k.split('||');
+      const opt=document.createElement('option');
+      opt.value=k;
+      opt.textContent = `${p} · ${m}`;
+      chartSelect.appendChild(opt);
+    });
+
+    if(prev && keys.includes(prev)) chartSelect.value=prev;
+
+    const cur = (processInput.value||'').trim() + '||' + (modeSelect.value||'CT');
+    if(!chartSelect.value && keys.includes(cur)) chartSelect.value = cur;
+  }
+
+  function renderCharts(){
+    populateChartSelect();
+    const val = chartSelect.value;
+    if(!val) return;
+    const [p,m] = val.split('||');
+    drawTimeSeries(p,m);
+    drawHistogram(p,m);
+  }
+  chartSelect.addEventListener('change',()=>renderCharts());
+
+  function renderMethodGuide(){
+  const textES =
+`GUÍA COMPLETA (campo por campo) — TaktLab + WB
+Versión enriquecida: qué es, cómo se llena, por qué importa, y errores comunes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+A) CONFIGURACIÓN DE MEDICIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1) Proceso
+- Qué es: nombre de la operación/estación medida (ej: "Op 30", "Op 10-2", "Router 1", "ICT-11").
+- Cómo llenarlo:
+  • Usa un nombre consistente (mismo formato, mismos guiones).
+  • Si cambia el equipo/máquina, acláralo (ej: "Router 1" vs "Router 2").
+- Por qué importa: el nombre es la “llave” del dataset. Si lo cambias, TaktLab separa los datos.
+- Error común: "Op10" / "Op 10" / "OP10" = 3 procesos distintos.
+
+2) Modo
+- CT (Tiempo de ciclo):
+  • Cada VUELTA (lap) es un ciclo completo.
+  • Úsalo cuando operador y máquina son una sola cosa y no necesitas separar.
+- MLD (Machine & Load/Unload):
+  • Captura en 2 pasos (por cada ciclo):
+    - VUELTA 1 = T1 (tiempo de máquina)
+    - VUELTA 2 = T2 (carga/descarga / trabajo manual)
+    - Total = T1 + T2
+  • Útil para ver si el límite real es máquina o mano.
+- Por qué importa:
+  • CT te da el número “operativo” rápido.
+  • MLD te ayuda a atacar la restricción correcta (máquina vs mano).
+- Regla práctica:
+  • Si hay robot/maquina con tiempo “solo”, usa MLD.
+  • Si todo es manual y continuo, usa CT.
+
+3) Eficiencia %
+- Qué es: factor de realismo para ajustar capacidad (micro-paros, variación normal, pérdidas pequeñas).
+- Cómo llenarlo:
+  • Si no tienes evidencia: empieza en 100%.
+  • Si ya conoces el comportamiento: 85–95% suele ser realista.
+  • Baja con evidencia (paros, variación, retrabajo, etc.).
+- Por qué importa: evita prometer capacidad “de laboratorio”.
+- Error común: poner 70% “por feeling” y luego todo sale mal (porque ya metiste pérdidas dobles).
+
+4) Capacidad contrato (pzs/día)
+- Qué es: demanda o compromiso diario que DEBES cumplir.
+- Cómo llenarlo: lo que realmente pide el cliente / plan maestro (no lo que “crees” que quieren).
+- Por qué importa: el GAP y el % vs contrato salen de aquí.
+
+5) Horas / día
+- Qué es: horas reales disponibles en el día (no “turno nominal”).
+- Cómo llenarlo:
+  • 2 turnos de 10.5 = 21
+  • 3 turnos de 8 = 24
+- Por qué importa: convierte capacidad a día/semana correctamente.
+- Error común: usar 24 cuando en realidad solo hay 2 turnos.
+
+6) Días / semana
+- Qué es: cuántos días se trabaja (5/6/7).
+- Por qué importa: la vista semanal depende de esto.
+
+7) Vista de capacidad
+- Por hora: útil para comparar contra UPH / flujo por hora.
+- Por día: útil para contrato diario.
+- Por semana: útil para planeación y compromisos semanales.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+B) CONTROLES DE DATOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Copiar resumen: capacidad/contrato + stats (ideal para Teams/Correo).
+- Copiar todo: incluye raw data (ideal para Excel / evidencia).
+- Agregar vuelta manual: para cuando te dictan tiempos o traes datos de otro sistema.
+- Reiniciar: BORRA TODO (laps + WB + settings). Úsalo solo si vas a empezar de cero.
+  • Tip: antes de reset, copia “todo” para no perder evidencia.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+C) RESUMEN CONTRATO VS CAPACIDAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Actual: usa la Mediana (robusta ante outliers).
+- Potencial: usa P10 (mejor escenario realista).
+- Peor: usa P90 (escenario conservador).
+- Todo multiplicado por Eficiencia %.
+- Tip de piso:
+  • Si Mediana cumple pero P90 no, el proceso es inestable (no “confiable”).
+  • Si ni P10 cumple, necesitas cambio fuerte (takt, método, layout, máquina, gente).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+D) ENFOQUE ESTADÍSTICO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- N: número de muestras válidas (NO incluye Bloqueado/Hambriento).
+- Error estimado: aproximación direccional al 95% (no reemplaza un estudio formal, pero orienta).
+- Consejo:
+  • Si estás “casi suficiente”, mide 5–10 más y cierras la discusión con datos.
+- Regla práctica de calidad del dataset:
+  • Mucha variación = primero estandariza método (antes de pelear capacidad).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+E) WB – PLANEADOR DE CAPACIDAD (por proceso)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Campos clave (qué meter y por qué):
+
+1) Operación
+- Debe coincidir con “Proceso” para mantener trazabilidad.
+
+2) Operadores (0–10)
+- Número real asignado (no “en nómina”, sino “en piso”).
+
+3) Turnos (1–4)
+- Contexto (no siempre cambia el cálculo directo, pero da sentido).
+
+4) Horas (0–24)
+- Horas reales disponibles por día.
+
+5) # Máquinas (1–50)
+- Multiplica tiempo disponible. Si hay 2 máquinas idénticas, aquí va 2.
+
+6) Pzs/Op (1–99)
+- Piezas por ciclo/operación.
+- Ejemplo: 2-up → pones 2.
+
+7) Contrato (pzs/día)
+- Meta diaria de esa operación (si aplica).
+
+8) Pérdidas planificadas (min/día)
+- Comida, Changeover, 5S, Mtto, Otros.
+- Regla: si “siempre pasa”, es planificado.
+
+9) Capacidad compartida (min/día)
+- Tiempo consumido por otras familias/productos en el mismo recurso.
+
+10) DT no planeado (min/día)
+- Paros NO planeados. Se captura como minutos/día.
+
+11) Scrap % y Yield
+- Yield = 1 - scrap (en decimal).
+- Si scrap=3% → yield=0.97.
+
+12) A/P/Q y OEE
+- OEE = A×P×Q (en decimales).
+- Si no hay datos: empieza 100/100/100 y ajusta con evidencia.
+
+13) CT Actual/Peor/Potencial
+- Viene de tus mediciones en TaktLab.
+- Si fuerzas valores en Edit, deja nota (para que se sepa que fue supuesto).
+
+Resultados (lógica):
+- Min netos/día = Brutos - pérdidas planificadas - compartido - DT no planeado
+- Cap 100% (Cur) = (Seg netos / CT) × Yield × Pzs/Op
+- Cap@OEE (Cur) ajusta CT por OEE (más realista)
+- % vs contrato te dice si cumples o no
+- Entrada requerida p/Contrato = Contrato / (Yield×Pzs/Op)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+F) DATOS CRUDOS DE TIEMPO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Estatus:
+  • Normal: cuenta para stats
+  • Bloqueado: NO cuenta (esperando material, falla upstream, etc.)
+  • Hambriento: NO cuenta (sin trabajo/flujo)
+- Nota:
+  • Escribe causa/modelo/condición especial (sirve para análisis posterior).
+- Editar/Borrar:
+  • Limpieza del dataset (si alguien tomó una vuelta mal, aquí lo corriges).
+
+Tip de disciplina:
+- Si marcas Bloqueado/Hambriento sin causa, pierdes valor. Pon aunque sea 3 palabras.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+G) SHARED CAPACITY (Capacidad compartida)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cuándo usarlo:
+- Cuando un mismo recurso corre varias familias/part numbers y ese tiempo “se come” tu capacidad.
+
+Cómo se captura:
+1) Por máquina:
+- Avail min/día (0–1440): minutos nominales según horas/turnos.
+- Planned DT / Unplanned DT: pérdidas en minutos/día.
+- Días/sem y Sem/año: para convertir anual a diario.
+
+2) Por parte (PN/familia):
+- Annual Contract → Daily Parts = Annual / (Weeks*Days)
+- Minutes required/day:
+  • (DailyParts/Yield / PcsPerCycle) * CT
+  • + (ChangeoverMin/FrequencyDays)
+
+Resultado:
+- Min req/día, Util %, Semáforo
+- Si “Sync a WB” está ON:
+  • Se escribe en WB → columna “Capacidad compartida” (sharedMin)
+
+Regla de oro:
+- Si el dato no es defendible, NO lo uses.
+- Si el dato es defendible, que se vea en WB (y que se pueda explicar en 30 segundos).;
+
+Checklist rápido (para no mentirte):
+- ¿Nombre de proceso consistente?
+- ¿CT medido con método estable?
+- ¿Pérdidas planificadas no duplicadas?
+- ¿DT no planeado con evidencia?
+- ¿Yield/OEE razonables o documentados?
+`;
+
+  const textEN =
+`FULL GUIDE (field-by-field) — TaktLab + WB
+Enriched version: what it is, how to fill it, why it matters, and common mistakes.
+
+A) MEASUREMENT SETUP
+1) Process: keep naming consistent or stats split into different buckets.
+2) Mode:
+- CT: each LAP is total cycle time.
+- MLD: LAP1=T1(machine), LAP2=T2(load/unload), Total=T1+T2.
+3) Efficiency %: realism factor; start 100%, reduce with evidence.
+4) Contract (pcs/day): required daily output.
+5) Hours/day & 6) Days/week: drive conversions.
+7) Capacity view: Hour/Day/Week lens.
+
+B) DATA CONTROLS
+Copy summary / Copy all / Manual lap / Reset (Reset wipes everything).
+
+C) CONTRACT vs CAPACITY
+Current=Median, Potential=P10, Worst=P90, all × Efficiency%.
+
+D) STAT FOCUS
+N excludes Blocked/Starved. Error estimate is directional. Add 5–10 samples when close.
+
+E) WB CAPACITY PLANNER
+Net minutes/day = Gross - planned losses - shared - unplanned DT
+Output = (Net seconds / CT) × Yield × Pcs/Op
+Cap@OEE uses OEE-adjusted realism
+Input required = Contract / (Yield×Pcs/Op)
+
+F) RAW DATA
+Statuses, notes, edit/delete for dataset quality.
+
+G) SHARED CAPACITY
+Use when a shared resource runs other families/PNs.
+If Sync to WB is ON, shared minutes populate WB sharedMin column.
+`;
+
+  methodGuideText.textContent = (currentLang === 'es') ? textES : textEN;
+}
+  function buildSummaryText(){
+    const b = buildContractLinesForCurrentSelection();
+    const lines = [];
+    lines.push('TaktLab Summary');
+    lines.push(`Date: ${new Date().toISOString()}`);
+    lines.push(b.l1);
+    lines.push(b.l2);
+    lines.push(b.l3);
+    lines.push(b.l4);
+    return lines.join('\n');
+  }
+
+  function buildAllText(){
+    const lines=[];
+    lines.push(buildSummaryText());
+    lines.push('\nRAW DATA');
+    lines.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
+    laps.forEach((l,idx)=>{
+      lines.push([
+        idx+1,
+        (l.process||'').trim(),
+        l.mode||'',
+        l.status||'',
+        (l.note||'').replace(/\t/g,' '),
+        formatSecs(l.t1),
+        formatSecs(l.t2),
+        formatSecs(l.total)
+      ].join('\t'));
+    });
+    return lines.join('\n');
+  }
+
+  // ✅ botones copiar por sección
+  btnCopyAll.addEventListener('click',()=>copyTextLocked(btnCopyAll, buildAllText()));
+  btnCopySum.addEventListener('click',()=>copyTextLocked(btnCopySum, buildSummaryText()));
+
+  btnCopySetup.addEventListener('click',()=>{
+    const txt =
+`SETUP
+Process: ${processInput.value||''}
+Mode: ${modeSelect.value||''}
+Efficiency%: ${effInput.value||''}
+Contract pcs/day: ${pcdInput.value||''}
+Hours/day: ${hInput.value||''}
+Days/week: ${dInput.value||''}
+View: ${capViewSel.value||''}`;
+    copyTextLocked(btnCopySetup, txt);
+  });
+
+  btnCopyControls.addEventListener('click',()=>{
+    copyTextLocked(btnCopyControls, 'Data Controls: Copy Summary / Copy All / Manual Lap / Reset');
+  });
+
+  btnCopyContract.addEventListener('click',()=>{
+    const b = buildContractLinesForCurrentSelection();
+    copyTextLocked(btnCopyContract, [b.l1,b.l2,b.l3,b.l4].join('\n'));
+  });
+
+  btnCopyFocus.addEventListener('click',()=>{
+    let out=[];
+    out.push('FOCUS TABLE');
+    out.push('Process\tMode\tN\tSample/Error\tStd\tCV%\tCTmed\tP10\tP90\tCur@Eff\tPot@Eff\tWst@Eff\tContract\tGap\t%vs\tCp\tCpk');
+    [...focusBody.querySelectorAll('tr')].forEach(tr=>{
+      const tds=[...tr.querySelectorAll('td')].map(td=>td.textContent.replace(/\s+/g,' ').trim());
+      out.push(tds.join('\t'));
+    });
+    copyTextLocked(btnCopyFocus, out.join('\n'));
+  });
+
+  btnCopyWB.addEventListener('click',()=>{
+    lockBtn(btnCopyWB,6000);
+    let out=[];
+    out.push(`WB Export (${new Date().toISOString()})`);
+    out.push('On\tOperation\tOperators\tShifts(ref)\tHours\tMachines\tPcsPerOp\tContractPcd\tNetMinDay\tOEE%\tYield%\tCTcur\tCap@OEE\t%vsContract\tUDTminDay');
+    wbRows.forEach(r=>{
+      const net = netMinPerDay(r);
+      const oee = computeOEE(r);
+      const y = yieldFromScrap(r)*100;
+      const {cur} = ctForRow(r);
+      const {capOee} = capPerDayFromRow(r);
+      const contract = clamp(parseFloat(r.contractPcd)||0,0,99999);
+      const vs = contract>0 ? (capOee/contract*100) : NaN;
+      const ppo = clamp(parseFloat(r.pcsPerOp)||1, 1, 99);
+      out.push([
+        r.enabled?1:0,
+        (r.operation||'').trim(),
+        Math.round(clamp(parseFloat(r.operators)||0,0,10)),
+        Math.round(clamp(parseFloat(r.shifts)||1,1,4)),
+        clamp(parseFloat(r.hours)||0,0,24),
+        clamp(parseFloat(r.machines)||1,1,50),
+        Math.round(ppo),
+        Math.round(contract),
+        Math.round(net),
+        oee.toFixed(1),
+        y.toFixed(1),
+        (isFinite(cur)?formatSecs(cur):''),
+        (isFinite(capOee)?Math.round(capOee):''),
+        (isFinite(vs)?vs.toFixed(0):''),
+        clamp(parseFloat(r.udtMinDay)||0,0,1440)
+      ].join('\t'));
+    });
+    copyText(out.join('\n'));
+  });
+
+  btnCopyCharts.addEventListener('click',()=>{
+    const v = chartSelect.value || '';
+    copyTextLocked(btnCopyCharts, `CHARTS\nSelected: ${v}\n(Charts are visual; export raw data for Excel.)`);
+  });
+
+  btnCopyRaw.addEventListener('click',()=>{
+    let out=[];
+    out.push('RAW DATA');
+    out.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
+    laps.forEach((l,idx)=>{
+      out.push([
+        idx+1,
+        (l.process||'').trim(),
+        l.mode||'',
+        l.status||'',
+        (l.note||'').replace(/\t/g,' '),
+        formatSecs(l.t1),
+        formatSecs(l.t2),
+        formatSecs(l.total)
+      ].join('\t'));
+    });
+    copyTextLocked(btnCopyRaw, out.join('\n'));
+  });
+
+  btnCopyGuide.addEventListener('click',()=>{
+    copyTextLocked(btnCopyGuide, methodGuideText.textContent || '');
+  });
+
+function restoreState(){
+  const raw = localStorage.getItem(TL_STATE_KEY);
+
+  if(!raw){
+    loadWB();
+    loadSC();
+    scRender();
+    return;
+  }
+
+  const snap = safeJsonParse(raw);
+  if(!snap || !snap.settings){
+    loadWB();
+    loadSC();
+    scRender();
+    return;
+  }
+
+  try{
+    currentLang = (snap.lang === 'en') ? 'en' : (localStorage.getItem(LANG_KEY)||'es');
+  }catch(e){}
+
+  processInput.value = snap.settings.processName ?? '';
+  modeSelect.value   = snap.settings.mode ?? 'CT';
+  effInput.value     = snap.settings.efficiency ?? '100';
+  pcdInput.value     = snap.settings.contractPcd ?? '0';
+  hInput.value       = snap.settings.hoursPerDay ?? '8';
+  dInput.value       = snap.settings.daysPerWeek ?? '5';
+  capViewSel.value   = snap.settings.capView ?? 'hour';
+
+  laps   = Array.isArray(snap.laps) ? snap.laps : [];
+  nextId = isFinite(snap.nextId) ? snap.nextId : 1;
+
+  wbRows = Array.isArray(snap.wbRows) ? snap.wbRows : [];
+  if(!wbRows.length) loadWB();
+
+  loadSC();
+}
+    try{
+      currentLang = (snap.lang==='en') ? 'en' : (localStorage.getItem(LANG_KEY)||'es');
+    }catch(e){}
+
+    processInput.value = (snap.settings.processName ?? '');
+    modeSelect.value   = (snap.settings.mode ?? 'CT');
+    effInput.value     = (snap.settings.efficiency ?? '100');
+    pcdInput.value     = (snap.settings.contractPcd ?? '');
+    if(pcdInput.value === '' || pcdInput.value === null || pcdInput.value === undefined){
+  pcdInput.value = '0';
+}
+    hInput.value       = (snap.settings.hoursPerDay ?? '8');
+    dInput.value       = (snap.settings.daysPerWeek ?? '5');
+    capViewSel.value   = (snap.settings.capView ?? 'hour');
+
+    laps = Array.isArray(snap.laps) ? snap.laps : [];
+    nextId = isFinite(snap.nextId) ? snap.nextId : 1;
+
+    wbRows = Array.isArray(snap.wbRows) ? snap.wbRows : [];
+    if(!wbRows.length) loadWB();
+
+    wbRows.forEach(r=>{
+      r.pcsPerOp = clamp(parseFloat(r.pcsPerOp)||1,1,99);
+      r.udtMinDay = clamp(parseFloat(r.udtMinDay)||0,0,1440);
+      if(!isFinite(r.changeoverMin) || r.changeoverMin<1) r.changeoverMin = 1;
+      if(!isFinite(r.maintMin) || r.maintMin<0) r.maintMin = 0;
+    });
+  }
+
+  [processInput, modeSelect, effInput, pcdInput, hInput, dInput, capViewSel].forEach(el=>{
+    el.addEventListener('input',()=>{ scheduleSaveAll(); renderAll(); });
+    el.addEventListener('change',()=>{ scheduleSaveAll(); renderAll(); });
+  });
+
+  processInput.addEventListener('change',()=>{
+    const proc=(processInput.value||'').trim();
+    if(proc) ensureWbRowForOperation(proc);
+    renderAll();
+    scheduleSaveAll();
+  });
+
+  function renderAll(){
+    updateLangButtons();
+    applyTranslations();
+    renderMethodGuide();
+    renderContractSummaryAndFocus();
+    renderStatsTables();
+    renderWB();
+    scRender();
+    renderRaw();
+    renderCharts();
+    updateSplitClocks();
+  }
+
+  restoreState();
+  setLanguage(currentLang);
+
+  btnStart.textContent = running ? t('btn.pause') : t('btn.start');
+  refreshRingStates();
+
+  window.addEventListener('resize',()=>{ renderCharts(); });
 
 })();
-</script>(function(){
-    // --- REFERENCIAS DOM ---
-    const display = document.getElementById('display'), btnStart = document.getElementById('btnStart'), btnLap = document.getElementById('btnLap');
-    const t1Clock = document.getElementById('t1Clock'), t2Clock = document.getElementById('t2Clock');
-    const dataBody = document.getElementById('dataBody'), focusBody = document.getElementById('focusBody'), statsBody = document.getElementById('statsBody');
-    const logoGear = document.getElementById('logoGear'), timerCard = document.getElementById('timerCard');
+  /* =========================================================
+   COPIAR POR SECCIÓN – IMPLEMENTACIÓN SIMPLE Y FUNCIONAL
+   ========================================================= */
 
-    // Inputs de Configuración
-    const effIn = document.getElementById('efficiency'), pcdIn = document.getElementById('contractPcd');
-    const hrsIn = document.getElementById('hoursPerDay'), daysIn = document.getElementById('daysPerWeek'), capView = document.getElementById('capView');
+// Copia texto "visible" de una sección
+  // Clonamos para no afectar la UI
+  const clone = sec.cloneNode(true);
 
-    // --- ESTADO ---
-    let mainStartTime = 0, lapStartTime = 0, elapsedTime = 0, timerInterval = null, isRunning = false;
-    let laps = JSON.parse(localStorage.getItem('taktlab_data')) || [];
-    let charts = {}; // Para guardar instancias de Chart.js
+  // Quitamos botones para que no se copien
+  clone.querySelectorAll('button').forEach(b=>b.remove());
 
-    // --- MOTOR CRONÓMETRO ---
-    function updateClocks() {
-        const now = Date.now(), totalMs = now - mainStartTime + elapsedTime, lapMs = now - lapStartTime;
-        display.textContent = formatMs(totalMs);
-        t1Clock.textContent = formatMs(lapMs);
-    }
+  // Reemplazamos inputs/selects por su valor
+  clone.querySelectorAll('input, select, textarea').forEach(el=>{
+    const span = document.createElement('span');
+    span.textContent = el.value ?? '';
+    el.replaceWith(span);
+  });
 
-    function formatMs(ms) {
-        const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000), c = Math.floor((ms % 1000) / 10);
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${c.toString().padStart(2, '0')}`;
-    }
+  const text = clone.innerText.trim();
+  if(!text){
+    alert('La sección está vacía, no hay nada que copiar.');
+    return;
+  }
 
-    // --- ACCIONES ---
-    btnStart.onclick = () => {
-        if (!isRunning) {
-            mainStartTime = Date.now(); lapStartTime = mainStartTime;
-            timerInterval = setInterval(updateClocks, 30);
-            isRunning = true; btnStart.textContent = "PAUSAR"; btnStart.style.background = "var(--btn-orange)";
-            btnLap.disabled = false; logoGear.classList.add('spinning');
-        } else {
-            clearInterval(timerInterval); elapsedTime += Date.now() - mainStartTime;
-            isRunning = false; btnStart.textContent = "REANUDAR"; btnStart.style.background = "var(--btn-green)";
-            logoGear.classList.remove('spinning');
-        }
-    };
-
-    btnLap.onclick = () => {
-        const now = Date.now(), lapSec = (now - lapStartTime) / 1000;
-        laps.push({
-            id: laps.length + 1,
-            process: document.getElementById('processName').value || "Op General",
-            mode: document.getElementById('mode').value,
-            total: lapSec,
-            t1: lapSec, t2: 0,
-            timestamp: new Date().toLocaleTimeString()
-        });
-        lapStartTime = now;
-        timerCard.classList.add('flash');
-        setTimeout(() => timerCard.classList.remove('flash'), 100);
-        saveAndSync();
-    };
-
-    document.getElementById('btnReset').onclick = () => {
-        if(confirm("¿Borrar todo?")) { 
-            laps = []; elapsedTime = 0; isRunning = false; clearInterval(timerInterval);
-            localStorage.removeItem('taktlab_data'); location.reload();
-        }
-    };
-
-    // --- CÁLCULOS ESTADÍSTICOS ---
-    function getStats(vals) {
-        if(!vals.length) return null;
-        const sorted = [...vals].sort((a,b)=>a-b);
-        const sum = sorted.reduce((a,b)=>a+b,0);
-        const mean = sum / sorted.length;
-        const median = sorted[Math.floor(sorted.length / 2)];
-        const p10 = sorted[Math.floor(sorted.length * 0.1)];
-        const p90 = sorted[Math.floor(sorted.length * 0.9)];
-        const std = Math.sqrt(sorted.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / sorted.length);
-        const cv = (std / mean) * 100;
-        return { mean, median, p10, p90, std, cv, n: sorted.length, min: sorted[0], max: sorted[sorted.length-1] };
-    }
-
-    function calculateCapacity(ct, eff, hrs, days, view) {
-        if(!ct || ct === 0) return 0;
-        const secAvailableDay = hrs * 3600 * (eff / 100);
-        const capDay = secAvailableDay / ct;
-        if(view === 'hour') return capDay / hrs;
-        if(view === 'week') return capDay * days;
-        return capDay;
-    }
-
-    // --- RENDERIZADO Y SYNC ---
-    function saveAndSync() {
-        localStorage.setItem('taktlab_data', JSON.stringify(laps));
-        renderRaw();
-        const stats = getStats(laps.map(l => l.total));
-        if(stats) {
-            renderFocus(stats);
-            renderStatsTable(stats);
-            updateCharts(laps.map(l => l.total), stats);
-            updateTopInfo(stats);
-        }
-    }
-
-    function renderFocus(s) {
-        const eff = parseFloat(effIn.value), hrs = parseFloat(hrsIn.value), days = parseFloat(daysIn.value), view = capViewSel.value;
-        const target = parseFloat(pcdIn.value);
-        
-        const capAct = calculateCapacity(s.median, eff, hrs, days, view);
-        const capPot = calculateCapacity(s.p10, eff, hrs, days, view);
-        const capWst = calculateCapacity(s.p90, eff, hrs, days, view);
-
-        focusBody.innerHTML = `<tr>
-            <td>${document.getElementById('processName').value}</td>
-            <td>${document.getElementById('mode').value}</td>
-            <td>${s.n}</td>
-            <td>±3% @ N=384</td>
-            <td>${s.std.toFixed(2)}</td>
-            <td>${s.cv.toFixed(1)}%</td>
-            <td>${s.median.toFixed(2)}s</td>
-            <td>${s.p10.toFixed(2)}s</td>
-            <td>${s.p90.toFixed(2)}s</td>
-            <td class="badge-good">${Math.round(capAct)}</td>
-            <td style="color:var(--accent-blue)">${Math.round(capPot)}</td>
-            <td style="color:var(--accent-red)">${Math.round(capWst)}</td>
-            <td>${target}</td>
-            <td>${Math.round(capAct - target)}</td>
-            <td>${target > 0 ? ((capAct/target)*100).toFixed(1) : 0}%</td>
-            <td>-</td><td>-</td><td>-</td>
-        </tr>`;
-    }
-
-    function renderStatsTable(s) {
-        statsBody.innerHTML = `<tr>
-            <td>${document.getElementById('processName').value}</td>
-            <td>${document.getElementById('mode').value}</td>
-            <td>${s.n}</td>
-            <td>${s.mean.toFixed(2)}</td>
-            <td>${s.median.toFixed(2)}</td>
-            <td>${s.p10.toFixed(2)}</td>
-            <td>${s.p90.toFixed(2)}</td>
-            <td>${s.min.toFixed(2)}</td>
-            <td>${s.max.toFixed(2)}</td>
-            <td>${s.std.toFixed(2)}</td>
-            <td>${s.cv.toFixed(1)}%</td>
-            <td>-</td><td>-</td>
-        </tr>`;
-    }
-
-    function renderRaw() {
-        dataBody.innerHTML = '';
-        [...laps].reverse().forEach(l => {
-            dataBody.innerHTML += `<tr>
-                <td>${l.id}</td><td>${l.process}</td><td>${l.mode}</td>
-                <td><span class="badge badge-good">OK</span></td>
-                <td>-</td><td>${l.t1.toFixed(2)}</td><td>0.00</td>
-                <td><b>${l.total.toFixed(2)}</b></td>
-                <td><button class="btn-edit" onclick="alert('Editar ID: '+${l.id})">✎</button></td>
-                <td><button class="btn-del" onclick="window.deleteLap(${l.id})">✖</button></td>
-            </tr>`;
-        });
-    }
-
-    function updateTopInfo(s) {
-        const info = document.getElementById('sampleInfoTop');
-        if(s.n < 10) {
-            info.className = "info-line sample-warn";
-            info.textContent = `Muestra pequeña (N=${s.n}). Se recomiendan +10 para estabilidad. CV: ${s.cv.toFixed(1)}%`;
-        } else {
-            info.className = "info-line sample-good";
-            info.textContent = `Estudio Robusto (N=${s.n}). Variación: ${s.cv < 10 ? 'Baja' : 'Alta'} (${s.cv.toFixed(1)}%).`;
-        }
-    }
-
-    window.deleteLap = (id) => { laps = laps.filter(l => l.id !== id); saveAndSync(); };
-
-    // --- GRÁFICAS (Chart.js) ---
-    function updateCharts(data, s) {
-        const ctxTime = document.getElementById('timeSeriesCanvas').getContext('2d');
-        if(charts.time) charts.time.destroy();
-        charts.time = new Chart(ctxTime, {
-            type: 'line',
-            data: {
-                labels: data.map((_,i)=>i+1),
-                datasets: [{
-                    label: 'Ciclos', data: data, borderColor: '#39bdf5', tension: 0.2, fill: false
-                }, {
-                    label: 'Mediana', data: Array(data.length).fill(s.median), borderColor: '#f2c14e', borderDash: [5,5], pointRadius: 0
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: false } } }
-        });
-
-        // Histograma simplificado
-        const ctxHist = document.getElementById('histCanvas').getContext('2d');
-        if(charts.hist) charts.hist.destroy();
-        const bins = 5; 
-        const min = s.min, max = s.max, range = (max - min) / bins;
-        const counts = Array(bins).fill(0);
-        data.forEach(v => { const b = Math.min(Math.floor((v-min)/range), bins-1); counts[b]++; });
-
-        charts.hist = new Chart(ctxHist, {
-            type: 'bar',
-            data: {
-                labels: counts.map((_,i)=>(min + (i*range)).toFixed(1)+'s'),
-                datasets: [{ label: 'Frecuencia', data: counts, backgroundColor: '#18c97a' }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
-
-    // Escuchadores de cambios en inputs para recalcular capacidad en vivo
-    [effIn, pcdIn, hrsIn, daysIn, capViewSel].forEach(el => el.oninput = saveAndSync);
-
-    // Init
-    saveAndSync();
-})();
-</script>(function(){
-    // --- REFERENCIAS DOM ---
-    const display = document.getElementById('display'), btnStart = document.getElementById('btnStart'), btnLap = document.getElementById('btnLap');
-    const t1Clock = document.getElementById('t1Clock'), t2Clock = document.getElementById('t2Clock');
-    const dataBody = document.getElementById('dataBody'), focusBody = document.getElementById('focusBody');
-    const wbBody = document.getElementById('wbBody'), wbOperatorsSum = document.getElementById('wbOperatorsSum');
-    const wbConstraint = document.getElementById('wbConstraint'), wbNextConstraint = document.getElementById('wbNextConstraint');
-
-    // --- ESTADO ---
-    let mainStartTime = 0, lapStartTime = 0, elapsedTime = 0, timerInterval = null, isRunning = false;
-    let laps = JSON.parse(localStorage.getItem('taktlab_data')) || [];
-    let wbData = JSON.parse(localStorage.getItem('taktlab_wb')) || [];
-    let charts = {};
-
-    // --- MOTOR CRONÓMETRO (IGUAL A P1/P2) ---
-    function formatMs(ms) {
-        const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000), c = Math.floor((ms % 1000) / 10);
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${c.toString().padStart(2, '0')}`;
-    }
-    btnStart.onclick = () => {
-        if (!isRunning) {
-            mainStartTime = Date.now(); lapStartTime = mainStartTime;
-            timerInterval = setInterval(() => {
-                const now = Date.now(), totalMs = now - mainStartTime + elapsedTime, lapMs = now - lapStartTime;
-                display.textContent = formatMs(totalMs); t1Clock.textContent = formatMs(lapMs);
-            }, 30);
-            isRunning = true; btnStart.textContent = "PAUSAR"; btnStart.style.background = "var(--btn-orange)";
-            btnLap.disabled = false; document.getElementById('logoGear').classList.add('spinning');
-        } else {
-            clearInterval(timerInterval); elapsedTime += Date.now() - mainStartTime;
-            isRunning = false; btnStart.textContent = "REANUDAR"; btnStart.style.background = "var(--btn-green)";
-            document.getElementById('logoGear').classList.remove('spinning');
-        }
-    };
-    btnLap.onclick = () => {
-        const now = Date.now(), lapSec = (now - lapStartTime) / 1000;
-        laps.push({ id: laps.length + 1, process: document.getElementById('processName').value || "Op General", mode: document.getElementById('mode').value, total: lapSec, t1: lapSec, t2: 0 });
-        lapStartTime = now; saveAndSync();
-    };
-
-    // --- LÓGICA WORKBENCH (NUEVO) ---
-    document.getElementById('btnWbAdd').onclick = () => {
-        const stats = getStats(laps.map(l => l.total));
-        wbData.push({
-            id: Date.now(), enabled: true, opName: document.getElementById('processName').value || "Nueva Op",
-            operators: 1, shifts: 3, hours: 8, machines: 1, pcsPerOp: 1, 
-            contract: parseFloat(document.getElementById('contractPcd').value) || 0,
-            lunch: 60, changeover: 0, cleaning: 10, maint: 0, other: 0, shared: 0, unplannedDt: 30,
-            scrap: 2, availability: 95, performance: 95, quality: 98,
-            ctCur: stats ? stats.median : 0, ctWst: stats ? stats.p90 : 0, ctPot: stats ? stats.p10 : 0
-        });
-        saveAndSync();
-    };
-
-    function calculateWbRow(row) {
-        const grossMin = row.shifts * row.hours * 60;
-        const plannedLoss = row.lunch + row.changeover + row.cleaning + row.maint + row.other + row.shared;
-        const netMin = (grossMin - plannedLoss - row.unplannedDt) * row.machines;
-        const yieldVal = (100 - row.scrap) / 100;
-        
-        // OEE Simplificado para el WB
-        const oee = (row.availability/100) * (row.performance/100) * (row.quality/100);
-        const ctOee = row.ctCur / oee;
-        
-        const cap100 = (netMin * 60 / row.ctCur) * row.pcsPerOp;
-        const capOee = cap100 * oee;
-        const vsContract = row.contract > 0 ? (capOee / row.contract) * 100 : 0;
-
-        return { ...row, grossMin, netMin, yieldVal, oee, capOee, vsContract };
-    }
-
-    function renderWB() {
-        wbBody.innerHTML = '';
-        let totalOps = 0;
-        let results = [];
-
-        wbData.forEach((row, idx) => {
-            const res = calculateWbRow(row);
-            results.push(res);
-            if(res.enabled) totalOps += parseFloat(res.operators);
-
-            wbBody.innerHTML += `
-                <tr>
-                    <td><input type="checkbox" ${res.enabled?'checked':''} onchange="updateWbField(${idx}, 'enabled', this.checked)"></td>
-                    <td><input class="wb-inp wide" value="${res.opName}" onchange="updateWbField(${idx}, 'opName', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.operators}" onchange="updateWbField(${idx}, 'operators', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.shifts}" onchange="updateWbField(${idx}, 'shifts', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.hours}" onchange="updateWbField(${idx}, 'hours', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.machines}" onchange="updateWbField(${idx}, 'machines', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.pcsPerOp}" onchange="updateWbField(${idx}, 'pcsPerOp', this.value)"></td>
-                    <td><input class="wb-inp" type="number" value="${res.contract}" onchange="updateWbField(${idx}, 'contract', this.value)"></td>
-                    <td class="sample-neutral">${res.grossMin}</td>
-                    <td><input class="wb-inp slim" type="number" value="${res.lunch}" onchange="updateWbField(${idx}, 'lunch', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.changeover}" onchange="updateWbField(${idx}, 'changeover', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.cleaning}" onchange="updateWbField(${idx}, 'cleaning', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.maint}" onchange="updateWbField(${idx}, 'maint', this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${res.other}" onchange="updateWbField(${idx}, 'other', this.value)"></td>
-                    <td style="background:#fff3e0">${res.shared}</td>
-                    <td><input class="wb-inp slim" type="number" value="${res.unplannedDt}" onchange="updateWbField(${idx}, 'unplannedDt', this.value)"></td>
-                    <td class="badge-good">${res.netMin.toFixed(0)}</td>
-                    <td>${res.scrap}%</td>
-                    <td>${res.yieldVal.toFixed(2)}</td>
-                    <td>${res.availability}%</td>
-                    <td>${res.performance}%</td>
-                    <td>${res.quality}%</td>
-                    <td style="font-weight:bold">${(res.oee*100).toFixed(1)}%</td>
-                    <td>${res.ctCur.toFixed(2)}s</td>
-                    <td>${res.ctWst.toFixed(2)}s</td>
-                    <td>${res.ctPot.toFixed(2)}s</td>
-                    <td>${(res.ctCur / res.oee).toFixed(2)}s</td>
-                    <td>${Math.round(res.capOee / res.oee)}</td>
-                    <td style="background:var(--badge-green)">${Math.round(res.capOee)}</td>
-                    <td class="${res.vsContract < 100 ? 'badge-bad' : 'badge-good'}">${res.vsContract.toFixed(1)}%</td>
-                    <td>${Math.round(res.contract / res.yieldVal)}</td>
-                    <td><button class="btn-del" onclick="removeWb(${idx})">✖</button></td>
-                </tr>`;
-        });
-
-        wbOperatorsSum.textContent = totalOps;
-        updateConstraint(results);
-    }
-
-    function updateConstraint(results) {
-        const active = results.filter(r => r.enabled && r.capOee > 0);
-        if(!active.length) return;
-        
-        const sorted = [...active].sort((a,b) => a.capOee - b.capOee);
-        wbConstraint.textContent = `${sorted[0].opName} (${Math.round(sorted[0].capOee)} pzs)`;
-        if(sorted.length > 1) {
-            wbNextConstraint.textContent = `${sorted[1].opName} (${Math.round(sorted[1].capOee)} pzs)`;
-        }
-    }
-
-    window.updateWbField = (idx, field, val) => {
-        wbData[idx][field] = field === 'enabled' || field === 'opName' ? val : parseFloat(val);
-        saveAndSync();
-    };
-
-    window.removeWb = (idx) => { wbData.splice(idx, 1); saveAndSync(); };
-    document.getElementById('btnWbClear').onclick = () => { if(confirm("¿Vaciar WB?")) { wbData = []; saveAndSync(); } };
-
-    // --- REUTILIZAR FUNCIONES P2 ---
-    function getStats(vals) {
-        if(!vals.length) return null;
-        const sorted = [...vals].sort((a,b)=>a-b);
-        const mean = sorted.reduce((a,b)=>a+b,0) / sorted.length;
-        return { median: sorted[Math.floor(sorted.length / 2)], p10: sorted[Math.floor(sorted.length * 0.1)], p90: sorted[Math.floor(sorted.length * 0.9)], n: sorted.length };
-    }
-
-    function saveAndSync() {
-        localStorage.setItem('taktlab_data', JSON.stringify(laps));
-        localStorage.setItem('taktlab_wb', JSON.stringify(wbData));
-        renderWB();
-        // (Aquí llamarías a renderRaw y renderFocus de la Parte 2)
-    }
-
-    saveAndSync();
-})();
-</script>(function(){
-    // --- REFERENCIAS DOM ---
-    const display = document.getElementById('display'), btnStart = document.getElementById('btnStart'), btnLap = document.getElementById('btnLap');
-    const t1Clock = document.getElementById('t1Clock'), t2Clock = document.getElementById('t2Clock');
-    const dataBody = document.getElementById('dataBody'), focusBody = document.getElementById('focusBody');
-    const wbBody = document.getElementById('wbBody'), scBody = document.getElementById('scBody');
-    const wbOperatorsSum = document.getElementById('wbOperatorsSum'), wbConstraint = document.getElementById('wbConstraint');
-
-    // --- ESTADO ---
-    let mainStartTime = 0, lapStartTime = 0, elapsedTime = 0, timerInterval = null, isRunning = false;
-    let laps = JSON.parse(localStorage.getItem('taktlab_data')) || [];
-    let wbData = JSON.parse(localStorage.getItem('taktlab_wb')) || [];
-    let scData = JSON.parse(localStorage.getItem('taktlab_sc')) || []; // Shared Capacity Data
-
-    // --- MOTOR CRONÓMETRO (BASE) ---
-    function formatMs(ms) {
-        const m = Math.floor(ms/60000), s = Math.floor((ms%60000)/1000), c = Math.floor((ms%1000)/10);
-        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}.${c.toString().padStart(2,'0')}`;
-    }
-    btnStart.onclick = () => {
-        if (!isRunning) {
-            mainStartTime = Date.now(); lapStartTime = mainStartTime;
-            timerInterval = setInterval(() => {
-                const now = Date.now(), totalMs = now - mainStartTime + elapsedTime, lapMs = now - lapStartTime;
-                display.textContent = formatMs(totalMs); t1Clock.textContent = formatMs(lapMs);
-            }, 30);
-            isRunning = true; btnStart.textContent = "PAUSAR"; btnStart.style.background = "var(--btn-orange)";
-            btnLap.disabled = false; document.getElementById('logoGear').classList.add('spinning');
-        } else {
-            clearInterval(timerInterval); elapsedTime += Date.now() - mainStartTime;
-            isRunning = false; btnStart.textContent = "REANUDAR"; btnStart.style.background = "var(--btn-green)";
-            document.getElementById('logoGear').classList.remove('spinning');
-        }
-    };
-    btnLap.onclick = () => {
-        const now = Date.now(), lapSec = (now - lapStartTime) / 1000;
-        laps.push({ id: laps.length + 1, process: document.getElementById('processName').value || "Op General", mode: document.getElementById('mode').value, total: lapSec, t1: lapSec, t2: 0 });
-        lapStartTime = now; saveAndSync();
-    };
-
-    // --- MÓDULO 4: SHARED CAPACITY LOGIC ---
-    document.getElementById('btnScAddMachine').onclick = () => {
-        scData.push({
-            id: Date.now(), enabled: true, machineName: "Nueva Máquina", machinesCount: 1,
-            hrsDay: 24, daysWeek: 5, weeksYear: 50, plannedDt: 60, unplannedDt: 30,
-            parts: [] // Sub-niveles (Part Numbers)
-        });
-        saveAndSync();
-    };
-
-    window.addPartToMachine = (mId) => {
-        const m = scData.find(x => x.id === mId);
-        m.parts.push({ id: Date.now(), pn: "PN-001", annualQty: 100000, ct: 30, scrap: 2, pcsPerCycle: 1, coTime: 45, coFreq: 5 });
-        saveAndSync();
-    };
-
-    function calculateShared() {
-        scBody.innerHTML = '';
-        scData.forEach((m, mIdx) => {
-            const availMinDay = m.hrsDay * 60;
-            let reqMinDay = 0;
-
-            // Calcular requerimiento por cada Part Number
-            m.parts.forEach(p => {
-                const dailyQty = p.annualQty / (m.weeksYear * m.daysWeek);
-                const yieldFactor = (100 - p.scrap) / 100;
-                const runMin = ((dailyQty / yieldFactor) / p.pcsPerCycle) * (p.ct / 60);
-                const coMin = p.coTime / p.coFreq;
-                reqMinDay += (runMin + coMin);
-            });
-
-            const totalReq = reqMinDay + m.plannedDt + m.unplannedDt;
-            const utilPercent = (totalReq / (availMinDay * m.machinesCount)) * 100;
-            const color = utilPercent > 100 ? 'badge-bad' : (utilPercent > 90 ? 'badge-warn' : 'badge-good');
-
-            // Render Máquina Principal
-            scBody.innerHTML += `
-                <tr style="background:rgba(0,0,0,0.05); font-weight:bold;">
-                    <td><input type="checkbox" ${m.enabled?'checked':''} onchange="updateSc(${mIdx},'enabled',this.checked)"></td>
-                    <td><input class="wb-inp wide" value="${m.machineName}" onchange="updateSc(${mIdx},'machineName',this.value)"></td>
-                    <td><input class="wb-inp slim" type="number" value="${m.machinesCount}" onchange="updateSc(${mIdx},'machinesCount',this.value)"></td>
-                    <td>${availMinDay}</td><td>${m.plannedDt}</td><td>${m.unplannedDt}</td>
-                    <td>${m.daysWeek}</td><td>${m.weeksYear}</td>
-                    <td>${totalReq.toFixed(1)}</td>
-                    <td>${utilPercent.toFixed(1)}%</td>
-                    <td><span class="badge ${color}">${utilPercent > 100 ? 'OVERLOAD' : 'OK'}</span></td>
-                    <td><button class="wb-opbtn" onclick="syncToWb(${mIdx})">Sync ➔ WB</button></td>
-                    <td><button class="wb-opbtn" onclick="addPartToMachine(${m.id})">+ PN</button></td>
-                    <td><button class="btn-del" onclick="removeSc(${mIdx})">✖</button></td>
-                </tr>`;
-
-            // Render Sub-Partes
-            m.parts.forEach((p, pIdx) => {
-                scBody.innerHTML += `
-                    <tr style="font-size: 0.65rem; color: #666;">
-                        <td style="text-align:right;">└</td>
-                        <td><input class="wb-inp" value="${p.pn}" onchange="updatePart(${mIdx},${pIdx},'pn',this.value)"></td>
-                        <td colspan="2">Ann. Vol: <input class="wb-inp slim" type="number" value="${p.annualQty}" onchange="updatePart(${mIdx},${pIdx},'annualQty',this.value)"></td>
-                        <td>CT: <input class="wb-inp slim" type="number" value="${p.ct}" onchange="updatePart(${mIdx},${pIdx},'ct',this.value)"></td>
-                        <td>Scrap%: <input class="wb-inp slim" type="number" value="${p.scrap}" onchange="updatePart(${mIdx},${pIdx},'scrap',this.value)"></td>
-                        <td>Pzs/Cyc: <input class="wb-inp slim" type="number" value="${p.pcsPerCycle}" onchange="updatePart(${mIdx},${pIdx},'pcsPerCycle',this.value)"></td>
-                        <td>C/O: <input class="wb-inp slim" type="number" value="${p.coTime}" onchange="updatePart(${mIdx},${pIdx},'coTime',this.value)"></td>
-                        <td colspan="4">Freq: <input class="wb-inp slim" type="number" value="${p.coFreq}" onchange="updatePart(${mIdx},${pIdx},'coFreq',this.value)"></td>
-                        <td><button class="btn-del" onclick="removePart(${mIdx},${pIdx})">×</button></td>
-                    </tr>`;
-            });
-        });
-    }
-
-    // --- SYNC SHARED ➔ WB ---
-    window.syncToWb = (mIdx) => {
-        const m = scData[mIdx];
-        const reqMin = 0; // Calculado de sus partes
-        // Buscamos si existe la operación en WB con el mismo nombre
-        const targetWb = wbData.find(w => w.opName.toLowerCase() === m.machineName.toLowerCase());
-        if(targetWb) {
-            // Sumamos los minutos requeridos por los PN al campo 'shared' del WB
-            let totalPartMin = 0;
-            m.parts.forEach(p => {
-                const dailyQty = p.annualQty / (m.weeksYear * m.daysWeek);
-                totalPartMin += (dailyQty / ((100-p.scrap)/100) / p.pcsPerCycle) * (p.ct / 60) + (p.coTime/p.coFreq);
-            });
-            targetWb.shared = Math.round(totalPartMin);
-            saveAndSync();
-            alert(`Sincronizado: ${targetWb.shared} min/día cargados a ${targetWb.opName}`);
-        } else {
-            alert("No se encontró una operación en el Workbench con el nombre: " + m.machineName);
-        }
-    };
-
-    // --- AUXILIARES SC ---
-    window.updateSc = (idx, f, v) => { scData[idx][f] = (f==='enabled'||f==='machineName')?v:parseFloat(v); saveAndSync(); };
-    window.removeSc = (idx) => { scData.splice(idx,1); saveAndSync(); };
-    window.updatePart = (mIdx, pIdx, f, v) => { scData[mIdx].parts[pIdx][f] = (f==='pn')?v:parseFloat(v); saveAndSync(); };
-    window.removePart = (mIdx, pIdx) => { scData[mIdx].parts.splice(pIdx,1); saveAndSync(); };
-
-    // --- RE-INTEGRACIÓN WORKBENCH (PARTE 3) ---
-    function renderWB() {
-        wbBody.innerHTML = '';
-        wbData.forEach((row, idx) => {
-            const grossMin = row.shifts * row.hours * 60;
-            const netMin = (grossMin - (row.lunch + row.changeover + row.cleaning + row.maint + row.other + row.shared) - row.unplannedDt) * row.machines;
-            const capOee = (netMin * 60 / row.ctCur) * row.pcsPerOp;
-            const vsContract = row.contract > 0 ? (capOee / row.contract) * 100 : 0;
-            
-            wbBody.innerHTML += `<tr>
-                <td><input type="checkbox" ${row.enabled?'checked':''} onchange="updateWbField(${idx},'enabled',this.checked)"></td>
-                <td><input class="wb-inp wide" value="${row.opName}" onchange="updateWbField(${idx},'opName',this.value)"></td>
-                <td><input class="wb-inp slim" type="number" value="${row.operators}" onchange="updateWbField(${idx},'operators',this.value)"></td>
-                <td><input class="wb-inp slim" type="number" value="${row.shifts}" onchange="updateWbField(${idx},'shifts',this.value)"></td>
-                <td colspan="10">... (campos intermedios) ...</td>
-                <td style="background:#fff3e0"><b>${row.shared}</b></td>
-                <td>${netMin.toFixed(0)}</td>
-                <td colspan="12"></td>
-                <td class="${vsContract < 100 ? 'badge-bad' : 'badge-good'}">${vsContract.toFixed(1)}%</td>
-                <td><button class="btn-del" onclick="removeWb(${idx})">✖</button></td>
-            </tr>`;
-        });
-    }
-
-    // --- GLOBAL SYNC ---
-    function saveAndSync() {
-        localStorage.setItem('taktlab_data', JSON.stringify(laps));
-        localStorage.setItem('taktlab_wb', JSON.stringify(wbData));
-        localStorage.setItem('taktlab_sc', JSON.stringify(scData));
-        calculateShared();
-        if(typeof renderWB === "function") renderWB();
-        // Nota: renderRaw y renderFocus deben estar presentes de la P1/P2
-    }
-
-    saveAndSync();
-})();
+  // Clipboard moderno + fallback
+  try{
+    navigator.clipboard.writeText(text);
+    alert('✅ Copiado al portapapeles');
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('✅ Copiado al portapapeles');
+  }
+}
+  // === SHARED CAPACITY CORE ===
+  if(m.enabled && m.syncToWB) scSyncToWB(m);
 </script>
+</body>
+</html>
