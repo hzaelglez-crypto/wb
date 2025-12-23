@@ -91,7 +91,7 @@
     border-bottom-color:transparent;
     transform-origin:50% 50%;
   }
-  .logo-gear.spinning::before{ animation:logo-spin 5s linear infinite; }
+  .logo-gear.spinning::before{ animation:logo-spin 2s linear infinite; }
   @keyframes logo-spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
 
   .title-block{display:flex;flex-direction:column;gap:2px;}
@@ -120,10 +120,10 @@
 
   .timer-display{
     text-align:center;
-    font-size:5rem;
+    font-size:2.8rem;
     font-weight:650;
     letter-spacing:.08em;
-    padding:10px 10px 4px;
+    padding:4px 4px 2px;
   }
 
   .split-clocks{
@@ -141,7 +141,7 @@
     border-radius:999px;
     border:1px solid rgba(11,18,32,.10);
     background:rgba(11,18,32,.02);
-    font-size:1rem;
+    font-size:.78rem;
     color:var(--text-soft);
     min-width:150px;
     justify-content:center;
@@ -274,7 +274,7 @@ th{ white-space:normal; line-height:1.05; }
 
   .btn-row-secondary{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px;}
 
-  .subsection-title{margin-top:6px;font-size:.82rem;font-weight:900;color:var(--text-soft);}
+  .subsection-title{margin-top:10px;font-size:.82rem;font-weight:900;color:var(--text-soft);}
   .footer-note{margin-top:10px;font-size:.68rem;color:var(--text-muted);text-align:right;}
 
   .charts-wrapper{
@@ -869,35 +869,34 @@ th{ white-space:normal; line-height:1.05; }
       .toLowerCase();
   }
 
-function lockBtn(btn, ms=6000){
-  if(!btn) return;
-  btn.disabled = true;
+  /* ✅ cooldown universal 6s */
+  function lockBtn(btn, ms=6000){
+    if(!btn) return;
+    btn.disabled = true;
+    const original = btn.textContent;
+    let left = Math.ceil(ms/1000);
+    const tick = () => {
+      if(!btn.disabled) return;
+      btn.textContent = `${original} (${left}s)`;
+      left--;
+      if(left < 0){
+        btn.disabled = false;
+        btn.textContent = original;
+        return;
+      }
+      setTimeout(tick, 1000);
+    };
+    setTimeout(()=>{
+      if(btn.disabled) tick();
+    }, 0);
 
-  // usa data-label si existe; si no, toma textContent y lo guarda
-  const base = btn.dataset.baseLabel || btn.textContent;
-  btn.dataset.baseLabel = base;
-
-  let left = Math.ceil(ms/1000);
-  const tick = () => {
-    if(!btn.disabled) return;
-    btn.textContent = `${base} (${left}s)`;
-    left--;
-    if(left < 0){
-      btn.disabled = false;
-      btn.textContent = btn.dataset.baseLabel || base;
-      return;
-    }
-    setTimeout(tick, 1000);
-  };
-  tick();
-
-  setTimeout(()=>{
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = btn.dataset.baseLabel || base;
-    }
-  }, ms);
-}
+    setTimeout(()=>{
+      if(btn){
+        btn.disabled = false;
+        btn.textContent = original;
+      }
+    }, ms);
+  }
 
   const i18n = {
     en:{
@@ -1193,8 +1192,7 @@ function lockBtn(btn, ms=6000){
 
   const row = wbRows.find(r => normOp(r.operation) === normOp(op));
   if(row){
-    const snap5 = (x)=> Math.round(x/5)*5;
-row.sharedMin = clamp(snap5(reqPerMachine), 0, 1440);
+    row.sharedMin = clamp(Math.round(reqPerMachine), 0, 1440);
     saveWB();
     renderWB();
   }
@@ -1271,8 +1269,8 @@ row.sharedMin = clamp(snap5(reqPerMachine), 0, 1440);
       if(m.weeksPerYear === 0) m.weeksPerYear = 47;
       if(!Array.isArray(m.parts)) m.parts = [];
 
-   // auto sync (solo si está activo y sync habilitado)
-      if(m.enabled && m.syncToWB) scSyncToWB(m);
+      // auto sync
+     if(m.enabled && m.syncToWB) scSyncToWB(m);
 
 
       const req = scTotalRequiredMinDay(m);
@@ -1650,9 +1648,12 @@ row.sharedMin = clamp(snap5(reqPerMachine), 0, 1440);
   let currentLang = localStorage.getItem(LANG_KEY) || 'es';
   function t(key){ return (i18n[currentLang] && i18n[currentLang][key]) || i18n.es[key] || i18n.en[key] || key; }
 function applyTranslations(){
-document.querySelectorAll('button').forEach(b=>{
-  b.dataset.baseLabel = b.textContent;
-});
+  // texto normal
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.dataset.i18n;
+    if(el === btnStart) return;
+    el.textContent = t(key);
+  });
 
   // ✅ i18n con HTML (para headers en 2 líneas)
   document.querySelectorAll('[data-i18n-html]').forEach(el=>{
@@ -3413,44 +3414,18 @@ View: ${capViewSel.value||''}`;
     copyTextLocked(btnCopyGuide, methodGuideText.textContent || '');
   });
 
-function restoreState(){
-  const raw = localStorage.getItem(TL_STATE_KEY);
-
-  if(!raw){
-    loadWB();
+  function restoreState(){
+    const raw = localStorage.getItem(TL_STATE_KEY);
+    if(!raw){
+      loadWB();
+      return;
+        // ✅ load shared capacity
     loadSC();
-    scRender();
-    return;
-  }
-
-  const snap = safeJsonParse(raw);
-  if(!snap || !snap.settings){
-    loadWB();
-    loadSC();
-    scRender();
-    return;
-  }
-
-  try{
-    currentLang = (snap.lang === 'en') ? 'en' : (localStorage.getItem(LANG_KEY)||'es');
-  }catch(e){}
-
-  processInput.value = snap.settings.processName ?? '';
-  modeSelect.value   = snap.settings.mode ?? 'CT';
-  effInput.value     = snap.settings.efficiency ?? '100';
-  pcdInput.value     = snap.settings.contractPcd ?? '0';
-  hInput.value       = snap.settings.hoursPerDay ?? '8';
-  dInput.value       = snap.settings.daysPerWeek ?? '5';
-  capViewSel.value   = snap.settings.capView ?? 'hour';
-
-  laps   = Array.isArray(snap.laps) ? snap.laps : [];
-  nextId = isFinite(snap.nextId) ? snap.nextId : 1;
-
-  wbRows = Array.isArray(snap.wbRows) ? snap.wbRows : [];
-  if(!wbRows.length) loadWB();
-
-  loadSC();
+    scRender(); 
 }
+    const snap = safeJsonParse(raw);
+    if(!snap || !snap.settings) { loadWB(); return; }
+
     try{
       currentLang = (snap.lang==='en') ? 'en' : (localStorage.getItem(LANG_KEY)||'es');
     }catch(e){}
@@ -3519,6 +3494,13 @@ function restoreState(){
    ========================================================= */
 
 // Copia texto "visible" de una sección
+function copySectionById(sectionId){
+  const sec = document.getElementById(sectionId);
+  if(!sec){
+    alert('No encontré la sección: ' + sectionId);
+    return;
+  }
+
   // Clonamos para no afectar la UI
   const clone = sec.cloneNode(true);
 
@@ -3552,8 +3534,6 @@ function restoreState(){
     alert('✅ Copiado al portapapeles');
   }
 }
-  // === SHARED CAPACITY CORE ===
-  if(m.enabled && m.syncToWB) scSyncToWB(m);
 </script>
 </body>
 </html>
