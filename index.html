@@ -1870,66 +1870,19 @@ function applyTranslations(){
     div.className = 'info-line ' + cls;
     div.textContent = text;
   }
+  function buildSampleCellCompact(st){
+  if(!st || st.n < 1) return '';
 
-  function buildSampleLine(st){
-    if(!st || st.n<3){
-      return {
-        cls:'sample-neutral',
-        text:(currentLang==='es'
-          ? `Tamaño de muestra: ${st?st.n:0} / 3 – se requieren ≥3 vueltas antes de estimar el error.`
-          : `Sample size: ${st?st.n:0} / 3 – need ≥3 laps before estimating error.`
-        )
-      };
-    }
-    const n=st.n;
-    const cv=st.cv||0;
-    const recN = sampleReqN(cv);
-    const errPct = estErrorPct(cv,n);
-    const ratio=n/recN;
-    const skewAbs = Math.abs(st.mean - st.median);
-    const normalBy3Sigma = skewAbs <= (0.5 * st.std);
+  const cv = st.cv || 0;
+  const recN = sampleReqN(cv);
+  const err = estErrorPct(cv, st.n);
 
+  let flag = '🟡';
+  if(st.n >= recN) flag = '🟢';
+  else if(st.n < recN * 0.5) flag = '🔴';
 
-    let cls='sample-warn', tail='';
-    if(ratio<0.6){
-      cls='sample-bad';
-      tail = currentLang==='es'
-        ? 'Muestra muy pequeña para ±3% – úsala solo como referencia.'
-        : 'Sample too small for ±3% – use only as reference.';
-    }else if(ratio<0.9){
-      cls='sample-warn';
-      tail = currentLang==='es'
-        ? 'Casi suficiente para ±3% – un par de vueltas más ayudarán.'
-        : 'Almost enough for ±3% – a couple more laps would help.';
-    }else{
-      cls='sample-good';
-      tail = currentLang==='es'
-        ? 'Tamaño de muestra suficiente para objetivo ±3%.'
-        : 'Sample size is enough for ±3% target.';
-    }
-
-    const head = (currentLang==='es')
-      ? `Tamaño de muestra: ${n} / ${recN} · Error estimado: ±${errPct.toFixed(1)}% (95%) – `
-      : `Sample size: ${n} / ${recN} · Est. error: ±${errPct.toFixed(1)}% (95%) – `;
-    const distTag = normalBy3Sigma
-  ? (currentLang==='es' ? 'Distribución estable (≈ normal)' : 'Stable distribution (≈ normal)')
-  : (currentLang==='es' ? 'Distribución sesgada (no normal)' : 'Skewed distribution (non-normal)');
-
-    let msg = tail;
-return {
-  cls,
-  text:
-    (currentLang === 'es'
-      ? `N: ${n} / ${recN}\n` +
-        `Error:±${errPct.toFixed(1)}% (95%)\n` +
-        `Criterio:±3%\n` +
-        `Estado:\t${msg}`
-      : `N:${n} / ${recN}\n` +
-        `Error:±${errPct.toFixed(1)}% (95%)\n` +
-        `Criteria:±3%\n` +
-        `Status:\t${msg}`
-    )
-};
+  return `${st.n}/${recN} · ±${err.toFixed(1)}% ${flag}`;
+}
 }
   function copyText(text){
     try{ navigator.clipboard.writeText(text); }
