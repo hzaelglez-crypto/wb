@@ -374,35 +374,7 @@ th{ white-space:normal; line-height:1.05; }
       max-width: calc(var(--wb-op-w) - 14px);
     }
   }
-  /* ===== Stat Focus table: multiline cell support ===== */
-.stat-focus-table td,
-.stat-focus-table .sample-cell {
-  white-space: pre-line;
-  line-height: 1.25;
-  font-size: 0.85rem;
-}
-/* === Stat Focus: celda multilínea real === */
-#secFocus table td.sample-multiline {
-  white-space: pre-line !important;
-  line-height: 1.4;
-  font-size: 0.8rem;
-  padding: 6px 8px;
-  text-align: left;
-  max-width: 260px;
-}
 /* ===== Stat Focus: merge Process / Mode / N in mobile ===== */
-@media (max-width: 768px) {
-  #secFocus table thead th:nth-child(4),
-  #secFocus table thead th:nth-child(4) {
-    display: none;
-  }
-}
-@media (max-width: 768px) {
-  #secFocus table tbody td:nth-child(4),
-  #secFocus table tbody td:nth-child(4) {
-    display: none;
-  }
-}
 @media (max-width: 768px) {
   #secFocus .proc-sample {
     margin-top: 6px;
@@ -2856,11 +2828,10 @@ if(fill && label && st){
   }
 }
 // --- definir variables antes de usarlas ---
-const fill = document.getElementById('sampleProgressFill');
-const label = document.getElementById('sampleProgressLabel');
 let cls = 'sample-warn';
 let flag = '🟡';
-
+const recN = sampleReqN(st.cv || 0);
+const err  = estErrorPct(st.cv || 0, st.n);
 if(st.n >= recN){
   cls = 'sample-good';
   flag = '🟢';
@@ -2875,13 +2846,13 @@ const text =
     : `Samples: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`;
 
   setInfo(sampleInfoTop, cls, text);
-  const pct = Math.min(100, Math.round((st.n / recN) * 100));
+  const pctProgress = Math.min(100, Math.round((st.n / recN) * 100));
 
 if(fill && label){
-  fill.style.width = pct + '%';
-  label.textContent = pct + '%';
+  fill.style.width = pctProgress + '%';
+  label.textContent = pctProgress + '%';
 
-  if(pct >= 100){
+  if(pctProgress >= 100){
     fill.style.background = '#18c97a';
   }else if(pct >= 50){
     fill.style.background = '#f2c14e';
@@ -2889,11 +2860,6 @@ if(fill && label){
     fill.style.background = '#ff3355';
   }
 }
-
-}
-
-    }
-  }
 
   function renderRaw(){
     dataBody.innerHTML = '';
