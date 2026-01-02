@@ -1784,7 +1784,6 @@ function applyTranslations(){
     refreshRingStates();
   }
   btnStart.addEventListener('click',()=>{
-    lockBtn(btnStart,1000);
     running?pause():start();
   });
 
@@ -3577,7 +3576,6 @@ if(!raw){
   restoreState();
   setLanguage(currentLang);
 
-  btnStart.textContent = running ? t('btn.pause') : t('btn.start');
   refreshRingStates();
 
   window.addEventListener('resize',()=>{ renderCharts(); });
