@@ -2779,8 +2779,38 @@ else if (i === 1 || i === 2) {
       );
     }else{
       const st = calcStats(curArr);
-      const line = buildSampleCellCompact(st);
-      setInfo(sampleInfoTop, line.cls, line.text);
+
+if(!st || st.n < 1){
+  setInfo(
+    sampleInfoTop,
+    'sample-neutral',
+    currentLang === 'es'
+      ? 'Sin muestras todavía para el proceso actual. Empieza a capturar vueltas.'
+      : 'No samples yet for current process. Start capturing laps.'
+  );
+}else{
+  const cv = st.cv || 0;
+  const recN = sampleReqN(cv);
+  const err = estErrorPct(cv, st.n);
+
+  let cls = 'sample-warn';
+  let flag = '🟡';
+
+  if(st.n >= recN){
+    cls = 'sample-good';
+    flag = '🟢';
+  }else if(st.n < recN * 0.5){
+    cls = 'sample-bad';
+    flag = '🔴';
+  }
+
+  const text = currentLang === 'es'
+    ? `Muestras: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`
+    : `Samples: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`;
+
+  setInfo(sampleInfoTop, cls, text);
+}
+
     }
   }
 
