@@ -439,6 +439,8 @@ th{ white-space:normal; line-height:1.05; }
   text-align:right;
   margin-top:2px;
   color:#555;
+  .sample-progress-wrap{
+  margin-top:6px;
 }
 </style>
 </head>
@@ -850,9 +852,6 @@ th{ white-space:normal; line-height:1.05; }
     Creado por Roberto González – Contacto: hzaelglez@gmail.com
   </div>
 </div>
-.sample-progress-wrap{
-  margin-top:6px;
-}
 
 <script>
 (function(){
@@ -2797,28 +2796,80 @@ else if (i === 1 || i === 2) {
       }
     });
 
-    const proc = (processInput.value||'').trim();
+        const proc = (processInput.value||'').trim();
     const mode = modeSelect.value || 'CT';
     const curKey = proc + '||' + mode;
     const curArr = map.get(curKey) || [];
-    if(curArr.length<1){
-      setInfo(sampleInfoTop,'sample-neutral',
+
+    const fill = document.getElementById('sampleProgressFill');
+    const label = document.getElementById('sampleProgressLabel');
+
+    if(curArr.length < 1){
+      setInfo(
+        sampleInfoTop,
+        'sample-neutral',
         currentLang==='es'
           ? 'Sin muestras todavía para el proceso actual. Empieza a capturar vueltas.'
           : 'No samples yet for current process. Start capturing laps.'
       );
-    }else{
-      const st = calcStats(curArr);
 
-if(!st || st.n < 1){
-  setInfo(
-    sampleInfoTop,
-    'sample-neutral',
-    currentLang === 'es'
-      ? 'Sin muestras todavía para el proceso actual. Empieza a capturar vueltas.'
-      : 'No samples yet for current process. Start capturing laps.'
-  );
-}
+      if(fill && label){
+        fill.style.width = '0%';
+        label.textContent = '0%';
+        fill.style.background = '#f2c14e';
+      }
+      return;
+    }
+
+    const st = calcStats(curArr);
+    if(!st || st.n < 1){
+      setInfo(
+        sampleInfoTop,
+        'sample-neutral',
+        currentLang==='es'
+          ? 'Sin muestras todavía para el proceso actual. Empieza a capturar vueltas.'
+          : 'No samples yet for current process. Start capturing laps.'
+      );
+
+      if(fill && label){
+        fill.style.width = '0%';
+        label.textContent = '0%';
+        fill.style.background = '#f2c14e';
+      }
+      return;
+    }
+
+    const cv = st.cv || 0;
+    const recN = sampleReqN(cv);
+    const err = estErrorPct(cv, st.n);
+
+    let cls = 'sample-warn';
+    let flag = '🟡';
+    if(st.n >= recN){
+      cls = 'sample-good';
+      flag = '🟢';
+    }else if(st.n < recN * 0.5){
+      cls = 'sample-bad';
+      flag = '🔴';
+    }
+
+    const text =
+      currentLang === 'es'
+        ? `Muestras: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`
+        : `Samples: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`;
+
+    setInfo(sampleInfoTop, cls, text);
+
+    if(fill && label){
+      const pctVal = Math.min(100, Math.round((st.n / recN) * 100));
+      fill.style.width = pctVal + '%';
+      label.textContent = pctVal + '%';
+
+      if(pctVal >= 100) fill.style.background = '#18c97a';
+      else if(pctVal >= 50) fill.style.background = '#f2c14e';
+      else fill.style.background = '#ff3355';
+    }
+    
 const fill = document.getElementById('sampleProgressFill');
 const label = document.getElementById('sampleProgressLabel');
 
