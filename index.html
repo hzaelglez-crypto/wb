@@ -2638,7 +2638,7 @@ function yieldFromScrap(row){
       return;
     }
 
-    const sampleLine = buildSampleLine(st);
+    const sampleLine = buildSampleCellCompact(st);
     sampleInfoFocus.textContent = sampleLine.text;
     sampleInfoFocus.className = 'info-line ' + sampleLine.cls;
 
@@ -2703,7 +2703,7 @@ function yieldFromScrap(row){
 
       { // focus
         const tr=document.createElement('tr');
-        const sampleLine = buildSampleLine(st);
+        const sampleLine = buildSampleCellCompact(st);
 
         const curCap = capFromCt(st.median, view, Math.max(hours,0.0001), days) * eff;
         const potCap = capFromCt(st.p10, view, Math.max(hours,0.0001), days) * eff;
@@ -2780,7 +2780,7 @@ else if (i === 1 || i === 2) {
       );
     }else{
       const st = calcStats(curArr);
-      const line = buildSampleLine(st);
+      const line = buildSampleCellCompact(st);
       setInfo(sampleInfoTop, line.cls, line.text);
     }
   }
