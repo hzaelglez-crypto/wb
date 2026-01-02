@@ -381,6 +381,14 @@ th{ white-space:normal; line-height:1.05; }
   line-height: 1.25;
   font-size: 0.85rem;
 }
+/* === Stat Focus: celda multilínea real === */
+#secFocus table td.sample-multiline {
+  white-space: pre-line !important;
+  line-height: 1.25;
+  font-size: 0.72rem;
+  text-align: left;
+  max-width: 220px;
+}
 
 </style>
 </head>
@@ -2740,11 +2748,11 @@ function yieldFromScrap(row){
         cells.forEach((c,i)=>{
           const td=document.createElement('td');
           if(i===0 || i===1 || i===3 || i===17) td.style.textAlign='left';
-          if(i===3){
-            const span=document.createElement('span');
-            span.className = 'badge ' + (sampleLine.cls==='sample-good'?'badge-good':(sampleLine.cls==='sample-bad'?'badge-bad':'badge-warn'));
-            span.textContent = c;
-            td.appendChild(span);
+if(i === 3){
+  td.classList.add('sample-multiline'); // 👈 CLAVE
+  td.textContent = c;
+}
+
           }else{
             td.textContent = String(c);
           }
