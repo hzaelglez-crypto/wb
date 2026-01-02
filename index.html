@@ -2837,17 +2837,6 @@ else if (i === 1 || i === 2) {
       return;
     }
     
-    setInfo(sampleInfoTop, cls, text);
-
-    if(fill && label){
-      const pctVal = Math.min(100, Math.round((st.n / recN) * 100));
-      fill.style.width = pctVal + '%';
-      label.textContent = pctVal + '%';
-
-      if(pctVal >= 100) fill.style.background = '#18c97a';
-      else if(pctVal >= 50) fill.style.background = '#f2c14e';
-      else fill.style.background = '#ff3355';
-    }
     
 
 if(fill && label && st){
@@ -2866,9 +2855,6 @@ if(fill && label && st){
     fill.style.background = '#ff3355'; // rojo
   }
 }
-  const text = currentLang === 'es'
-    ? `Muestras: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`
-    : `Samples: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`;
 // --- definir variables antes de usarlas ---
 const fill = document.getElementById('sampleProgressFill');
 const label = document.getElementById('sampleProgressLabel');
