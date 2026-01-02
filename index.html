@@ -439,6 +439,7 @@ th{ white-space:normal; line-height:1.05; }
   text-align:right;
   margin-top:2px;
   color:#555;
+}
   .sample-progress-wrap{
   margin-top:6px;
 }
@@ -2801,9 +2802,6 @@ else if (i === 1 || i === 2) {
     const curKey = proc + '||' + mode;
     const curArr = map.get(curKey) || [];
 
-    const fill = document.getElementById('sampleProgressFill');
-    const label = document.getElementById('sampleProgressLabel');
-
     if(curArr.length < 1){
       setInfo(
         sampleInfoTop,
@@ -2838,26 +2836,7 @@ else if (i === 1 || i === 2) {
       }
       return;
     }
-
-    const cv = st.cv || 0;
-    const recN = sampleReqN(cv);
-    const err = estErrorPct(cv, st.n);
-
-    let cls = 'sample-warn';
-    let flag = '🟡';
-    if(st.n >= recN){
-      cls = 'sample-good';
-      flag = '🟢';
-    }else if(st.n < recN * 0.5){
-      cls = 'sample-bad';
-      flag = '🔴';
-    }
-
-    const text =
-      currentLang === 'es'
-        ? `Muestras: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`
-        : `Samples: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`;
-
+    
     setInfo(sampleInfoTop, cls, text);
 
     if(fill && label){
@@ -2870,8 +2849,6 @@ else if (i === 1 || i === 2) {
       else fill.style.background = '#ff3355';
     }
     
-const fill = document.getElementById('sampleProgressFill');
-const label = document.getElementById('sampleProgressLabel');
 
 if(fill && label && st){
   const cv = st.cv || 0;
@@ -2893,10 +2870,8 @@ if(fill && label && st){
     ? `Muestras: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`
     : `Samples: ${st.n}/${recN} · Error ±${err.toFixed(1)}% ${flag}`;
 // --- definir variables antes de usarlas ---
-const cv = st.cv || 0;
-const recN = sampleReqN(cv);
-const err = estErrorPct(cv, st.n);
-
+const fill = document.getElementById('sampleProgressFill');
+const label = document.getElementById('sampleProgressLabel');
 let cls = 'sample-warn';
 let flag = '🟡';
 
@@ -2915,8 +2890,6 @@ const text =
 
   setInfo(sampleInfoTop, cls, text);
   const pct = Math.min(100, Math.round((st.n / recN) * 100));
-const fill = document.getElementById('sampleProgressFill');
-const label = document.getElementById('sampleProgressLabel');
 
 if(fill && label){
   fill.style.width = pct + '%';
