@@ -415,6 +415,99 @@ th{ white-space:normal; line-height:1.05; }
   .sample-progress-wrap{
   margin-top:6px;
 }
+  /* =========================================================
+   WB – Mobile Cards (solo móvil)
+   ========================================================= */
+@media (max-width: 768px){
+
+  /* ocultamos la tabla WB tradicional */
+  .wb-table-wrap{
+    display:none;
+  }
+
+  /* contenedor de cards */
+  .wb-cards-wrap{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:10px;
+  }
+
+  /* card individual */
+  .wb-card{
+    background:#ffffff;
+    border:2px solid #e3e6eb;
+    border-radius:14px;
+    padding:12px 14px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  .wb-card-header{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+    font-size:0.95rem;
+    margin-bottom:8px;
+  }
+
+  .wb-card-header select{
+    flex:1;
+  }
+
+  .wb-card-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px 10px;
+    font-size:0.85rem;
+  }
+
+  .wb-field{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+
+  .wb-field label{
+    font-size:0.7rem;
+    color:#666;
+  }
+
+  .wb-field select,
+  .wb-field input{
+    padding:6px 8px;
+    border-radius:8px;
+    border:1px solid #d0d4dc;
+    font-size:0.85rem;
+  }
+
+  .wb-card-metrics{
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed #e0e0e0;
+    font-size:0.8rem;
+  }
+
+  .wb-card-metrics div{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:4px;
+  }
+
+  .wb-card-actions{
+    margin-top:10px;
+    display:flex;
+    gap:8px;
+  }
+
+  .wb-card-actions button{
+    flex:1;
+    padding:6px 8px;
+    border-radius:8px;
+    font-size:0.8rem;
+  }
+}
+
 </style>
 </head>
 
