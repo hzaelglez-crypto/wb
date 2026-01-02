@@ -384,8 +384,8 @@ th{ white-space:normal; line-height:1.05; }
 /* === Stat Focus: celda multilínea real === */
 #secFocus table td.sample-multiline {
   white-space: pre-line !important;
-  line-height: 1.45;
-  font-size: 0.78rem;
+  line-height: 1.4;
+  font-size: 0.8rem;
   padding: 6px 8px;
   text-align: left;
   max-width: 260px;
@@ -2750,10 +2750,29 @@ function yieldFromScrap(row){
         cells.forEach((c, i) => {
   const td = document.createElement('td');
 
-  if (i === 0 || i === 1 || i === 17) {
-    td.style.textAlign = 'left';
-    td.textContent = String(c);
+  if (i === 0) {
+  td.style.textAlign = 'left';
+
+  const isMobile = window.innerWidth <= 768;
+
+  if (isMobile) {
+    td.innerHTML =
+      `<div>${cells[0]}</div>` +
+      `<div>Mode: ${cells[1]}</div>` +
+      `<div>N: ${cells[2]}</div>`;
+  } else {
+    td.textContent = String(cells[0]);
   }
+}
+else if (i === 1 || i === 2) {
+  // En móvil ya se muestran dentro de Process
+  if (window.innerWidth > 768) {
+    td.textContent = String(c);
+  } else {
+    td.textContent = '';
+  }
+}
+
   else if (i === 3) {
     td.style.textAlign = 'left';
     td.classList.add('sample-multiline'); //
