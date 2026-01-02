@@ -3568,52 +3568,6 @@ if(!raw){
   window.addEventListener('resize',()=>{ renderCharts(); });
 
 })();
-  /* =========================================================
-   COPIAR POR SECCIÓN – IMPLEMENTACIÓN SIMPLE Y FUNCIONAL
-   ========================================================= */
-
-// Copia texto "visible" de una sección
-function copySectionById(sectionId){
-  const sec = document.getElementById(sectionId);
-  if(!sec){
-    alert('No encontré la sección: ' + sectionId);
-    return;
-  }
-
-  // Clonamos para no afectar la UI
-  const clone = sec.cloneNode(true);
-
-  // Quitamos botones para que no se copien
-  clone.querySelectorAll('button').forEach(b=>b.remove());
-
-  // Reemplazamos inputs/selects por su valor
-  clone.querySelectorAll('input, select, textarea').forEach(el=>{
-    const span = document.createElement('span');
-    span.textContent = el.value ?? '';
-    el.replaceWith(span);
-  });
-
-  const text = clone.innerText.trim();
-  if(!text){
-    alert('La sección está vacía, no hay nada que copiar.');
-    return;
-  }
-
-  // Clipboard moderno + fallback
-  try{
-    navigator.clipboard.writeText(text);
-    alert('✅ Copiado al portapapeles');
-  }catch(e){
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    alert('✅ Copiado al portapapeles');
-  }
-}
-
 </script>
 </body>
 </html>
