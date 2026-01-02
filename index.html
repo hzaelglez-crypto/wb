@@ -2637,10 +2637,9 @@ function yieldFromScrap(row){
       contractInfoFocus.textContent = (currentLang==='es' ? 'Sin contrato cargado' : 'No contract loaded');
       return;
     }
-
-    const sampleLine = buildSampleCellCompact(st);
-    sampleInfoFocus.textContent = sampleLine.text;
-    sampleInfoFocus.className = 'info-line ' + sampleLine.cls;
+const sampleLine = buildSampleCellCompact(st);
+sampleInfoFocus.textContent = sampleLine;
+sampleInfoFocus.className = 'info-line sample-neutral';
 
     stdInfoFocus.textContent = (currentLang==='es'
       ? `Desv est: ${formatSecs(st.std)} s · CV: ${(st.cv*100).toFixed(1)}%`
@@ -2715,7 +2714,7 @@ function yieldFromScrap(row){
         const {cp, cpk} = calcCpCpk(st);
 
         const cells = [
-          proc, mode, st.n, sampleLine.text,
+          proc, mode, st.n, sampleLine,
           formatSecs(st.std), (st.cv*100).toFixed(1),
           formatSecs(st.median), formatSecs(st.p10), formatSecs(st.p90),
           formatUnits(curCap), formatUnits(potCap), formatUnits(wstCap),
