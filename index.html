@@ -374,6 +374,14 @@ th{ white-space:normal; line-height:1.05; }
       max-width: calc(var(--wb-op-w) - 14px);
     }
   }
+  /* ===== Stat Focus table: multiline cell support ===== */
+.stat-focus-table td,
+.stat-focus-table .sample-cell {
+  white-space: pre-line;
+  line-height: 1.25;
+  font-size: 0.85rem;
+}
+
 </style>
 </head>
 
@@ -1874,14 +1882,14 @@ return {
   cls,
   text:
     (currentLang === 'es'
-      ? `Tamaño de muestra: ${n} / ${recN}\n` +
-        `Error estimado: ±${errPct.toFixed(1)}% (95%)\n` +
-        `Estado: ${tail.replace('.', '')}\n` +
-        `Distribución: ${distTag}`
-      : `Sample size: ${n} / ${recN}\n` +
-        `Estimated error: ±${errPct.toFixed(1)}% (95%)\n` +
-        `Status: ${tail.replace('.', '')}\n` +
-        `Distribution: ${distTag}`
+      ? `N:\t${n} / ${recN}\n` +
+        `Error:\t±${errPct.toFixed(1)}% (95%)\n` +
+        `Criterio:\t±3%\n` +
+        `Estado:\t${msg}`
+      : `N:\t${n} / ${recN}\n` +
+        `Error:\t±${errPct.toFixed(1)}% (95%)\n` +
+        `Criteria:\t±3%\n` +
+        `Status:\t${msg}`
     )
 };
 }
