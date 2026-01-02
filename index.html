@@ -1870,10 +1870,19 @@ function applyTranslations(){
   ? (currentLang==='es' ? 'Distribución estable (≈ normal)' : 'Stable distribution (≈ normal)')
   : (currentLang==='es' ? 'Distribución sesgada (no normal)' : 'Skewed distribution (non-normal)');
 
-
 return {
   cls,
-  text: head + tail + ' · ' + distTag
+  text:
+    (currentLang === 'es'
+      ? `Tamaño de muestra: ${n} / ${recN}\n` +
+        `Error estimado: ±${errPct.toFixed(1)}% (95%)\n` +
+        `Estado: ${tail.replace('.', '')}\n` +
+        `Distribución: ${distTag}`
+      : `Sample size: ${n} / ${recN}\n` +
+        `Estimated error: ±${errPct.toFixed(1)}% (95%)\n` +
+        `Status: ${tail.replace('.', '')}\n` +
+        `Distribution: ${distTag}`
+    )
 };
 }
   function copyText(text){
