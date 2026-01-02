@@ -1886,6 +1886,7 @@ function applyTranslations(){
   ? (currentLang==='es' ? 'Distribución estable (≈ normal)' : 'Stable distribution (≈ normal)')
   : (currentLang==='es' ? 'Distribución sesgada (no normal)' : 'Skewed distribution (non-normal)');
 
+    let msg = tail;
 return {
   cls,
   text:
@@ -2745,20 +2746,24 @@ function yieldFromScrap(row){
           ''
         ];
 
-        cells.forEach((c,i)=>{
-          const td=document.createElement('td');
-          if(i===0 || i===1 || i===3 || i===17) td.style.textAlign='left';
-if(i === 3){
-  td.classList.add('sample-multiline'); // 👈 CLAVE
-  td.textContent = c;
-}
+        cells.forEach((c, i) => {
+  const td = document.createElement('td');
 
-          }else{
-            td.textContent = String(c);
-          }
-          tr.appendChild(td);
-        });
+  if (i === 0 || i === 1 || i === 17) {
+    td.style.textAlign = 'left';
+    td.textContent = String(c);
+  }
+  else if (i === 3) {
+    td.style.textAlign = 'left';
+    td.classList.add('sample-multiline'); //
+    td.textContent = c; // respeta \n y \t
+  }
+  else {
+    td.textContent = String(c);
+  }
 
+  tr.appendChild(td);
+});
         focusBody.appendChild(tr);
       }
     });
