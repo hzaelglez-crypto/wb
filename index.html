@@ -2782,12 +2782,7 @@ else if (i === 1 || i === 2) {
           ? 'Sin muestras todavía para el proceso actual. Empieza a capturar vueltas.'
           : 'No samples yet for current process. Start capturing laps.'
       );
-
-      if(fill && label){
-        fill.style.width = '0%';
-        label.textContent = '0%';
-        fill.style.background = '#f2c14e';
-      }
+      
       return;
     }
 
@@ -2810,23 +2805,6 @@ else if (i === 1 || i === 2) {
     }
     
     
-
-if(fill && label && st){
-  const cv = st.cv || 0;
-  const recN = sampleReqN(cv);
-  const pctVal = Math.min(100, Math.round((st.n / recN) * 100));
-
-  fill.style.width = pctVal + '%';
-  label.textContent = pctVal + '%';
-
-  if(pctVal >= 100){
-    fill.style.background = '#18c97a'; // verde
-  }else if(pctVal >= 50){
-    fill.style.background = '#f2c14e'; // amarillo
-  }else{
-    fill.style.background = '#ff3355'; // rojo
-  }
-}
 // --- definir variables antes de usarlas ---
 let cls = 'sample-warn';
 let flag = '🟡';
@@ -2847,19 +2825,6 @@ const text =
 
   setInfo(sampleInfoTop, cls, text);
   const pctProgress = Math.min(100, Math.round((st.n / recN) * 100));
-
-if(fill && label){
-  fill.style.width = pctProgress + '%';
-  label.textContent = pctProgress + '%';
-
-  if(pctProgress >= 100){
-    fill.style.background = '#18c97a';
-  }else if(pct >= 50){
-    fill.style.background = '#f2c14e';
-  }else{
-    fill.style.background = '#ff3355';
-  }
-}
 
   function renderRaw(){
     dataBody.innerHTML = '';
