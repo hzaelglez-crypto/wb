@@ -390,6 +390,19 @@ th{ white-space:normal; line-height:1.05; }
   text-align: left;
   max-width: 260px;
 }
+/* ===== Stat Focus: merge Process / Mode / N in mobile ===== */
+@media (max-width: 768px) {
+  #secFocus table thead th:nth-child(2),
+  #secFocus table thead th:nth-child(3) {
+    display: none;
+  }
+}
+@media (max-width: 768px) {
+  #secFocus table tbody td:nth-child(2),
+  #secFocus table tbody td:nth-child(3) {
+    display: none;
+  }
+}
 
 </style>
 </head>
