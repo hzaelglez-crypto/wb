@@ -3672,6 +3672,111 @@ if(!raw){
   refreshRingStates();
 
   window.addEventListener('resize',()=>{ renderCharts(); });
+/* =========================================================
+   WB – Render Cards (mobile)
+   ========================================================= */
+function renderWBCards(){
+  const wrap = document.getElementById('wbCardsWrap');
+  if(!wrap) return;
+
+  wrap.innerHTML = '';
+
+  wbRows.forEach((row, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'wb-card';
+
+    /* ---------- Header (On + Proceso) ---------- */
+    const header = document.createElement('div');
+    header.className = 'wb-card-header';
+
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = !!row.on;
+    chk.onchange = ()=>{
+      row.on = chk.checked;
+      recalcWB();
+      renderWB();
+    };
+
+    const selProc = document.createElement('select');
+    selProc.innerHTML = procOptionsHTML;   // 👈 ya existe en tu código
+    selProc.value = row.process || '';
+    selProc.onchange = ()=>{
+      row.process = selProc.value;
+      recalcWB();
+      renderWB();
+    };
+
+    header.appendChild(chk);
+    header.appendChild(selProc);
+
+    /* ---------- Grid de inputs ---------- */
+    const grid = document.createElement('div');
+    grid.className = 'wb-card-grid';
+
+    grid.appendChild(wbField('Operadores', createNumberSelect(0,10,row.operators,v=>{
+      row.operators = v; recalcWB(); renderWB();
+    })));
+
+    grid.appendChild(wbField('Máquinas', createNumberSelect(1,50,row.machines,v=>{
+      row.machines = v; recalcWB(); renderWB();
+    })));
+
+    grid.appendChild(wbField('Turnos', createNumberSelect(1,4,row.shifts,v=>{
+      row.shifts = v; recalcWB(); renderWB();
+    })));
+
+    grid.appendChild(wbField('Horas', createNumberSelect(0,24,row.hours, v=>{
+      row.hours = v; recalcWB(); renderWB();
+    },0.5)));
+
+    /* ---------- Métricas ---------- */
+    const metrics = document.createElement('div');
+    metrics.className = 'wb-card-metrics';
+
+    metrics.innerHTML = `
+      <div><span>Contrato</span><strong>${fmt(row.contract||0)}</strong></div>
+      <div><span>Cap@OEE</span><strong>${fmt(row.capEff||0)}</strong></div>
+      <div><span>Util</span><strong>${pct(row.util||0,1)}%</strong></div>
+    `;
+
+    /* ---------- Acciones ---------- */
+    const actions = document.createElement('div');
+    actions.className = 'wb-card-actions';
+
+    const btnC = document.createElement('button');
+    btnC.className = 'btn-small btn-amber';
+    btnC.textContent = 'Constraint';
+    btnC.onclick = ()=>setConstraint(idx);
+
+    const btnN = document.createElement('button');
+    btnN.className = 'btn-small btn-grey';
+    btnN.textContent = 'Next';
+    btnN.onclick = ()=>setNext(idx);
+
+    actions.appendChild(btnC);
+    actions.appendChild(btnN);
+
+    /* ---------- ensamblar card ---------- */
+    card.appendChild(header);
+    card.appendChild(grid);
+    card.appendChild(metrics);
+    card.appendChild(actions);
+
+    wrap.appendChild(card);
+  });
+}
+
+/* helper visual */
+function wbField(label, input){
+  const f = document.createElement('div');
+  f.className = 'wb-field';
+  const l = document.createElement('label');
+  l.textContent = label;
+  f.appendChild(l);
+  f.appendChild(input);
+  return f;
+}
 
 })();
 </script>
