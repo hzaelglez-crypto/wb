@@ -403,7 +403,22 @@ th{ white-space:normal; line-height:1.05; }
     display: none;
   }
 }
+@media (max-width: 768px) {
+  #secFocus .proc-sample {
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: rgba(255, 51, 85, 0.08);
+    border-left: 3px solid #ff3355;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
 
+  #secFocus .proc-sub {
+    font-size: 0.8rem;
+    color: #555;
+  }
+}
 </style>
 </head>
 
@@ -2769,10 +2784,10 @@ function yieldFromScrap(row){
   const isMobile = window.innerWidth <= 768;
 
   if (isMobile) {
-    td.innerHTML =
-      `<div>${cells[0]}</div>` +
-      `<div>Mode: ${cells[1]}</div>` +
-      `<div>N: ${cells[2]}</div>`;
+  td.innerHTML =
+  `<div class="proc-main">${cells[0]}</div>` +
+  `<div class="proc-sub">Mode: ${cells[1]} · N: ${cells[2]}</div>` +
+  `<div class="proc-sample">${cells[3]}</div>`;  
   } else {
     td.textContent = String(cells[0]);
   }
