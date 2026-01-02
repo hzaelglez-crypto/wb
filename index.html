@@ -838,6 +838,8 @@ th{ white-space:normal; line-height:1.05; }
   const t2Clock = document.getElementById('t2Clock');
 
   const sampleInfoTop = document.getElementById('sampleInfoTop');
+  const sampleProgressFill  = document.getElementById('sampleProgressFill');
+  const sampleProgressLabel = document.getElementById('sampleProgressLabel');
   const sampleInfoFocus = document.getElementById('sampleInfoFocus');
   const stdInfoFocus = document.getElementById('stdInfoFocus');
   const distInfoFocus = document.getElementById('distInfoFocus');
@@ -2796,11 +2798,12 @@ else if (i === 1 || i === 2) {
           : 'No samples yet for current process. Start capturing laps.'
       );
 
-      if(fill && label){
-        fill.style.width = '0%';
-        label.textContent = '0%';
-        fill.style.background = '#f2c14e';
-      }
+      if(sampleProgressFill && sampleProgressLabel){
+  sampleProgressFill.style.width = '0%';
+  sampleProgressFill.style.background = '#f2c14e';
+  sampleProgressLabel.textContent = '0%';
+}
+
       return;
     }
     
@@ -2825,6 +2828,18 @@ const text =
 
   setInfo(sampleInfoTop, cls, text);
   const pctProgress = Math.min(100, Math.round((st.n / recN) * 100));
+if(sampleProgressFill && sampleProgressLabel){
+  sampleProgressFill.style.width = pctProgress + '%';
+  sampleProgressLabel.textContent = pctProgress + '%';
+
+  if(pctProgress >= 100){
+    sampleProgressFill.style.background = '#18c97a'; // verde
+  }else if(pctProgress < 50){
+    sampleProgressFill.style.background = '#ff3355'; // rojo
+  }else{
+    sampleProgressFill.style.background = '#f2c14e'; // ámbar
+  }
+}    
 
   function renderRaw(){
     dataBody.innerHTML = '';
