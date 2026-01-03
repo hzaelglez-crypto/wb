@@ -3600,21 +3600,21 @@ btnCopyRaw.addEventListener('click',()=>{
   laps.forEach((l,idx)=>{
     out.push([
       idx+1,
-      (l.process||'').trim(),
-      l.mode||'',
-      l.status||'',
+      l.process || '',
+      l.mode || '',
+      l.status || '',
       (l.note||'').replace(/\t/g,' '),
       formatSecs(l.t1),
       formatSecs(l.t2),
       formatSecs(l.total)
     ].join('\t'));
   });
-  copyTextLocked(btnCopyRaw, out.join('\n'));
+  copyText(out.join('\n'));
 });
 
-/* =======================
-   INIT / LOAD
-   ======================= */
+/* =========================
+   INIT
+   ========================= */
 function renderAll(){
   renderContractSummaryAndFocus();
   renderStatsTables();
@@ -3626,7 +3626,12 @@ function renderAll(){
 
 loadWB();
 loadSC();
+applyTranslations();
+updateLangButtons();
+renderAll();
+scheduleSaveAll();
 
+})(); // ⬅️ ESTE CIERRE ES CRÍTICO
 const saved = safeJsonParse(localStorage.getItem(TL_STATE_KEY));
 if(saved){
   processInput.value = saved.settings?.processName || '';
@@ -3647,5 +3652,4 @@ renderAll();
 </script>
 </body>
 </html>
-
  
