@@ -415,99 +415,6 @@ th{ white-space:normal; line-height:1.05; }
   .sample-progress-wrap{
   margin-top:6px;
 }
-  /* =========================================================
-   WB – Mobile Cards (solo móvil)
-   ========================================================= */
-@media (max-width: 768px){
-
-  /* ocultamos la tabla WB tradicional */
-  .wb-table-wrap{
-    display:none;
-  }
-
-  /* contenedor de cards */
-  .wb-cards-wrap{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    margin-top:10px;
-  }
-
-  /* card individual */
-  .wb-card{
-    background:#ffffff;
-    border:2px solid #e3e6eb;
-    border-radius:14px;
-    padding:12px 14px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);
-  }
-
-  .wb-card-header{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-weight:600;
-    font-size:0.95rem;
-    margin-bottom:8px;
-  }
-
-  .wb-card-header select{
-    flex:1;
-  }
-
-  .wb-card-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px 10px;
-    font-size:0.85rem;
-  }
-
-  .wb-field{
-    display:flex;
-    flex-direction:column;
-    gap:2px;
-  }
-
-  .wb-field label{
-    font-size:0.7rem;
-    color:#666;
-  }
-
-  .wb-field select,
-  .wb-field input{
-    padding:6px 8px;
-    border-radius:8px;
-    border:1px solid #d0d4dc;
-    font-size:0.85rem;
-  }
-
-  .wb-card-metrics{
-    margin-top:8px;
-    padding-top:8px;
-    border-top:1px dashed #e0e0e0;
-    font-size:0.8rem;
-  }
-
-  .wb-card-metrics div{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:4px;
-  }
-
-  .wb-card-actions{
-    margin-top:10px;
-    display:flex;
-    gap:8px;
-  }
-
-  .wb-card-actions button{
-    flex:1;
-    padding:6px 8px;
-    border-radius:8px;
-    font-size:0.8rem;
-  }
-}
-
 </style>
 </head>
 
@@ -702,10 +609,9 @@ th{ white-space:normal; line-height:1.05; }
         <button class="btn-small btn-small-wbclear" id="btnWbClear" data-i18n="btn.wbClear">Borrar WB</button>
         <button class="btn-small btn-small-copy" id="btnCopyWB" data-i18n="btn.copyWB">Copiar WB</button>
       </div>
-    <div id="wbCardsWrap" class="wb-cards-wrap"></div>
-     <div class="wb-table-wrap" style="max-height:320px;overflow:auto;">
-  <table id="wbTable">
 
+      <div style="max-height:320px;overflow:auto;">
+        <table id="wbTable">
           <thead>
             <tr>
               <th data-i18n="wb.enabled">On</th>
@@ -2302,21 +2208,6 @@ function yieldFromScrap(row){
   }
 
   function renderWB(){
-    const isMobileWB = window.innerWidth < 768;
-const cardsWrap = document.getElementById('wbCardsWrap');
-const tableWrap = document.querySelector('.wb-table-wrap');
-
-if(isMobileWB){
-  if(tableWrap) tableWrap.style.display = 'none';
-  if(cardsWrap) cardsWrap.style.display = 'flex';
-  renderWBCards();
-  return;
-}
-
-// desktop
-if(tableWrap) tableWrap.style.display = 'block';
-if(cardsWrap) cardsWrap.style.display = 'none';
-
     wbRows.forEach(r=>applyGlobalToRow(r));
     saveWB();
 
@@ -3593,67 +3484,103 @@ View: ${capViewSel.value||''}`;
     const v = chartSelect.value || '';
     copyTextLocked(btnCopyCharts, `CHARTS\nSelected: ${v}\n(Charts are visual; export raw data for Excel.)`);
   });
-btnCopyRaw.addEventListener('click',()=>{
-  let out=[];
-  out.push('RAW DATA');
-  out.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
 
-  laps.forEach((l,idx)=>{
-    out.push([
-      idx+1,
-      (l.process||'').trim(),
-      l.mode||'',
-      l.status||'',
-      (l.note||'').replace(/\t/g,' '),
-      formatSecs(l.t1),
-      formatSecs(l.t2),
-      formatSecs(l.total)
-    ].join('\t'));
+  btnCopyRaw.addEventListener('click',()=>{
+    let out=[];
+    out.push('RAW DATA');
+    out.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
+    laps.forEach((l,idx)=>{
+      out.push([
+        idx+1,
+        (l.process||'').trim(),
+        l.mode||'',
+        l.status||'',
+        (l.note||'').replace(/\t/g,' '),
+        formatSecs(l.t1),
+        formatSecs(l.t2),
+        formatSecs(l.total)
+      ].join('\t'));
+    });
+    copyTextLocked(btnCopyRaw, out.join('\n'));
   });
 
-  copyTextLocked(btnCopyRaw, out.join('\n'));
-});
-btnCopyRaw.addEventListener('click',()=>{
-  let out=[];
-  out.push('RAW DATA');
-  out.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
-
-  laps.forEach((l,idx)=>{
-    out.push([
-      idx+1,
-      (l.process||'').trim(),
-      l.mode||'',
-      l.status||'',
-      (l.note||'').replace(/\t/g,' '),
-      formatSecs(l.t1),
-      formatSecs(l.t2),
-      formatSecs(l.total)
-    ].join('\t'));
+  btnCopyGuide.addEventListener('click',()=>{
+    copyTextLocked(btnCopyGuide, methodGuideText.textContent || '');
   });
 
-  copyTextLocked(btnCopyRaw, out.join('\n'));
-});
-
-/* =========================
-   INIT
-   ========================= */
-function renderAll(){
-  renderContractSummaryAndFocus();
-  renderStatsTables();
-  renderWB();
-  renderRaw();
-  renderCharts();
-  renderMethodGuide();
+  function restoreState(){
+    const raw = localStorage.getItem(TL_STATE_KEY);
+if(!raw){
+  loadWB();
+  loadSC();
+  scRender();
+  return;
 }
+    const snap = safeJsonParse(raw);
+    if(!snap || !snap.settings) { loadWB(); return; }
 
-loadWB();
-loadSC();
-applyTranslations();
-updateLangButtons();
-renderAll();
-scheduleSaveAll();
+    try{
+      currentLang = (snap.lang==='en') ? 'en' : (localStorage.getItem(LANG_KEY)||'es');
+    }catch(e){}
 
-})();   // 👈 ÚNICO CIERRE DEL IIFE
+    processInput.value = (snap.settings.processName ?? '');
+    modeSelect.value   = (snap.settings.mode ?? 'CT');
+    effInput.value     = (snap.settings.efficiency ?? '100');
+    pcdInput.value     = (snap.settings.contractPcd ?? '');
+    if(pcdInput.value === '' || pcdInput.value === null || pcdInput.value === undefined){
+  pcdInput.value = '0';
+}
+    hInput.value       = (snap.settings.hoursPerDay ?? '8');
+    dInput.value       = (snap.settings.daysPerWeek ?? '5');
+    capViewSel.value   = (snap.settings.capView ?? 'hour');
+
+    laps = Array.isArray(snap.laps) ? snap.laps : [];
+    nextId = isFinite(snap.nextId) ? snap.nextId : 1;
+
+    wbRows = Array.isArray(snap.wbRows) ? snap.wbRows : [];
+    if(!wbRows.length) loadWB();
+
+    wbRows.forEach(r=>{
+      r.pcsPerOp = clamp(parseFloat(r.pcsPerOp)||1,1,99);
+      r.udtMinDay = clamp(parseFloat(r.udtMinDay)||0,0,1440);
+      if(!isFinite(r.changeoverMin) || r.changeoverMin<1) r.changeoverMin = 1;
+      if(!isFinite(r.maintMin) || r.maintMin<0) r.maintMin = 0;
+    });
+  }
+
+  [processInput, modeSelect, effInput, pcdInput, hInput, dInput, capViewSel].forEach(el=>{
+    el.addEventListener('input',()=>{ scheduleSaveAll(); renderAll(); });
+    el.addEventListener('change',()=>{ scheduleSaveAll(); renderAll(); });
+  });
+
+  processInput.addEventListener('change',()=>{
+    const proc=(processInput.value||'').trim();
+    if(proc) ensureWbRowForOperation(proc);
+    renderAll();
+    scheduleSaveAll();
+  });
+
+  function renderAll(){
+    updateLangButtons();
+    applyTranslations();
+    renderMethodGuide();
+    renderContractSummaryAndFocus();
+    renderStatsTables();
+    renderWB();
+    scRender();
+    renderRaw();
+    renderCharts();
+    updateSplitClocks();
+  }
+
+  restoreState();
+  setLanguage(currentLang);
+
+  refreshRingStates();
+
+  window.addEventListener('resize',()=>{ renderCharts(); });
+
+})();
 </script>
 </body>
 </html>
