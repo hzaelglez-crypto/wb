@@ -2301,6 +2301,21 @@ function yieldFromScrap(row){
   }
 
   function renderWB(){
+    const isMobileWB = window.innerWidth < 768;
+const cardsWrap = document.getElementById('wbCardsWrap');
+const tableWrap = document.querySelector('.wb-table-wrap');
+
+if(isMobileWB){
+  if(tableWrap) tableWrap.style.display = 'none';
+  if(cardsWrap) cardsWrap.style.display = 'flex';
+  renderWBCards();
+  return;
+}
+
+// desktop
+if(tableWrap) tableWrap.style.display = 'block';
+if(cardsWrap) cardsWrap.style.display = 'none';
+
     wbRows.forEach(r=>applyGlobalToRow(r));
     saveWB();
 
