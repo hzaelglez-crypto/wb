@@ -424,6 +424,7 @@ th{ white-space:normal; line-height:1.05; }
   .wb-table-wrap{
     display:none;
   }
+<div class="wb-cards-wrap" id="wbCardsWrap"></div>
 
   /* contenedor de cards */
   .wb-cards-wrap{
@@ -703,8 +704,9 @@ th{ white-space:normal; line-height:1.05; }
         <button class="btn-small btn-small-copy" id="btnCopyWB" data-i18n="btn.copyWB">Copiar WB</button>
       </div>
 
-      <div style="max-height:320px;overflow:auto;">
-        <table id="wbTable">
+     <div class="wb-table-wrap" style="max-height:320px;overflow:auto;">
+  <table id="wbTable">
+
           <thead>
             <tr>
               <th data-i18n="wb.enabled">On</th>
