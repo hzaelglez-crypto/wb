@@ -3601,7 +3601,27 @@ btnCopyRaw.addEventListener('click',()=>{
   laps.forEach((l,idx)=>{
     out.push([
       idx+1,
-      l.process||'',
+      (l.process||'').trim(),
+      l.mode||'',
+      l.status||'',
+      (l.note||'').replace(/\t/g,' '),
+      formatSecs(l.t1),
+      formatSecs(l.t2),
+      formatSecs(l.total)
+    ].join('\t'));
+  });
+
+  copyTextLocked(btnCopyRaw, out.join('\n'));
+});
+btnCopyRaw.addEventListener('click',()=>{
+  let out=[];
+  out.push('RAW DATA');
+  out.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
+
+  laps.forEach((l,idx)=>{
+    out.push([
+      idx+1,
+      (l.process||'').trim(),
       l.mode||'',
       l.status||'',
       (l.note||'').replace(/\t/g,' '),
@@ -3633,25 +3653,7 @@ updateLangButtons();
 renderAll();
 scheduleSaveAll();
 
-})(); // ⬅️ ESTE CIERRE ES CRÍTICO
-const saved = safeJsonParse(localStorage.getItem(TL_STATE_KEY));
-if(saved){
-  processInput.value = saved.settings?.processName || '';
-  modeSelect.value   = saved.settings?.mode || 'CT';
-  effInput.value    = saved.settings?.efficiency || 100;
-  pcdInput.value    = saved.settings?.contractPcd || 0;
-  hInput.value      = saved.settings?.hoursPerDay || 8;
-  dInput.value      = saved.settings?.daysPerWeek || 5;
-  capViewSel.value  = saved.settings?.capView || 'hour';
-  laps              = saved.laps || [];
-  nextId            = saved.nextId || 1;
-  wbRows            = saved.wbRows || [];
-}
-
-setLanguage(currentLang);
-renderAll();
-})();
+})();   // 👈 ÚNICO CIERRE DEL IIFE
 </script>
 </body>
 </html>
- 
