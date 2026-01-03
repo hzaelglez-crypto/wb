@@ -3597,19 +3597,21 @@ btnCopyRaw.addEventListener('click',()=>{
   let out=[];
   out.push('RAW DATA');
   out.push('#\tProcess\tMode\tStatus\tNote\tT1\tT2\tTotal');
+
   laps.forEach((l,idx)=>{
     out.push([
       idx+1,
-      l.process || '',
-      l.mode || '',
-      l.status || '',
+      l.process||'',
+      l.mode||'',
+      l.status||'',
       (l.note||'').replace(/\t/g,' '),
       formatSecs(l.t1),
       formatSecs(l.t2),
       formatSecs(l.total)
     ].join('\t'));
   });
-  copyText(out.join('\n'));
+
+  copyTextLocked(btnCopyRaw, out.join('\n'));
 });
 
 /* =========================
